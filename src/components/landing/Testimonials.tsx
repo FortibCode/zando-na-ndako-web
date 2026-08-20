@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, MessageSquareQuote, Quote, Star } from 'lucide-react';
+import { useLanguage } from '@/lib/language-context';
 import { TESTIMONIALS } from './data';
 
 export function Testimonials() {
+  const { t } = useLanguage();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -41,9 +43,9 @@ export function Testimonials() {
           <div>
             <div className="flex items-center gap-2">
               <MessageSquareQuote className="h-5 w-5 text-[#0B2545]" />
-              <h2 className="text-lg sm:text-xl font-black text-slate-900">Ce que disent nos clients</h2>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.testimonials.title', 'Ce que disent nos clients')}</h2>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">Avis vérifiés d&apos;utilisateurs au Congo.</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('client.testimonials.subtitle', "Avis vérifiés d'utilisateurs au Congo.")}</p>
           </div>
 
           {/* Navigation Controls */}
@@ -51,14 +53,14 @@ export function Testimonials() {
             <button
               onClick={handlePrev}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-xs hover:bg-[#0B2545] hover:text-white hover:border-[#0B2545] transition-all cursor-pointer"
-              aria-label="Témoignage précédent"
+              aria-label={t('client.testimonials.prevAria', 'Témoignage précédent')}
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={handleNext}
               className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-xs hover:bg-[#0B2545] hover:text-white hover:border-[#0B2545] transition-all cursor-pointer"
-              aria-label="Témoignage suivant"
+              aria-label={t('client.testimonials.nextAria', 'Témoignage suivant')}
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -104,16 +106,16 @@ export function Testimonials() {
 
         {/* Dynamic Indicator Dots */}
         <div className="mt-4 flex items-center justify-center gap-1.5">
-          {TESTIMONIALS.map((t, idx) => (
+          {TESTIMONIALS.map((testimonial, idx) => (
             <button
-              key={t.id}
+              key={testimonial.id}
               onClick={() => setActiveIndex(idx)}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 idx === activeIndex
                   ? 'w-7 bg-[#0B2545]'
                   : 'w-2 bg-slate-200 hover:bg-slate-400'
               }`}
-              aria-label={`Aller au témoignage ${idx + 1}`}
+              aria-label={`${t('client.testimonials.dotAriaPrefix', 'Aller au témoignage')} ${idx + 1}`}
             />
           ))}
         </div>

@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { Bell, Bike, CheckCheck, Gift, Package, Loader2 } from "lucide-react";
 import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { fetchNotifications, markAllNotificationsRead, markNotificationRead, type UserNotification } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
+import { clientTranslations } from "@/i18n/client-translations";
+import type { Language } from "@/i18n/translations";
 
 function iconFor(type: string) {
   if (type === "commande" || type === "livraison") return Bike;
@@ -12,18 +15,20 @@ function iconFor(type: string) {
   return Bell;
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, language: Language): string {
+  const n = clientTranslations[language].notifications;
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 1) return n.justNow;
+  if (minutes < 60) return `${n.agoPrefix} ${minutes} ${n.minutesAgoSuffix}`.trim();
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `il y a ${hours} h`;
+  if (hours < 24) return `${n.agoPrefix} ${hours} ${n.hoursAgoSuffix}`.trim();
   const days = Math.floor(hours / 24);
-  return `il y a ${days} j`;
+  return `${n.agoPrefix} ${days} ${n.daysAgoSuffix}`.trim();
 }
 
 export default function NotificationsPage() {
+  const { t, language } = useLanguage();
   const { user, isReady } = useRequirePublicAuth();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,10 +61,10 @@ export default function NotificationsPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Notifications</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">{t('client.notifications.title', 'Notifications')}</h1>
         {unreadCount > 0 && (
           <button onClick={handleMarkAllRead} className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline cursor-pointer">
-            <CheckCheck className="h-4 w-4" /> Tout marquer comme lu
+            <CheckCheck className="h-4 w-4" /> {t('client.notifications.markAllRead', 'Tout marquer comme lu')}
           </button>
         )}
       </div>
@@ -71,7 +76,7 @@ export default function NotificationsPage() {
       ) : notifications.length === 0 ? (
         <div className="flex flex-col items-center py-24 text-center">
           <Bell className="h-12 w-12 text-slate-300 mb-3" />
-          <p className="text-sm font-bold text-slate-700">Aucune notification pour le moment</p>
+          <p className="text-sm font-bold text-slate-700">{t('client.notifications.emptyTitle', 'Aucune notification pour le moment')}</p>
         </div>
       ) : (
         <div className="space-y-2.5">
@@ -91,7 +96,7 @@ export default function NotificationsPage() {
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm ${n.lu ? "font-semibold text-slate-600" : "font-black text-slate-900"}`}>{n.titre}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                  <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at, language)}</p>
                 </div>
                 {!n.lu && <span className="h-2 w-2 rounded-full bg-[#c00000] mt-1.5 shrink-0" />}
               </button>

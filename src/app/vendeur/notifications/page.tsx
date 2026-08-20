@@ -5,18 +5,21 @@ import { Bell, CheckCheck, Package } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { fetchNotifications, markAllNotificationsRead, markNotificationRead, type UserNotification } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: (key: string, fallback?: string) => string): string {
   const diffMs = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 1) return t("vendor.notifications.justNow", "à l'instant");
+  const agoPrefix = t("vendor.notifications.agoPrefix", "il y a");
+  if (minutes < 60) return `${agoPrefix} ${minutes} ${t("vendor.notifications.minUnit", "min")}`.trim();
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `il y a ${hours} h`;
-  return `il y a ${Math.floor(hours / 24)} j`;
+  if (hours < 24) return `${agoPrefix} ${hours} ${t("vendor.notifications.hUnit", "h")}`.trim();
+  return `${agoPrefix} ${Math.floor(hours / 24)} ${t("vendor.notifications.dayUnit", "j")}`.trim();
 }
 
 export default function VendeurNotificationsPage() {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,20 +42,20 @@ export default function VendeurNotificationsPage() {
   return (
     <div className="max-w-2xl">
       <PageHeader
-        title="Notifications"
+        title={t("vendor.notifications.title", "Notifications")}
         actions={unreadCount > 0 ? (
           <button onClick={handleMarkAllRead} className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline cursor-pointer">
-            <CheckCheck className="h-4 w-4" /> Tout marquer comme lu
+            <CheckCheck className="h-4 w-4" /> {t("vendor.notifications.markAllRead", "Tout marquer comme lu")}
           </button>
         ) : undefined}
       />
 
       {loading ? (
-        <LoadingBlock label="Chargement…" />
+        <LoadingBlock label={t("vendor.notifications.loading", "Chargement…")} />
       ) : notifications.length === 0 ? (
         <div className="flex flex-col items-center py-16">
           <Bell className="h-12 w-12 text-slate-300 mb-3" />
-          <EmptyState message="Aucune notification pour le moment." />
+          <EmptyState message={t("vendor.notifications.emptyState", "Aucune notification pour le moment.")} />
         </div>
       ) : (
         <div className="space-y-2.5">
@@ -70,7 +73,7 @@ export default function VendeurNotificationsPage() {
               <div className="flex-1 min-w-0">
                 <p className={`text-sm ${n.lu ? "font-semibold text-slate-600" : "font-black text-slate-900"}`}>{n.titre}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
+                <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at, t)}</p>
               </div>
               {!n.lu && <span className="h-2 w-2 rounded-full bg-[#c00000] mt-1.5 shrink-0" />}
             </button>

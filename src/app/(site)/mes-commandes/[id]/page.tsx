@@ -20,8 +20,12 @@ import {
   type ApiCommandeSuivi,
   type ApiNotation,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
+import { clientTranslations } from "@/i18n/client-translations";
+import type { Language } from "@/i18n/translations";
 
 function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; cible: "vendeur" | "livreur"; label: string; onDone: (n: ApiNotation) => void }) {
+  const { t } = useLanguage();
   const [note, setNote] = useState(0);
   const [hover, setHover] = useState(0);
   const [commentaire, setCommentaire] = useState("");
@@ -54,7 +58,7 @@ function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; 
             onMouseEnter={() => setHover(n)}
             onMouseLeave={() => setHover(0)}
             className="cursor-pointer"
-            aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+            aria-label={`${n} ${t('client.commandeDetail.starAriaSuffix', 'étoile(s)')}`}
           >
             <Star className={`h-7 w-7 ${(hover || note) >= n ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
           </button>
@@ -64,7 +68,7 @@ function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; 
         value={commentaire}
         onChange={(e) => setCommentaire(e.target.value)}
         rows={2}
-        placeholder="Un commentaire (facultatif)…"
+        placeholder={t('client.commandeDetail.ratingCommentPlaceholder', 'Un commentaire (facultatif)…')}
         className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
       />
       {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
@@ -74,7 +78,7 @@ function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; 
         disabled={note < 1 || submitting}
         className="w-full h-10 rounded-xl bg-[#0B2545] text-white text-xs font-bold disabled:opacity-50 cursor-pointer"
       >
-        {submitting ? "Envoi…" : "Envoyer mon avis"}
+        {submitting ? t('client.commandeDetail.ratingSending', 'Envoi…') : t('client.commandeDetail.ratingSend', 'Envoyer mon avis')}
       </button>
     </div>
   );
@@ -83,20 +87,22 @@ function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; 
 const CANCELLABLE = ["confirmee", "achat_marche"];
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80';
 
-function statusLabel(statut: string): string {
+function statusLabel(statut: string, language: Language): string {
+  const c = clientTranslations[language].commandeDetail;
   const map: Record<string, string> = {
-    confirmee: "Confirmée",
-    achat_marche: "Achats en cours",
-    preparation: "En préparation",
-    en_route: "Livreur en route",
-    en_route_client: "Arrivée imminente",
-    livree: "Livrée",
-    annulee: "Annulée",
+    confirmee: c.statusConfirmed,
+    achat_marche: c.statusShopping,
+    preparation: c.statusPreparing,
+    en_route: c.statusEnRoute,
+    en_route_client: c.statusArriving,
+    livree: c.statusDelivered,
+    annulee: c.statusCancelled,
   };
   return map[statut] || statut;
 }
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t, language } = useLanguage();
   const { id } = use(params);
   const { user, isReady } = useRequirePublicAuth();
   const { addItem } = useCart();
@@ -156,9 +162,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   if (!order) {
     return (
       <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-16 flex-1 text-center">
-        <h1 className="text-xl font-black text-slate-900">Commande introuvable</h1>
+        <h1 className="text-xl font-black text-slate-900">{t('client.commandeDetail.notFoundTitle', 'Commande introuvable')}</h1>
         <Link href="/mes-commandes" className="inline-flex items-center gap-2 mt-6 text-xs font-extrabold text-[#0B2545] hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Retour à mes commandes
+          <ArrowLeft className="h-4 w-4" /> {t('client.commandeDetail.back', 'Mes commandes')}
         </Link>
       </main>
     );
@@ -173,7 +179,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       load();
       setShowCancelForm(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'annuler cette commande.");
+      setError(err instanceof ApiError ? err.message : t('client.commandeDetail.cancelError', "Impossible d'annuler cette commande."));
     } finally {
       setCancelling(false);
     }
@@ -205,7 +211,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       const litige = await ouvrirLitige(order.id, litigeMotif, litigeDescription.trim());
       router.push(`/mes-litiges/${litige.id}`);
     } catch (err) {
-      setLitigeError(err instanceof ApiError ? err.message : "Impossible d'ouvrir ce litige.");
+      setLitigeError(err instanceof ApiError ? err.message : t('client.commandeDetail.openLitigeError', "Impossible d'ouvrir ce litige."));
     } finally {
       setOpeningLitige(false);
     }
@@ -216,12 +222,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <Link href="/mes-commandes" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-6">
-        <ArrowLeft className="h-4 w-4" /> Mes commandes
+        <ArrowLeft className="h-4 w-4" /> {t('client.commandeDetail.back', 'Mes commandes')}
       </Link>
 
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-xl font-black text-slate-900">{order.numero_commande}</h1>
-        <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-blue-50 text-[#0B2545]">{statusLabel(order.statut_commande)}</span>
+        <span className="text-xs font-extrabold px-2.5 py-1 rounded-full bg-blue-50 text-[#0B2545]">{statusLabel(order.statut_commande, language)}</span>
       </div>
       <p className="text-xs text-slate-400 mb-6">{new Date(order.created_at).toLocaleString('fr-FR')}</p>
 
@@ -239,7 +245,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <div className="flex items-center justify-between pt-2 border-t border-slate-100">
               <p className="text-xs font-bold text-slate-700">{suivi.livreur.nom}</p>
               <a href={`tel:${suivi.livreur.telephone}`} className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545]">
-                <Phone className="h-3.5 w-3.5" /> Appeler
+                <Phone className="h-3.5 w-3.5" /> {t('client.commandeDetail.call', 'Appeler')}
               </a>
             </div>
           )}
@@ -260,7 +266,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           ))}
         </div>
         <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-sm font-black">
-          <span>Total</span>
+          <span>{t('client.commandeDetail.total', 'Total')}</span>
           <span className="text-[#0B2545]">{Math.round(Number(order.montant_total)).toLocaleString('fr-FR')} FCFA</span>
         </div>
       </div>
@@ -271,11 +277,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             .filter((cible) => cible === "vendeur" || !!order.livreur_id)
             .map((cible) => {
               const already = notations.find((n) => n.type_notateur === "client" && n.type_cible === cible);
-              const label = cible === "vendeur" ? "Noter le vendeur" : "Noter le livreur";
+              const label = cible === "vendeur" ? t('client.commandeDetail.noteVendor', 'Noter le vendeur') : t('client.commandeDetail.noteDriver', 'Noter le livreur');
               if (already) {
                 return (
                   <div key={cible} className="flex items-center gap-2 p-3 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs font-bold text-emerald-700">
-                    <Star className="h-4 w-4 fill-emerald-600 text-emerald-600" /> {label} · {already.note}/5 — Merci pour votre avis !
+                    <Star className="h-4 w-4 fill-emerald-600 text-emerald-600" /> {label} · {already.note}/5 — {t('client.commandeDetail.thanksForReview', 'Merci pour votre avis !')}
                   </div>
                 );
               }
@@ -308,7 +314,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           onClick={() => setShowCancelForm(true)}
           className="w-full h-11 rounded-xl border-2 border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
-          <XCircle className="h-4 w-4" /> Annuler la commande
+          <XCircle className="h-4 w-4" /> {t('client.commandeDetail.cancelOrder', 'Annuler la commande')}
         </button>
       )}
 
@@ -317,20 +323,20 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <textarea
             value={motif}
             onChange={(e) => setMotif(e.target.value)}
-            placeholder="Motif de l'annulation…"
+            placeholder={t('client.commandeDetail.cancelReasonPlaceholder', "Motif de l'annulation…")}
             className="w-full h-20 p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-red-400"
           />
           {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
           <div className="flex gap-2">
             <button onClick={() => setShowCancelForm(false)} className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">
-              Retour
+              {t('client.common.back', 'Retour')}
             </button>
             <button
               onClick={handleCancel}
               disabled={!motif.trim() || cancelling}
               className="flex-1 h-10 rounded-xl bg-red-600 text-white text-xs font-bold disabled:opacity-50"
             >
-              {cancelling ? "Annulation…" : "Confirmer l'annulation"}
+              {cancelling ? t('client.commandeDetail.cancelling', 'Annulation…') : t('client.commandeDetail.confirmCancel', "Confirmer l'annulation")}
             </button>
           </div>
         </div>
@@ -342,7 +348,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           onClick={handleReorder}
           className="w-full h-11 rounded-xl border-2 border-[#0B2545] text-[#0B2545] font-bold text-sm hover:bg-blue-50/40 transition-colors flex items-center justify-center gap-2 mb-3"
         >
-          <RotateCcw className="h-4 w-4" /> Commander à nouveau
+          <RotateCcw className="h-4 w-4" /> {t('client.commandeDetail.reorder', 'Commander à nouveau')}
         </Link>
       )}
 
@@ -351,18 +357,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           href={`/mes-litiges/${order.litige.id}`}
           className="w-full h-11 rounded-xl border-2 border-amber-200 text-amber-700 font-bold text-sm hover:bg-amber-50 transition-colors flex items-center justify-center gap-2"
         >
-          <AlertTriangle className="h-4 w-4" /> Voir le litige ouvert
+          <AlertTriangle className="h-4 w-4" /> {t('client.commandeDetail.viewDispute', 'Voir le litige ouvert')}
         </Link>
       ) : !showLitigeForm ? (
         <button
           onClick={() => setShowLitigeForm(true)}
           className="w-full h-11 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
-          <AlertTriangle className="h-4 w-4" /> Signaler un problème
+          <AlertTriangle className="h-4 w-4" /> {t('client.commandeDetail.reportProblem', 'Signaler un problème')}
         </button>
       ) : (
         <form onSubmit={handleOpenLitige} className="p-4 rounded-2xl border-2 border-slate-200 bg-white space-y-3">
-          <p className="text-sm font-black text-slate-900">Signaler un problème</p>
+          <p className="text-sm font-black text-slate-900">{t('client.commandeDetail.reportProblem', 'Signaler un problème')}</p>
           <select value={litigeMotif} onChange={(e) => setLitigeMotif(e.target.value)}
             className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
             {LITIGE_MOTIFS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
@@ -371,17 +377,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             value={litigeDescription}
             onChange={(e) => setLitigeDescription(e.target.value)}
             rows={3}
-            placeholder="Décrivez le problème rencontré…"
+            placeholder={t('client.commandeDetail.disputeDescPlaceholder', 'Décrivez le problème rencontré…')}
             className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
           />
           {litigeError && <p className="text-xs font-semibold text-red-600">{litigeError}</p>}
           <div className="flex gap-2">
             <button type="button" onClick={() => setShowLitigeForm(false)} className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">
-              Annuler
+              {t('client.common.cancel', 'Annuler')}
             </button>
             <button type="submit" disabled={!litigeDescription.trim() || openingLitige}
               className="flex-1 h-10 rounded-xl bg-[#0B2545] text-white text-xs font-bold disabled:opacity-50">
-              {openingLitige ? "Envoi…" : "Envoyer"}
+              {openingLitige ? t('client.commandeDetail.disputeSending', 'Envoi…') : t('client.commandeDetail.disputeSend', 'Envoyer')}
             </button>
           </div>
         </form>

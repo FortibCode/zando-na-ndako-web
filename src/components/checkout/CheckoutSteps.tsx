@@ -1,7 +1,11 @@
-import { Check } from "lucide-react";
+"use client";
 
-export function CheckoutSteps({ current, firstLabel = "Adresse" }: { current: 1 | 2 | 3; firstLabel?: string }) {
-  const steps = [firstLabel, "Créneau", "Paiement"];
+import { Check } from "lucide-react";
+import { useLanguage } from "@/lib/language-context";
+
+export function CheckoutSteps({ current, firstLabel }: { current: 1 | 2 | 3; firstLabel?: string }) {
+  const { t } = useLanguage();
+  const steps = [firstLabel ?? t('client.checkoutSteps.addressLabel', 'Adresse'), t('client.checkoutSteps.slotLabel', 'Créneau'), t('client.checkoutSteps.paymentLabel', 'Paiement')];
   return (
     <div className="flex items-center justify-center gap-2 mb-8">
       {steps.map((label, idx) => {

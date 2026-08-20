@@ -9,8 +9,10 @@ import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
 import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { ApiError, envoyerVendeurMessage, fetchVendeurMessages, type VendeurMessage } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 export default function VendeurSupportPage() {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<VendeurMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -36,7 +38,7 @@ export default function VendeurSupportPage() {
       setContenu("");
       setShowNew(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'envoyer ce message.");
+      setError(err instanceof ApiError ? err.message : t("vendor.support.sendError", "Impossible d'envoyer ce message."));
     } finally {
       setSending(false);
     }
@@ -45,17 +47,17 @@ export default function VendeurSupportPage() {
   return (
     <div>
       <PageHeader
-        title="Support Zando na Ndako"
-        description="Échangez directement avec l'équipe d'administration."
-        actions={<Button variant="primary" onClick={() => setShowNew(true)}><Plus className="h-4 w-4" /> Nouveau message</Button>}
+        title={t("vendor.support.title", "Support Zando na Ndako")}
+        description={t("vendor.support.subtitle", "Échangez directement avec l'équipe d'administration.")}
+        actions={<Button variant="primary" onClick={() => setShowNew(true)}><Plus className="h-4 w-4" /> {t("vendor.support.newMessageBtn", "Nouveau message")}</Button>}
       />
 
       {loading ? (
-        <LoadingBlock label="Chargement des conversations…" />
+        <LoadingBlock label={t("vendor.support.loading", "Chargement des conversations…")} />
       ) : messages.length === 0 ? (
         <div className="flex flex-col items-center py-16">
           <Headset className="h-12 w-12 text-slate-300 mb-3" />
-          <EmptyState message="Aucune conversation avec l'administration pour le moment." />
+          <EmptyState message={t("vendor.support.emptyState", "Aucune conversation avec l'administration pour le moment.")} />
         </div>
       ) : (
         <div className="space-y-3">
@@ -67,7 +69,7 @@ export default function VendeurSupportPage() {
                 <p className="text-xs text-slate-500 mt-0.5 truncate">{m.contenu}</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">{new Date(m.created_at).toLocaleString('fr-FR')}</p>
               </div>
-              {!m.statut_lecture && <Badge tone="navy" dot={false}>Non lu</Badge>}
+              {!m.statut_lecture && <Badge tone="navy" dot={false}>{t("vendor.support.unreadBadge", "Non lu")}</Badge>}
             </Link>
           ))}
         </div>
@@ -75,23 +77,23 @@ export default function VendeurSupportPage() {
 
       {showNew && (
         <Modal
-          title="Nouveau message"
+          title={t("vendor.support.modalTitle", "Nouveau message")}
           onClose={() => setShowNew(false)}
           footer={
             <>
-              <Button variant="ghost" onClick={() => setShowNew(false)}>Annuler</Button>
-              <Button variant="primary" onClick={handleSend} loading={sending} disabled={!objet.trim() || !contenu.trim()}>Envoyer</Button>
+              <Button variant="ghost" onClick={() => setShowNew(false)}>{t("vendor.common.cancel", "Annuler")}</Button>
+              <Button variant="primary" onClick={handleSend} loading={sending} disabled={!objet.trim() || !contenu.trim()}>{t("vendor.support.sendBtn", "Envoyer")}</Button>
             </>
           }
         >
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Objet</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.support.objectLabel", "Objet")}</label>
               <input value={objet} onChange={(e) => setObjet(e.target.value)}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Message</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.support.messageLabel", "Message")}</label>
               <textarea value={contenu} onChange={(e) => setContenu(e.target.value)} rows={4}
                 className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
             </div>

@@ -20,17 +20,18 @@ import {
   viderPanier,
   type ZoneOption,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 type MethodKey = "stripe" | "paypal" | "carte";
-
-const METHODS: { key: MethodKey; label: string; hint: string }[] = [
-  { key: "stripe", label: "Carte bancaire internationale", hint: "Visa, Mastercard via Stripe" },
-  { key: "paypal", label: "PayPal", hint: "Payer avec votre compte PayPal" },
-];
 
 type Phase = "selecting" | "placing" | "awaiting_reference" | "confirming" | "error";
 
 export default function DiasporaPaymentPage() {
+  const { t } = useLanguage();
+  const METHODS: { key: MethodKey; label: string; hint: string }[] = [
+    { key: "stripe", label: t('client.diasporaPayment.methodCard', 'Carte bancaire internationale'), hint: t('client.diasporaPayment.methodCardHint', 'Visa, Mastercard via Stripe') },
+    { key: "paypal", label: t('client.diasporaPayment.methodPaypal', 'PayPal'), hint: t('client.diasporaPayment.methodPaypalHint', 'Payer avec votre compte PayPal') },
+  ];
   const router = useRouter();
   const { beneficiaire, slot } = useCheckout();
   const { items, totalAmount, clearCart } = useCart();
@@ -54,7 +55,7 @@ export default function DiasporaPaymentPage() {
   if (!beneficiaire || !slot) return null;
 
   const placeOrder = async () => {
-    if (!zone) { setError("Livraison indisponible pour ce quartier pour le moment."); setPhase("error"); return; }
+    if (!zone) { setError(t('client.diasporaPayment.deliveryUnavailableError', 'Livraison indisponible pour ce quartier pour le moment.')); setPhase("error"); return; }
     if (items.length === 0) { router.replace("/"); return; }
 
     setPhase("placing");
@@ -78,7 +79,7 @@ export default function DiasporaPaymentPage() {
       else await initierStripe(order.commande_id);
       setPhase("awaiting_reference");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible de finaliser la commande.");
+      setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.finalizeOrderError', 'Impossible de finaliser la commande.'));
       setPhase("error");
     }
   };
@@ -93,17 +94,17 @@ export default function DiasporaPaymentPage() {
       clearCart();
       router.push(`/commande/confirmee?numero=${encodeURIComponent(pendingOrder.numero_commande)}&montant=${pendingOrder.montant_total}&id=${pendingOrder.commande_id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Confirmation de paiement invalide.");
+      setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.invalidReferenceError', 'Confirmation de paiement invalide.'));
       setPhase("awaiting_reference");
     }
   };
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <CheckoutSteps current={3} firstLabel="Bénéficiaire" />
-      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">Paiement</h1>
+      <CheckoutSteps current={3} firstLabel={t('client.checkoutSteps.beneficiaryLabel', 'Bénéficiaire')} />
+      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.diasporaPayment.title', 'Paiement')}</h1>
       <p className="text-sm text-slate-500 text-center mb-1">
-        Total : <span className="font-black text-[#0B2545]">{Math.round(totalAmount).toLocaleString('fr-FR')} FCFA</span>
+        {t('client.diasporaPayment.totalPrefix', 'Total :')} <span className="font-black text-[#0B2545]">{Math.round(totalAmount).toLocaleString('fr-FR')} FCFA</span>
       </p>
       {equivalents && (
         <p className="text-xs text-slate-400 text-center mb-8">
@@ -115,12 +116,12 @@ export default function DiasporaPaymentPage() {
         <div className="p-6 rounded-2xl border-2 border-slate-200 bg-white text-center space-y-4">
           <CreditCard className="h-10 w-10 text-[#0B2545] mx-auto" />
           <p className="text-sm font-bold text-slate-800">
-            Finalisez votre paiement via {method === "paypal" ? "PayPal" : "Stripe"}, puis saisissez la référence de confirmation reçue.
+            {t('client.diasporaPayment.finalizeViaPrefix', 'Finalisez votre paiement via')} {method === "paypal" ? "PayPal" : "Stripe"}{t('client.diasporaPayment.finalizeViaSuffix', ', puis saisissez la référence de confirmation reçue.')}
           </p>
           <input
             value={reference}
             onChange={(e) => setReference(e.target.value)}
-            placeholder="Référence de confirmation"
+            placeholder={t('client.diasporaPayment.referencePlaceholder', 'Référence de confirmation')}
             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-center text-sm font-bold tracking-wider focus:outline-none focus:border-[#0B2545]"
           />
           {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
@@ -129,7 +130,7 @@ export default function DiasporaPaymentPage() {
             disabled={!reference.trim() || phase === "confirming"}
             className="w-full h-12 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2"
           >
-            {phase === "confirming" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmer le paiement"}
+            {phase === "confirming" ? <Loader2 className="h-4 w-4 animate-spin" /> : t('client.diasporaPayment.confirmPayment', 'Confirmer le paiement')}
           </button>
         </div>
       ) : (
@@ -159,7 +160,7 @@ export default function DiasporaPaymentPage() {
             disabled={phase === "placing"}
             className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all flex items-center justify-center gap-2"
           >
-            {phase === "placing" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Confirmer la commande"}
+            {phase === "placing" ? <Loader2 className="h-5 w-5 animate-spin" /> : t('client.diasporaPayment.confirmOrder', 'Confirmer la commande')}
           </button>
         </>
       )}

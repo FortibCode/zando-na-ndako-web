@@ -1,36 +1,39 @@
-import { Bike, ClipboardList, ShoppingBag, Sparkles } from 'lucide-react';
+"use client";
 
-const STEPS = [
-  {
-    number: 1,
-    icon: ShoppingBag,
-    title: '1. Choisissez vos produits',
-    description: 'Parcourez nos catégories fraîches de Brazzaville et ajoutez vos articles au panier.',
-    gradient: 'from-emerald-500/15 via-emerald-500/5 to-transparent',
-    iconBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
-    numberBg: 'bg-[#0B2545]',
-  },
-  {
-    number: 2,
-    icon: ClipboardList,
-    title: '2. Passez votre commande',
-    description: 'Validez votre panier, choisissez votre commune (Poto-Poto, Bacongo...) et votre mode de paiement.',
-    gradient: 'from-amber-500/15 via-amber-500/5 to-transparent',
-    iconBg: 'bg-amber-50 text-amber-700 border-amber-200/60',
-    numberBg: 'bg-[#0B2545]',
-  },
-  {
-    number: 3,
-    icon: Bike,
-    title: '3. Livraison express à domicile',
-    description: 'Votre marché frais est livré directement chez vous en 30 à 60 minutes chrono.',
-    gradient: 'from-blue-500/15 via-blue-500/5 to-transparent',
-    iconBg: 'bg-blue-50 text-[#0B2545] border-blue-200/60',
-    numberBg: 'bg-[#c00000]',
-  },
-];
+import { Bike, ClipboardList, ShoppingBag, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/lib/language-context';
 
 export function HowItWorks() {
+  const { t } = useLanguage();
+  const STEPS = [
+    {
+      number: 1,
+      icon: ShoppingBag,
+      title: t('client.howItWorks.step1Title', '1. Choisissez vos produits'),
+      description: t('client.howItWorks.step1Desc', 'Parcourez nos catégories fraîches de Brazzaville et ajoutez vos articles au panier.'),
+      gradient: 'from-emerald-500/15 via-emerald-500/5 to-transparent',
+      iconBg: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+      numberBg: 'bg-[#0B2545]',
+    },
+    {
+      number: 2,
+      icon: ClipboardList,
+      title: t('client.howItWorks.step2Title', '2. Passez votre commande'),
+      description: t('client.howItWorks.step2Desc', 'Validez votre panier, choisissez votre commune (Poto-Poto, Bacongo...) et votre mode de paiement.'),
+      gradient: 'from-amber-500/15 via-amber-500/5 to-transparent',
+      iconBg: 'bg-amber-50 text-amber-700 border-amber-200/60',
+      numberBg: 'bg-[#0B2545]',
+    },
+    {
+      number: 3,
+      icon: Bike,
+      title: t('client.howItWorks.step3Title', '3. Livraison express à domicile'),
+      description: t('client.howItWorks.step3Desc', 'Votre marché frais est livré directement chez vous en 30 à 60 minutes chrono.'),
+      gradient: 'from-blue-500/15 via-blue-500/5 to-transparent',
+      iconBg: 'bg-blue-50 text-[#0B2545] border-blue-200/60',
+      numberBg: 'bg-[#c00000]',
+    },
+  ];
   return (
     <section id="how-it-works" className="w-full h-full">
       <div className="flex flex-col justify-between h-full rounded-3xl border border-slate-200/60 bg-white p-6 sm:p-8 shadow-xs">
@@ -38,9 +41,9 @@ export function HowItWorks() {
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-amber-500 animate-spin-slow" />
-              <h2 className="text-lg sm:text-xl font-black text-slate-900">Comment ça marche ?</h2>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.howItWorks.title', 'Comment ça marche ?')}</h2>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">Votre marché à domicile en 3 étapes simples.</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('client.howItWorks.subtitle', 'Votre marché à domicile en 3 étapes simples.')}</p>
           </div>
         </div>
 

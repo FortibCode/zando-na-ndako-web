@@ -5,16 +5,21 @@ import Link from "next/link";
 import { Loader2, Package, Search } from "lucide-react";
 import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { fetchClientCommandes, type ApiCommande } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
+import { clientTranslations } from "@/i18n/client-translations";
+import type { Language } from "@/i18n/translations";
 
 type Tab = "tous" | "termines" | "en_cours" | "annules";
 
-function statusLabel(statut: string): { label: string; className: string } {
-  if (statut === "livree") return { label: "Livrée", className: "bg-emerald-50 text-emerald-700" };
-  if (statut === "annulee") return { label: "Annulée", className: "bg-red-50 text-red-600" };
-  return { label: "En cours", className: "bg-blue-50 text-[#0B2545]" };
+function statusLabel(statut: string, language: Language): { label: string; className: string } {
+  const c = clientTranslations[language].mesCommandes;
+  if (statut === "livree") return { label: c.statusDelivered, className: "bg-emerald-50 text-emerald-700" };
+  if (statut === "annulee") return { label: c.statusCancelled, className: "bg-red-50 text-red-600" };
+  return { label: c.statusOngoing, className: "bg-blue-50 text-[#0B2545]" };
 }
 
 export default function OrdersPage() {
+  const { t, language } = useLanguage();
   const { user, isReady } = useRequirePublicAuth();
   const [orders, setOrders] = useState<ApiCommande[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,24 +54,24 @@ export default function OrdersPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6">Mes commandes</h1>
+      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6">{t('client.mesCommandes.title', 'Mes commandes')}</h1>
 
       <div className="relative mb-4">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher par numéro de commande…"
+          placeholder={t('client.mesCommandes.searchPlaceholder', 'Rechercher par numéro de commande…')}
           className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]"
         />
       </div>
 
       <div className="flex gap-2 mb-6 overflow-x-auto">
         {([
-          ["tous", "Toutes"],
-          ["en_cours", "En cours"],
-          ["termines", "Terminées"],
-          ["annules", "Annulées"],
+          ["tous", t('client.mesCommandes.tabAll', 'Toutes')],
+          ["en_cours", t('client.mesCommandes.tabOngoing', 'En cours')],
+          ["termines", t('client.mesCommandes.tabDone', 'Terminées')],
+          ["annules", t('client.mesCommandes.tabCancelled', 'Annulées')],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -87,13 +92,13 @@ export default function OrdersPage() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Package className="h-12 w-12 text-slate-300 mb-3" />
-          <p className="text-sm font-bold text-slate-700">Aucune commande pour le moment</p>
-          <Link href="/" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">Découvrir le marché</Link>
+          <p className="text-sm font-bold text-slate-700">{t('client.mesCommandes.emptyTitle', 'Aucune commande pour le moment')}</p>
+          <Link href="/" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">{t('client.mesCommandes.discoverMarket', 'Découvrir le marché')}</Link>
         </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((o) => {
-            const status = statusLabel(o.statut_commande);
+            const status = statusLabel(o.statut_commande, language);
             return (
               <Link
                 key={o.id}

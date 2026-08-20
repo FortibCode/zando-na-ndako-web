@@ -6,8 +6,10 @@ import { Heart } from "lucide-react";
 import { fetchProduits, produitToDisplayProduct, type Produit } from "@/lib/api";
 import { useFavorites } from "@/lib/favorites";
 import { ProductCard } from "@/components/landing/ProductCard";
+import { useLanguage } from "@/lib/language-context";
 
 export default function FavoritesPage() {
+  const { t } = useLanguage();
   const { favorites } = useFavorites();
   const [produits, setProduits] = useState<Produit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +24,7 @@ export default function FavoritesPage() {
     <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <div className="flex items-center gap-2.5 mb-6">
         <Heart className="h-6 w-6 text-[#c00000] fill-current" />
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">Mes favoris</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900">{t('client.favoris.title', 'Mes favoris')}</h1>
       </div>
 
       {loading ? (
@@ -32,8 +34,8 @@ export default function FavoritesPage() {
       ) : favoriteProducts.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Heart className="h-12 w-12 text-slate-300 mb-3" />
-          <p className="text-sm font-bold text-slate-700">Vous n&apos;avez pas encore de favoris</p>
-          <Link href="/produits" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">Découvrir le catalogue</Link>
+          <p className="text-sm font-bold text-slate-700">{t('client.favoris.emptyMessage', "Vous n'avez pas encore de favoris")}</p>
+          <Link href="/produits" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">{t('client.favoris.discoverCatalog', 'Découvrir le catalogue')}</Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">

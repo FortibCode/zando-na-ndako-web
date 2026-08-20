@@ -6,8 +6,10 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { StatutLitigeBadge } from "@/components/Badge";
 import { fetchClientLitiges, LITIGE_MOTIFS, type Litige } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 export default function MesLitigesPage() {
+  const { t } = useLanguage();
   const { user, isReady } = useRequirePublicAuth();
   const [litiges, setLitiges] = useState<Litige[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +29,7 @@ export default function MesLitigesPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6">Mes litiges</h1>
+      <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mb-6">{t('client.mesLitiges.title', 'Mes litiges')}</h1>
 
       {loading ? (
         <div className="space-y-3">
@@ -36,8 +38,8 @@ export default function MesLitigesPage() {
       ) : litiges.length === 0 ? (
         <div className="flex flex-col items-center py-24 text-center">
           <AlertTriangle className="h-12 w-12 text-slate-300 mb-3" />
-          <p className="text-sm font-bold text-slate-700">Aucun litige ouvert</p>
-          <p className="text-xs text-slate-400 mt-1">Un problème avec une commande ? Signalez-le depuis son détail.</p>
+          <p className="text-sm font-bold text-slate-700">{t('client.mesLitiges.emptyTitle', 'Aucun litige ouvert')}</p>
+          <p className="text-xs text-slate-400 mt-1">{t('client.mesLitiges.emptyDesc', 'Un problème avec une commande ? Signalez-le depuis son détail.')}</p>
         </div>
       ) : (
         <div className="space-y-3">

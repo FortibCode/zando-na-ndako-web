@@ -9,8 +9,10 @@ import { Categories } from "@/components/landing/Categories";
 import { FeaturedProducts } from "@/components/landing/FeaturedProducts";
 import { PromoBanner } from "@/components/landing/PromoBanner";
 import { fetchZonesRaw, type ZoneOption } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 export default function AccueilPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { user, isReady } = useRequirePublicAuth();
   const { favorites } = useFavorites();
@@ -48,9 +50,9 @@ export default function AccueilPage() {
     <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8 my-8 sm:my-10 flex-1">
       <div>
         <p className="text-sm font-bold text-slate-500">
-          Bonjour {firstName} <span className="text-slate-300">·</span> <span className="text-emerald-600">Ouvert</span>
+          {t('client.accueil.greetingPrefix', 'Bonjour')} {firstName} <span className="text-slate-300">·</span> <span className="text-emerald-600">{t('client.accueil.openStatus', 'Ouvert')}</span>
         </p>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">Le marché frais, livré chez vous</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">{t('client.accueil.tagline', 'Le marché frais, livré chez vous')}</h1>
       </div>
 
       <form onSubmit={handleSearch} className="relative">
@@ -58,7 +60,7 @@ export default function AccueilPage() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher un produit, un marché…"
+          placeholder={t('client.accueil.searchPlaceholder', 'Rechercher un produit, un marché…')}
           className="w-full h-13 pl-12 pr-4 rounded-2xl border border-slate-200 bg-white shadow-xs text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0B2545] focus:ring-1 focus:ring-[#0B2545]"
         />
       </form>
@@ -75,8 +77,8 @@ export default function AccueilPage() {
             <Truck className="h-6 w-6 text-amber-600" />
           </div>
           <div>
-            <p className="text-sm font-black text-slate-900">Livraison express à Brazzaville</p>
-            <p className="text-xs text-slate-500 mt-0.5">En 30–60 min · dès {fee.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-sm font-black text-slate-900">{t('client.accueil.expressDeliveryTitle', 'Livraison express à Brazzaville')}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('client.accueil.expressDeliverySubPrefix', 'En 30–60 min · dès')} {fee.toLocaleString('fr-FR')} FCFA</p>
           </div>
         </div>
 
@@ -88,8 +90,8 @@ export default function AccueilPage() {
             <Heart className="h-6 w-6 text-[#c00000]" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-black text-slate-900">Mes favoris</p>
-            <p className="text-xs text-slate-500 mt-0.5">{favorites.length > 0 ? `${favorites.length} produit${favorites.length > 1 ? "s" : ""} enregistré${favorites.length > 1 ? "s" : ""}` : "Aucun favori pour le moment"}</p>
+            <p className="text-sm font-black text-slate-900">{t('client.accueil.myFavoritesTitle', 'Mes favoris')}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{favorites.length > 0 ? `${favorites.length} produit${favorites.length > 1 ? "s" : ""} ${t('client.accueil.favoritesSavedSuffix', 'enregistré(s)')}` : t('client.accueil.noFavoritesYet', 'Aucun favori pour le moment')}</p>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300 shrink-0" />
         </button>
@@ -104,8 +106,8 @@ export default function AccueilPage() {
             <Globe2 className="h-6 w-6 text-white" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-black text-slate-900">Commander pour quelqu&apos;un au Congo</p>
-            <p className="text-xs font-bold text-[#0B2545] mt-0.5">Mode Diaspora</p>
+            <p className="text-sm font-black text-slate-900">{t('client.accueil.diasporaTitle', "Commander pour quelqu'un au Congo")}</p>
+            <p className="text-xs font-bold text-[#0B2545] mt-0.5">{t('client.accueil.diasporaSubtitle', 'Mode Diaspora')}</p>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300 shrink-0" />
         </button>

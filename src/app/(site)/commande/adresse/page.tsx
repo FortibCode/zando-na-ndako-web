@@ -14,10 +14,12 @@ import {
   type DeliveryAddress,
   type DeliveryAddressInput,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 const EMPTY_FORM: DeliveryAddressInput = { label: "", adresse: "", quartier: "", ville: "Brazzaville" };
 
 export default function CheckoutAddressPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { address, setAddress } = useCheckout();
 
@@ -56,7 +58,7 @@ export default function CheckoutAddressPage() {
       setForm(EMPTY_FORM);
       setShowForm(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'enregistrer cette adresse.");
+      setError(err instanceof ApiError ? err.message : t('client.checkoutAddress.saveError', "Impossible d'enregistrer cette adresse."));
     } finally {
       setSaving(false);
     }
@@ -84,8 +86,8 @@ export default function CheckoutAddressPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <CheckoutSteps current={1} />
-      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">Adresse de livraison</h1>
-      <p className="text-sm text-slate-500 text-center mb-8">Choisissez où vous souhaitez être livré.</p>
+      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.checkoutAddress.title', 'Adresse de livraison')}</h1>
+      <p className="text-sm text-slate-500 text-center mb-8">{t('client.checkoutAddress.subtitle', 'Choisissez où vous souhaitez être livré.')}</p>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -108,7 +110,7 @@ export default function CheckoutAddressPage() {
                     <p className="text-sm font-black text-slate-900">{a.label}</p>
                     {a.est_defaut && (
                       <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        <Star className="h-2.5 w-2.5 fill-current" /> Défaut
+                        <Star className="h-2.5 w-2.5 fill-current" /> {t('client.checkoutAddress.defaultBadge', 'Défaut')}
                       </span>
                     )}
                   </div>
@@ -120,7 +122,7 @@ export default function CheckoutAddressPage() {
                   <span
                     onClick={(e) => { e.stopPropagation(); handleSetDefault(a.id); }}
                     className="p-1.5 text-slate-300 hover:text-amber-500 transition-colors cursor-pointer"
-                    title="Définir par défaut"
+                    title={t('client.checkoutAddress.setDefaultTitle', 'Définir par défaut')}
                   >
                     <Star className="h-4 w-4" />
                   </span>
@@ -128,7 +130,7 @@ export default function CheckoutAddressPage() {
                 <span
                   onClick={(e) => { e.stopPropagation(); handleDelete(a.id); }}
                   className="p-1.5 text-slate-300 hover:text-red-500 transition-colors cursor-pointer"
-                  title="Supprimer"
+                  title={t('client.checkoutAddress.deleteTitle', 'Supprimer')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </span>
@@ -142,34 +144,34 @@ export default function CheckoutAddressPage() {
               onClick={() => setShowForm(true)}
               className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-slate-300 text-sm font-bold text-slate-500 hover:border-[#0B2545] hover:text-[#0B2545] transition-colors cursor-pointer"
             >
-              <Plus className="h-4 w-4" /> Ajouter une adresse
+              <Plus className="h-4 w-4" /> {t('client.checkoutAddress.addAddress', 'Ajouter une adresse')}
             </button>
           ) : (
             <form onSubmit={handleCreate} className="p-4 rounded-2xl border-2 border-slate-200 bg-white space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-slate-900">Nouvelle adresse</p>
+                <p className="text-sm font-black text-slate-900">{t('client.checkoutAddress.newAddressTitle', 'Nouvelle adresse')}</p>
                 <button type="button" onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-700">
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <input required placeholder="Libellé (ex: Domicile, Bureau)" value={form.label}
+              <input required placeholder={t('client.checkoutAddress.labelPlaceholder', 'Libellé (ex: Domicile, Bureau)')} value={form.label}
                 onChange={(e) => setForm({ ...form, label: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
-              <input required placeholder="Adresse (rue, numéro…)" value={form.adresse}
+              <input required placeholder={t('client.checkoutAddress.addressPlaceholder', 'Adresse (rue, numéro…)')} value={form.adresse}
                 onChange={(e) => setForm({ ...form, adresse: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
               <div className="grid grid-cols-2 gap-3">
-                <input placeholder="Quartier" value={form.quartier || ""}
+                <input placeholder={t('client.checkoutAddress.neighborhoodPlaceholder', 'Quartier')} value={form.quartier || ""}
                   onChange={(e) => setForm({ ...form, quartier: e.target.value })}
                   className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
-                <input required placeholder="Ville" value={form.ville}
+                <input required placeholder={t('client.checkoutAddress.cityPlaceholder', 'Ville')} value={form.ville}
                   onChange={(e) => setForm({ ...form, ville: e.target.value })}
                   className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
               </div>
               {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
               <button type="submit" disabled={saving}
                 className="w-full h-10 rounded-xl bg-[#0B2545] text-white text-sm font-bold hover:bg-[#061830] disabled:opacity-50 transition-colors">
-                {saving ? "Enregistrement…" : "Enregistrer l'adresse"}
+                {saving ? t('client.checkoutAddress.saving', 'Enregistrement…') : t('client.checkoutAddress.saveAddress', "Enregistrer l'adresse")}
               </button>
             </form>
           )}
@@ -181,7 +183,7 @@ export default function CheckoutAddressPage() {
         disabled={!address}
         className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all"
       >
-        Continuer
+        {t('client.checkoutAddress.continueBtn', 'Continuer')}
       </button>
     </main>
   );

@@ -6,11 +6,13 @@ import { CalendarClock, Check, Loader2, Truck } from "lucide-react";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { computeSlotDates, useCheckout } from "@/lib/checkout-context";
 import { fetchZonesRaw, resolveZoneForQuartier, type ZoneOption } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 const TIME_BANDS = ["08h - 10h", "10h - 12h", "12h - 14h", "14h - 16h", "16h - 18h", "18h - 20h"];
 const FALLBACK_FEE = 800;
 
 export default function CheckoutSlotPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { address, slot, setSlot } = useCheckout();
 
@@ -39,15 +41,15 @@ export default function CheckoutSlotPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <CheckoutSteps current={2} />
-      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">Créneau de livraison</h1>
-      <p className="text-sm text-slate-500 text-center mb-8">Quand souhaitez-vous être livré ?</p>
+      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.checkoutSlot.title', 'Créneau de livraison')}</h1>
+      <p className="text-sm text-slate-500 text-center mb-8">{t('client.checkoutSlot.subtitle', 'Quand souhaitez-vous être livré ?')}</p>
 
       <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-blue-50/60 border border-blue-100 mb-6">
         <Truck className="h-5 w-5 text-[#0B2545] shrink-0" />
         <div className="text-xs">
           <p className="font-bold text-slate-800">{address.label} — {address.adresse}</p>
           <p className="text-slate-500">
-            {loadingZones ? "Calcul des frais…" : `Frais de livraison estimés : ${fee.toLocaleString('fr-FR')} FCFA`}
+            {loadingZones ? t('client.checkoutSlot.computingFees', 'Calcul des frais…') : `${t('client.checkoutSlot.estimatedFeesPrefix', 'Frais de livraison estimés :')} ${fee.toLocaleString('fr-FR')} FCFA`}
           </p>
         </div>
       </div>
@@ -61,7 +63,7 @@ export default function CheckoutSlotPage() {
               day === d ? "border-[#0B2545] bg-[#0B2545] text-white" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
             }`}
           >
-            {d === "today" ? "Aujourd'hui" : "Demain"}
+            {d === "today" ? t('client.checkoutSlot.today', "Aujourd'hui") : t('client.checkoutSlot.tomorrow', 'Demain')}
           </button>
         ))}
       </div>
@@ -86,7 +88,7 @@ export default function CheckoutSlotPage() {
         disabled={!label || loadingZones}
         className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all flex items-center justify-center"
       >
-        {loadingZones ? <Loader2 className="h-5 w-5 animate-spin" /> : "Continuer vers le paiement"}
+        {loadingZones ? <Loader2 className="h-5 w-5 animate-spin" /> : t('client.checkoutSlot.continueToPayment', 'Continuer vers le paiement')}
       </button>
     </main>
   );

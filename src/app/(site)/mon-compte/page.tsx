@@ -8,6 +8,7 @@ import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { usePublicAuth } from "@/lib/public-auth-context";
 import { useFavorites } from "@/lib/favorites";
 import { ApiError, fetchMe, updateUserProfile } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 interface ProfileFields {
   nom: string;
@@ -18,6 +19,7 @@ interface ProfileFields {
 }
 
 export default function AccountPage() {
+  const { t } = useLanguage();
   const { user, isReady } = useRequirePublicAuth();
   const { logout } = usePublicAuth();
   const { favorites } = useFavorites();
@@ -53,7 +55,7 @@ export default function AccountPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'enregistrer les modifications.");
+      setError(err instanceof ApiError ? err.message : t('client.monCompte.saveError', "Impossible d'enregistrer les modifications."));
     } finally {
       setSaving(false);
     }
@@ -71,7 +73,7 @@ export default function AccountPage() {
           {user.nom_complet?.[0]?.toUpperCase() || <User className="h-6 w-6" />}
         </div>
         <div>
-          <h1 className="text-xl font-black text-slate-900">{user.nom_complet || "Mon compte"}</h1>
+          <h1 className="text-xl font-black text-slate-900">{user.nom_complet || t('client.monCompte.defaultTitle', 'Mon compte')}</h1>
           <p className="text-xs text-slate-500">{user.telephone}{user.email ? ` · ${user.email}` : ""}</p>
         </div>
       </div>
@@ -80,7 +82,7 @@ export default function AccountPage() {
         <Link href="/mes-commandes" className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 transition-colors">
           <div className="flex items-center gap-2.5">
             <Package className="h-4.5 w-4.5 text-[#0B2545]" />
-            <span className="text-xs font-bold text-slate-800">Mes commandes</span>
+            <span className="text-xs font-bold text-slate-800">{t('client.monCompte.myOrders', 'Mes commandes')}</span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300" />
         </Link>
@@ -90,35 +92,35 @@ export default function AccountPage() {
         >
           <div className="flex items-center gap-2.5">
             <MapPin className="h-4.5 w-4.5 text-[#0B2545]" />
-            <span className="text-xs font-bold text-slate-800">{user.est_diaspora ? "Mes bénéficiaires" : "Mes adresses"}</span>
+            <span className="text-xs font-bold text-slate-800">{user.est_diaspora ? t('client.monCompte.myBeneficiaries', 'Mes bénéficiaires') : t('client.monCompte.myAddresses', 'Mes adresses')}</span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300" />
         </Link>
         <Link href="/favoris" className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 transition-colors">
           <div className="flex items-center gap-2.5">
             <Heart className="h-4.5 w-4.5 text-[#0B2545]" />
-            <span className="text-xs font-bold text-slate-800">Favoris{favorites.length > 0 ? ` (${favorites.length})` : ""}</span>
+            <span className="text-xs font-bold text-slate-800">{t('client.monCompte.favoritesLabel', 'Favoris')}{favorites.length > 0 ? ` (${favorites.length})` : ""}</span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300" />
         </Link>
         <Link href="/notifications" className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 transition-colors">
           <div className="flex items-center gap-2.5">
             <Bell className="h-4.5 w-4.5 text-[#0B2545]" />
-            <span className="text-xs font-bold text-slate-800">Notifications</span>
+            <span className="text-xs font-bold text-slate-800">{t('client.monCompte.notificationsLabel', 'Notifications')}</span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300" />
         </Link>
         <Link href="/mes-litiges" className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 transition-colors">
           <div className="flex items-center gap-2.5">
             <AlertTriangle className="h-4.5 w-4.5 text-[#0B2545]" />
-            <span className="text-xs font-bold text-slate-800">Mes litiges</span>
+            <span className="text-xs font-bold text-slate-800">{t('client.monCompte.myDisputes', 'Mes litiges')}</span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300" />
         </Link>
         <Link href="/parametres" className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 transition-colors">
           <div className="flex items-center gap-2.5">
             <Settings className="h-4.5 w-4.5 text-[#0B2545]" />
-            <span className="text-xs font-bold text-slate-800">Paramètres</span>
+            <span className="text-xs font-bold text-slate-800">{t('client.monCompte.settingsLabel', 'Paramètres')}</span>
           </div>
           <ChevronRight className="h-4 w-4 text-slate-300" />
         </Link>
@@ -126,38 +128,38 @@ export default function AccountPage() {
 
       {user.type_utilisateur === "client" && user.est_diaspora && (
         <div className="flex items-center gap-2 p-3 rounded-2xl bg-blue-50/50 border border-blue-100 mb-6 text-xs font-bold text-[#0B2545]">
-          <Globe className="h-4 w-4" /> Compte client diaspora
+          <Globe className="h-4 w-4" /> {t('client.monCompte.diasporaBadge', 'Compte client diaspora')}
         </div>
       )}
 
       {profile && (
         <form onSubmit={handleSave} className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3 mb-6">
-          <p className="text-sm font-black text-slate-900 mb-1">Mes informations</p>
+          <p className="text-sm font-black text-slate-900 mb-1">{t('client.monCompte.myInfoTitle', 'Mes informations')}</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Nom</label>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">{t('client.monCompte.nom', 'Nom')}</label>
               <input value={profile.nom} onChange={(e) => setProfile({ ...profile, nom: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Prénom</label>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">{t('client.monCompte.prenom', 'Prénom')}</label>
               <input value={profile.prenom} onChange={(e) => setProfile({ ...profile, prenom: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
             </div>
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-500 mb-1">Email</label>
+            <label className="block text-[11px] font-bold text-slate-500 mb-1">{t('client.monCompte.email', 'Email')}</label>
             <input type="email" value={profile.email || ""} onChange={(e) => setProfile({ ...profile, email: e.target.value })}
               className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Ville</label>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">{t('client.monCompte.ville', 'Ville')}</label>
               <input value={profile.ville || ""} onChange={(e) => setProfile({ ...profile, ville: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 mb-1">Adresse</label>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">{t('client.monCompte.adresse', 'Adresse')}</label>
               <input value={profile.adresse || ""} onChange={(e) => setProfile({ ...profile, adresse: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
             </div>
@@ -166,7 +168,7 @@ export default function AccountPage() {
           <button type="submit" disabled={saving}
             className="w-full h-11 rounded-xl bg-[#0B2545] hover:bg-[#061830] disabled:opacity-50 text-white text-sm font-bold transition-colors flex items-center justify-center gap-2">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {saved ? "Enregistré !" : "Enregistrer les modifications"}
+            {saved ? t('client.monCompte.saved', 'Enregistré !') : t('client.monCompte.saveChanges', 'Enregistrer les modifications')}
           </button>
         </form>
       )}
@@ -175,7 +177,7 @@ export default function AccountPage() {
         onClick={handleLogout}
         className="w-full h-11 rounded-xl border-2 border-red-200 text-red-600 font-bold text-sm hover:bg-red-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
       >
-        <LogOut className="h-4 w-4" /> Se déconnecter
+        <LogOut className="h-4 w-4" /> {t('client.monCompte.logout', 'Se déconnecter')}
       </button>
     </main>
   );

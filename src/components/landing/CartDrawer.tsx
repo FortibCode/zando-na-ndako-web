@@ -6,11 +6,13 @@ import { ArrowRight, Check, Copy, Loader2, Minus, Plus, Share2, ShoppingBag, Tra
 import { useCart } from './cart-context';
 import { usePublicAuth } from '@/lib/public-auth-context';
 import { useToast } from '@/lib/toast-context';
+import { useLanguage } from '@/lib/language-context';
 import { ApiError, fetchDeviseEquivalents, shareServerPanier } from '@/lib/api';
 
 const formatFcfa = (value: number) => `${Math.round(value).toLocaleString('fr-FR')} FCFA`;
 
 export function CartDrawer() {
+  const { t } = useLanguage();
   const { items, isOpen, closeCart, updateQuantity, removeItem, totalAmount, count, clearCart } = useCart();
   const { user } = usePublicAuth();
   const { notify } = useToast();
@@ -31,7 +33,7 @@ export function CartDrawer() {
     if (!user) {
       // Ajouter au panier reste possible sans compte — seule la commande elle-même l'exige,
       // et ce message le dit explicitement plutôt que de rediriger silencieusement vers la connexion.
-      notify("Créez un compte ou connectez-vous pour finaliser votre commande.", "info");
+      notify(t('client.panier.guestPrompt', 'Créez un compte ou connectez-vous pour finaliser votre commande.'), "info");
       router.push(`/auth/login?redirect=${encodeURIComponent('/commande/adresse')}`);
       return;
     }
@@ -46,7 +48,7 @@ export function CartDrawer() {
       const { token } = await shareServerPanier(items);
       setShareUrl(`${window.location.origin}/panier/partage/${token}`);
     } catch (err) {
-      notify(err instanceof ApiError ? err.message : "Impossible de partager ce panier pour le moment.", "error");
+      notify(err instanceof ApiError ? err.message : t('client.panier.shareError', 'Impossible de partager ce panier pour le moment.'), "error");
     } finally {
       setSharing(false);
     }
@@ -82,9 +84,9 @@ export function CartDrawer() {
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-black text-slate-900">Mon Panier</h2>
+                <h2 className="text-base font-black text-slate-900">{t('client.cartDrawer.title', 'Mon Panier')}</h2>
                 <p className="text-[11px] font-semibold text-slate-400">
-                  {count} article{count > 1 ? 's' : ''} sélectionné{count > 1 ? 's' : ''}
+                  {count} article{count > 1 ? 's' : ''} {t('client.cartDrawer.itemsSelectedSuffix', 'sélectionné(s)')}
                 </p>
               </div>
             </div>
@@ -92,7 +94,7 @@ export function CartDrawer() {
             <button
               onClick={closeCart}
               className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-              aria-label="Fermer le panier"
+              aria-label={t('client.cartDrawer.closeAria', 'Fermer le panier')}
             >
               <X className="h-5 w-5" />
             </button>
@@ -103,8 +105,8 @@ export function CartDrawer() {
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
                 <ShoppingBag className="h-12 w-12 text-slate-300 mb-3" />
-                <p className="text-sm font-bold text-slate-700">Votre panier est vide</p>
-                <p className="text-xs text-slate-400 mt-1">Ajoutez des produits frais depuis notre marché.</p>
+                <p className="text-sm font-bold text-slate-700">{t('client.cartDrawer.emptyTitle', 'Votre panier est vide')}</p>
+                <p className="text-xs text-slate-400 mt-1">{t('client.cartDrawer.emptyDesc', 'Ajoutez des produits frais depuis notre marché.')}</p>
               </div>
             ) : (
               items.map((item) => (
@@ -130,7 +132,7 @@ export function CartDrawer() {
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       className="p-0.5 text-slate-500 hover:text-slate-900 rounded-md transition-colors"
-                      aria-label="Diminuer la quantité"
+                      aria-label={t('client.cartDrawer.decreaseAria', 'Diminuer la quantité')}
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
@@ -140,7 +142,7 @@ export function CartDrawer() {
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="p-0.5 text-slate-500 hover:text-slate-900 rounded-md transition-colors"
-                      aria-label="Augmenter la quantité"
+                      aria-label={t('client.cartDrawer.increaseAria', 'Augmenter la quantité')}
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
@@ -149,7 +151,7 @@ export function CartDrawer() {
                   <button
                     onClick={() => removeItem(item.id)}
                     className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
-                    aria-label="Supprimer l'article"
+                    aria-label={t('client.cartDrawer.removeAria', "Supprimer l'article")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -163,15 +165,15 @@ export function CartDrawer() {
             <div className="border-t border-slate-100 p-4 sm:p-6 space-y-4 bg-slate-50/60">
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs text-slate-500 font-medium">
-                  <span>Sous-total</span>
+                  <span>{t('client.cartDrawer.subtotal', 'Sous-total')}</span>
                   <span>{formatFcfa(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-500 font-medium">
-                  <span>Frais de livraison</span>
-                  <span className="text-slate-400 font-semibold">Calculés à l&apos;étape suivante</span>
+                  <span>{t('client.cartDrawer.deliveryFee', 'Frais de livraison')}</span>
+                  <span className="text-slate-400 font-semibold">{t('client.cartDrawer.deliveryFeeComputed', "Calculés à l'étape suivante")}</span>
                 </div>
                 <div className="flex justify-between items-start text-sm font-black text-slate-900 pt-2 border-t border-slate-200/80">
-                  <span>Sous-total</span>
+                  <span>{t('client.cartDrawer.subtotal', 'Sous-total')}</span>
                   <div className="text-right">
                     <span className="text-[#0B2545]">{formatFcfa(totalAmount)}</span>
                     {equivalents && (
@@ -191,7 +193,7 @@ export function CartDrawer() {
                     className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-[#0B2545] hover:bg-slate-50 disabled:opacity-60 transition-colors cursor-pointer"
                   >
                     {sharing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Share2 className="h-3.5 w-3.5" />}
-                    {sharing ? "Partage en cours…" : "Partager ce panier avec le bénéficiaire"}
+                    {sharing ? t('client.cartDrawer.sharing', 'Partage en cours…') : t('client.cartDrawer.shareCart', 'Partager ce panier avec le bénéficiaire')}
                   </button>
 
                   {shareUrl && (
@@ -203,7 +205,7 @@ export function CartDrawer() {
                           className="flex-1 flex items-center justify-center gap-1.5 h-8 rounded-lg bg-white border border-slate-200 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                         >
                           {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                          {copied ? "Copié !" : "Copier le lien"}
+                          {copied ? t('client.cartDrawer.copied', 'Copié !') : t('client.cartDrawer.copyLink', 'Copier le lien')}
                         </button>
                         <a
                           href={`https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`}
@@ -224,14 +226,14 @@ export function CartDrawer() {
                   onClick={clearCart}
                   className="rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
                 >
-                  Vider
+                  {t('client.cartDrawer.clear', 'Vider')}
                 </button>
 
                 <button
                   onClick={handleCheckout}
                   className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#0B2545] px-4 py-3 text-xs font-extrabold text-white shadow-md hover:bg-[#061830] transition-colors cursor-pointer"
                 >
-                  <span>Passer la commande</span>
+                  <span>{t('client.cartDrawer.checkout', 'Passer la commande')}</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>

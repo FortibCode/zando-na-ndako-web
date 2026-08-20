@@ -7,8 +7,10 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatutLitigeBadge } from "@/components/Badge";
 import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { fetchVendeurLitiges, fullName, LITIGE_MOTIFS, type Litige } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 export default function VendeurLitigesPage() {
+  const { t } = useLanguage();
   const [litiges, setLitiges] = useState<Litige[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,14 +20,14 @@ export default function VendeurLitigesPage() {
 
   return (
     <div>
-      <PageHeader title="Litiges" description="Litiges ouverts sur vos commandes." />
+      <PageHeader title={t("vendor.litiges.title", "Litiges")} description={t("vendor.litiges.subtitle", "Litiges ouverts sur vos commandes.")} />
 
       {loading ? (
-        <LoadingBlock label="Chargement des litiges…" />
+        <LoadingBlock label={t("vendor.litiges.loading", "Chargement des litiges…")} />
       ) : litiges.length === 0 ? (
         <div className="flex flex-col items-center py-16">
           <AlertTriangle className="h-12 w-12 text-slate-300 mb-3" />
-          <EmptyState message="Aucun litige pour le moment." />
+          <EmptyState message={t("vendor.litiges.emptyState", "Aucun litige pour le moment.")} />
         </div>
       ) : (
         <div className="space-y-3">
@@ -35,7 +37,7 @@ export default function VendeurLitigesPage() {
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900">{l.numero}</p>
                 <p className="text-xs text-slate-500 mt-0.5 truncate">
-                  {LITIGE_MOTIFS.find((m) => m.id === l.motif)?.label || l.motif} · {fullName(l.plaignant) || "Client"} · Commande {l.commande?.numero_commande}
+                  {LITIGE_MOTIFS.find((m) => m.id === l.motif)?.label || l.motif} · {fullName(l.plaignant) || t("vendor.common.clientFallback", "Client")} · {t("vendor.litiges.orderPrefix", "Commande")} {l.commande?.numero_commande}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">{new Date(l.date_ouverture).toLocaleDateString('fr-FR')}</p>
               </div>

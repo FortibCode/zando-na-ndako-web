@@ -23,19 +23,20 @@ import {
   type ApiPaiement,
   type ZoneOption,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 type MethodKey = "cod" | "carte" | "mtn" | "airtel";
-
-const METHODS: { key: MethodKey; label: string; hint: string; icon: typeof Banknote }[] = [
-  { key: "cod", label: "Paiement à la livraison", hint: "Payez en espèces à la réception", icon: Banknote },
-  { key: "carte", label: "Carte bancaire", hint: "Visa, Mastercard", icon: CreditCard },
-  { key: "mtn", label: "MTN Mobile Money", hint: "Confirmez via USSD sur votre téléphone", icon: Smartphone },
-  { key: "airtel", label: "Airtel Money", hint: "Confirmez via USSD sur votre téléphone", icon: Smartphone },
-];
 
 type Phase = "selecting" | "placing" | "awaiting_reference" | "confirming" | "error";
 
 export default function CheckoutPaymentPage() {
+  const { t } = useLanguage();
+  const METHODS: { key: MethodKey; label: string; hint: string; icon: typeof Banknote }[] = [
+    { key: "cod", label: t('client.checkoutPayment.methodCod', 'Paiement à la livraison'), hint: t('client.checkoutPayment.methodCodHint', 'Payez en espèces à la réception'), icon: Banknote },
+    { key: "carte", label: t('client.checkoutPayment.methodCard', 'Carte bancaire'), hint: t('client.checkoutPayment.methodCardHint', 'Visa, Mastercard'), icon: CreditCard },
+    { key: "mtn", label: t('client.checkoutPayment.methodMtn', 'MTN Mobile Money'), hint: t('client.checkoutPayment.methodMobileHint', 'Confirmez via USSD sur votre téléphone'), icon: Smartphone },
+    { key: "airtel", label: t('client.checkoutPayment.methodAirtel', 'Airtel Money'), hint: t('client.checkoutPayment.methodMobileHint', 'Confirmez via USSD sur votre téléphone'), icon: Smartphone },
+  ];
   const router = useRouter();
   const { address, slot } = useCheckout();
   const { items, totalAmount, clearCart } = useCart();
@@ -58,7 +59,7 @@ export default function CheckoutPaymentPage() {
   if (!address || !slot) return null;
 
   const placeOrder = async () => {
-    if (!zone) { setError("Livraison indisponible pour ce quartier pour le moment."); setPhase("error"); return; }
+    if (!zone) { setError(t('client.checkoutPayment.deliveryUnavailableError', 'Livraison indisponible pour ce quartier pour le moment.')); setPhase("error"); return; }
     if (items.length === 0) { router.replace("/"); return; }
 
     setPhase("placing");
@@ -89,7 +90,7 @@ export default function CheckoutPaymentPage() {
       setPendingPaiement(paiement);
       setPhase("awaiting_reference");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible de finaliser la commande.");
+      setError(err instanceof ApiError ? err.message : t('client.checkoutPayment.finalizeOrderError', 'Impossible de finaliser la commande.'));
       setPhase("error");
     }
   };
@@ -103,7 +104,7 @@ export default function CheckoutPaymentPage() {
       await confirmer(pendingPaiement.id, reference.trim());
       finish(pendingOrder.numero_commande, pendingOrder.montant_total, pendingOrder.commande_id);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Code de confirmation invalide.");
+      setError(err instanceof ApiError ? err.message : t('client.checkoutPayment.invalidCodeError', 'Code de confirmation invalide.'));
       setPhase("awaiting_reference");
     }
   };
@@ -116,22 +117,22 @@ export default function CheckoutPaymentPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <CheckoutSteps current={3} />
-      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">Paiement</h1>
+      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.checkoutPayment.title', 'Paiement')}</h1>
       <p className="text-sm text-slate-500 text-center mb-8">
-        Total à payer : <span className="font-black text-[#0B2545]">{Math.round(totalAmount).toLocaleString('fr-FR')} FCFA</span>
+        {t('client.checkoutPayment.totalToPayPrefix', 'Total à payer :')} <span className="font-black text-[#0B2545]">{Math.round(totalAmount).toLocaleString('fr-FR')} FCFA</span>
       </p>
 
       {phase === "awaiting_reference" || phase === "confirming" ? (
         <div className="p-6 rounded-2xl border-2 border-slate-200 bg-white text-center space-y-4">
           <Smartphone className="h-10 w-10 text-[#0B2545] mx-auto" />
           <p className="text-sm font-bold text-slate-800">
-            Une demande de paiement de {Math.round(totalAmount).toLocaleString('fr-FR')} FCFA a été envoyée.
-            {method !== "carte" && " Approuvez-la via le message USSD reçu sur votre téléphone,"} puis saisissez le code de confirmation reçu.
+            {t('client.checkoutPayment.requestSentPrefix', 'Une demande de paiement de')} {Math.round(totalAmount).toLocaleString('fr-FR')} {t('client.checkoutPayment.requestSentSuffix', 'FCFA a été envoyée.')}
+            {method !== "carte" && ` ${t('client.checkoutPayment.approveUssd', 'Approuvez-la via le message USSD reçu sur votre téléphone,')}`} {t('client.checkoutPayment.thenEnterCode', 'puis saisissez le code de confirmation reçu.')}
           </p>
           <input
             value={reference}
             onChange={(e) => setReference(e.target.value)}
-            placeholder="Code de confirmation"
+            placeholder={t('client.checkoutPayment.codePlaceholder', 'Code de confirmation')}
             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-center text-sm font-bold tracking-wider focus:outline-none focus:border-[#0B2545]"
           />
           {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
@@ -140,7 +141,7 @@ export default function CheckoutPaymentPage() {
             disabled={!reference.trim() || phase === "confirming"}
             className="w-full h-12 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2"
           >
-            {phase === "confirming" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmer le paiement"}
+            {phase === "confirming" ? <Loader2 className="h-4 w-4 animate-spin" /> : t('client.checkoutPayment.confirmPayment', 'Confirmer le paiement')}
           </button>
         </div>
       ) : (
@@ -173,7 +174,7 @@ export default function CheckoutPaymentPage() {
             disabled={phase === "placing"}
             className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all flex items-center justify-center gap-2"
           >
-            {phase === "placing" ? <Loader2 className="h-5 w-5 animate-spin" /> : "Confirmer la commande"}
+            {phase === "placing" ? <Loader2 className="h-5 w-5 animate-spin" /> : t('client.checkoutPayment.confirmOrder', 'Confirmer la commande')}
           </button>
         </>
       )}

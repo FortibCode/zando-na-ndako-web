@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { fetchVendeurAvis, resolveMediaUrl, type VendeurAvis } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 function Stars({ note }: { note: number }) {
   return (
@@ -17,6 +18,7 @@ function Stars({ note }: { note: number }) {
 }
 
 export default function VendeurAvisPage() {
+  const { t } = useLanguage();
   const [data, setData] = useState<VendeurAvis | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,23 +26,26 @@ export default function VendeurAvisPage() {
     fetchVendeurAvis().then(setData).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <LoadingBlock label="Chargement des avis…" />;
-  if (!data) return <EmptyState message="Impossible de charger vos avis." />;
+  if (loading) return <LoadingBlock label={t("vendor.avis.loading", "Chargement des avis…")} />;
+  if (!data) return <EmptyState message={t("vendor.avis.loadError", "Impossible de charger vos avis.")} />;
 
   return (
     <div className="max-w-2xl">
-      <PageHeader title="Avis clients" description={`${data.nombre_avis} avis reçu${data.nombre_avis > 1 ? "s" : ""}`} />
+      <PageHeader
+        title={t("vendorNav.reviews", "Avis clients")}
+        description={`${data.nombre_avis} ${t(data.nombre_avis > 1 ? "vendor.avis.reviewsReceivedMany" : "vendor.avis.reviewsReceivedOne", data.nombre_avis > 1 ? "avis reçus" : "avis reçu")}`}
+      />
 
       <div className="p-5 rounded-2xl border border-slate-200 bg-white mb-6 flex items-center gap-4">
         <p className="text-4xl font-black text-[#0B2545]">{data.note_moyenne.toFixed(1)}</p>
         <div>
           <Stars note={Math.round(data.note_moyenne)} />
-          <p className="text-xs text-slate-400 mt-1">Note moyenne sur {data.nombre_avis} avis</p>
+          <p className="text-xs text-slate-400 mt-1">{t("vendor.avis.avgRatingPrefix", "Note moyenne sur")} {data.nombre_avis} {t("vendor.avis.avgRatingSuffix", "avis")}</p>
         </div>
       </div>
 
       {data.avis.length === 0 ? (
-        <EmptyState message="Aucun avis pour le moment." />
+        <EmptyState message={t("vendor.avis.emptyState", "Aucun avis pour le moment.")} />
       ) : (
         <div className="space-y-3">
           {data.avis.map((a) => (
@@ -54,7 +59,7 @@ export default function VendeurAvisPage() {
                   )}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-slate-800 truncate">{a.client?.nom || "Client"}</p>
+                  <p className="text-xs font-black text-slate-800 truncate">{a.client?.nom || t("vendor.common.clientFallback", "Client")}</p>
                   <p className="text-[10px] text-slate-400">{new Date(a.date_notation).toLocaleDateString('fr-FR')}{a.numero_commande ? ` · ${a.numero_commande}` : ""}</p>
                 </div>
                 <Stars note={a.note} />

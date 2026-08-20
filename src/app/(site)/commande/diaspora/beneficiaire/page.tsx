@@ -14,10 +14,12 @@ import {
   type Beneficiaire,
   type BeneficiaireInput,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 const EMPTY_FORM: BeneficiaireInput = { nom: "", telephone: "", adresse: "", quartier: "", ville: "Brazzaville", relation: "" };
 
 export default function DiasporaBeneficiaryPage() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { beneficiaire, setBeneficiaire } = useCheckout();
 
@@ -53,7 +55,7 @@ export default function DiasporaBeneficiaryPage() {
       setForm(EMPTY_FORM);
       setShowForm(false);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'enregistrer ce bénéficiaire.");
+      setError(err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.saveError', "Impossible d'enregistrer ce bénéficiaire."));
     } finally {
       setSaving(false);
     }
@@ -80,9 +82,9 @@ export default function DiasporaBeneficiaryPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <CheckoutSteps current={1} firstLabel="Bénéficiaire" />
-      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">Bénéficiaire</h1>
-      <p className="text-sm text-slate-500 text-center mb-8">Pour qui souhaitez-vous passer cette commande ?</p>
+      <CheckoutSteps current={1} firstLabel={t('client.checkoutSteps.beneficiaryLabel', 'Bénéficiaire')} />
+      <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.diasporaBeneficiary.title', 'Bénéficiaire')}</h1>
+      <p className="text-sm text-slate-500 text-center mb-8">{t('client.diasporaBeneficiary.subtitle', 'Pour qui souhaitez-vous passer cette commande ?')}</p>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -105,23 +107,23 @@ export default function DiasporaBeneficiaryPage() {
                     <p className="text-sm font-black text-slate-900">{b.nom}</p>
                     {b.est_defaut && (
                       <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                        <Star className="h-2.5 w-2.5 fill-current" /> Défaut
+                        <Star className="h-2.5 w-2.5 fill-current" /> {t('client.diasporaBeneficiary.defaultBadge', 'Défaut')}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{b.telephone} · {b.relation || "Bénéficiaire"}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">{b.telephone} · {b.relation || t('client.diasporaBeneficiary.relationDefault', 'Bénéficiaire')}</p>
                   <p className="text-xs text-slate-400">{b.adresse}, {b.quartier}{b.ville ? `, ${b.ville}` : ""}</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 {!b.est_defaut && (
                   <span onClick={(e) => { e.stopPropagation(); handleSetDefault(b.id); }}
-                    className="p-1.5 text-slate-300 hover:text-amber-500 transition-colors cursor-pointer" title="Définir par défaut">
+                    className="p-1.5 text-slate-300 hover:text-amber-500 transition-colors cursor-pointer" title={t('client.diasporaBeneficiary.setDefaultTitle', 'Définir par défaut')}>
                     <Star className="h-4 w-4" />
                   </span>
                 )}
                 <span onClick={(e) => { e.stopPropagation(); handleDelete(b.id); }}
-                  className="p-1.5 text-slate-300 hover:text-red-500 transition-colors cursor-pointer" title="Supprimer">
+                  className="p-1.5 text-slate-300 hover:text-red-500 transition-colors cursor-pointer" title={t('client.diasporaBeneficiary.deleteTitle', 'Supprimer')}>
                   <Trash2 className="h-4 w-4" />
                 </span>
                 {beneficiaire?.id === b.id && <Check className="h-5 w-5 text-[#0B2545] ml-1" />}
@@ -132,40 +134,40 @@ export default function DiasporaBeneficiaryPage() {
           {!showForm ? (
             <button onClick={() => setShowForm(true)}
               className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl border-2 border-dashed border-slate-300 text-sm font-bold text-slate-500 hover:border-[#0B2545] hover:text-[#0B2545] transition-colors cursor-pointer">
-              <Plus className="h-4 w-4" /> Ajouter un bénéficiaire
+              <Plus className="h-4 w-4" /> {t('client.diasporaBeneficiary.addBeneficiary', 'Ajouter un bénéficiaire')}
             </button>
           ) : (
             <form onSubmit={handleCreate} className="p-4 rounded-2xl border-2 border-slate-200 bg-white space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-slate-900">Nouveau bénéficiaire</p>
+                <p className="text-sm font-black text-slate-900">{t('client.diasporaBeneficiary.newBeneficiaryTitle', 'Nouveau bénéficiaire')}</p>
                 <button type="button" onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-700"><X className="h-4 w-4" /></button>
               </div>
-              <input required placeholder="Nom complet" value={form.nom}
+              <input required placeholder={t('client.diasporaBeneficiary.namePlaceholder', 'Nom complet')} value={form.nom}
                 onChange={(e) => setForm({ ...form, nom: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
               <div className="grid grid-cols-2 gap-3">
-                <input required placeholder="Téléphone" value={form.telephone}
+                <input required placeholder={t('client.diasporaBeneficiary.phonePlaceholder', 'Téléphone')} value={form.telephone}
                   onChange={(e) => setForm({ ...form, telephone: e.target.value })}
                   className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
-                <input placeholder="Relation (ex: Mère)" value={form.relation || ""}
+                <input placeholder={t('client.diasporaBeneficiary.relationPlaceholder', 'Relation (ex: Mère)')} value={form.relation || ""}
                   onChange={(e) => setForm({ ...form, relation: e.target.value })}
                   className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
               </div>
-              <input required placeholder="Adresse" value={form.adresse}
+              <input required placeholder={t('client.diasporaBeneficiary.addressPlaceholder', 'Adresse')} value={form.adresse}
                 onChange={(e) => setForm({ ...form, adresse: e.target.value })}
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
               <div className="grid grid-cols-2 gap-3">
-                <input required placeholder="Quartier" value={form.quartier}
+                <input required placeholder={t('client.diasporaBeneficiary.neighborhoodPlaceholder', 'Quartier')} value={form.quartier}
                   onChange={(e) => setForm({ ...form, quartier: e.target.value })}
                   className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
-                <input placeholder="Ville" value={form.ville || ""}
+                <input placeholder={t('client.diasporaBeneficiary.cityPlaceholder', 'Ville')} value={form.ville || ""}
                   onChange={(e) => setForm({ ...form, ville: e.target.value })}
                   className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
               </div>
               {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
               <button type="submit" disabled={saving}
                 className="w-full h-10 rounded-xl bg-[#0B2545] text-white text-sm font-bold hover:bg-[#061830] disabled:opacity-50 transition-colors">
-                {saving ? "Enregistrement…" : "Enregistrer le bénéficiaire"}
+                {saving ? t('client.diasporaBeneficiary.saving', 'Enregistrement…') : t('client.diasporaBeneficiary.saveBeneficiary', 'Enregistrer le bénéficiaire')}
               </button>
             </form>
           )}
@@ -177,7 +179,7 @@ export default function DiasporaBeneficiaryPage() {
         disabled={!beneficiaire}
         className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all"
       >
-        Continuer
+        {t('client.diasporaBeneficiary.continueBtn', 'Continuer')}
       </button>
     </main>
   );

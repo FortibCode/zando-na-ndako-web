@@ -12,8 +12,10 @@ import {
   repondreVendeurMessage,
   type VendeurMessage,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 export default function VendeurSupportThreadPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useLanguage();
   const { id } = use(params);
   const [thread, setThread] = useState<VendeurMessage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,13 +35,13 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
 
   useEffect(load, [id]);
 
-  if (loading) return <LoadingBlock label="Chargement de la conversation…" />;
+  if (loading) return <LoadingBlock label={t("vendor.supportThread.loading", "Chargement de la conversation…")} />;
   if (!thread) {
     return (
       <div className="text-center py-16">
-        <p className="text-sm font-bold text-slate-700">Conversation introuvable.</p>
+        <p className="text-sm font-bold text-slate-700">{t("vendor.supportThread.notFound", "Conversation introuvable.")}</p>
         <Link href="/vendeur/support" className="inline-flex items-center gap-2 mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Retour au support
+          <ArrowLeft className="h-4 w-4" /> {t("vendor.supportThread.backToSupportNotFound", "Retour au support")}
         </Link>
       </div>
     );
@@ -55,7 +57,7 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
       setThread((prev) => (prev ? { ...prev, reponses: [...(prev.reponses || []), created] } : prev));
       setReply("");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'envoyer la réponse.");
+      setError(err instanceof ApiError ? err.message : t("vendor.supportThread.replyError", "Impossible d'envoyer la réponse."));
     } finally {
       setSending(false);
     }
@@ -66,7 +68,7 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
   return (
     <div className="max-w-2xl">
       <Link href="/vendeur/support" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-4">
-        <ArrowLeft className="h-4 w-4" /> Support
+        <ArrowLeft className="h-4 w-4" /> {t("vendor.supportThread.backToSupportLink", "Support")}
       </Link>
 
       <PageHeader title={thread.objet} />
@@ -78,7 +80,7 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
             <div key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
               <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${mine ? "bg-[#0B2545] text-white" : "bg-slate-100 text-slate-800"}`}>
                 <p className={`text-[10px] font-extrabold mb-0.5 ${mine ? "text-white/70" : "text-slate-400"}`}>
-                  {mine ? "Vous" : "Zando na Ndako"}
+                  {mine ? t("vendor.supportThread.youLabel", "Vous") : t("vendor.supportThread.teamLabel", "Zando na Ndako")}
                 </p>
                 <p className="text-sm">{m.contenu}</p>
                 <p className={`text-[10px] mt-1 ${mine ? "text-white/50" : "text-slate-400"}`}>
@@ -96,7 +98,7 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
         <input
           value={reply}
           onChange={(e) => setReply(e.target.value)}
-          placeholder="Répondre…"
+          placeholder={t("vendor.supportThread.replyPlaceholder", "Répondre…")}
           className="flex-1 h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]"
         />
         <button type="submit" disabled={!reply.trim() || sending}

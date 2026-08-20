@@ -9,18 +9,19 @@ import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components/Button";
 import { accepterVendeurCommande, fetchVendeurCommandes, fullName, refuserVendeurCommande, type VendeurCommande } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 type Tab = "tous" | "confirmee" | "en_cours" | "livree" | "annulee";
 
-const TABS: [Tab, string][] = [
-  ["tous", "Toutes"],
-  ["confirmee", "Nouvelles"],
-  ["en_cours", "En cours"],
-  ["livree", "Livrées"],
-  ["annulee", "Annulées"],
-];
-
 export default function VendeurCommandesPage() {
+  const { t } = useLanguage();
+  const TABS: [Tab, string][] = [
+    ["tous", t("vendor.commandes.tabAll", "Toutes")],
+    ["confirmee", t("vendor.commandes.tabNew", "Nouvelles")],
+    ["en_cours", t("vendor.commandes.tabOngoing", "En cours")],
+    ["livree", t("vendor.commandes.tabDelivered", "Livrées")],
+    ["annulee", t("vendor.commandes.tabCancelled", "Annulées")],
+  ];
   const [orders, setOrders] = useState<VendeurCommande[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>("tous");
@@ -66,7 +67,7 @@ export default function VendeurCommandesPage() {
 
   return (
     <div>
-      <PageHeader title="Commandes" description="Gérez les commandes reçues par votre boutique." />
+      <PageHeader title={t("vendor.commandes.title", "Commandes")} description={t("vendor.commandes.subtitle", "Gérez les commandes reçues par votre boutique.")} />
 
       <div className="flex gap-2 mb-6 overflow-x-auto">
         {TABS.map(([key, label]) => (
@@ -83,11 +84,11 @@ export default function VendeurCommandesPage() {
       </div>
 
       {loading ? (
-        <LoadingBlock label="Chargement des commandes…" />
+        <LoadingBlock label={t("vendor.commandes.loading", "Chargement des commandes…")} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-16">
           <ShoppingBag className="h-12 w-12 text-slate-300 mb-3" />
-          <EmptyState message="Aucune commande dans cette catégorie." />
+          <EmptyState message={t("vendor.commandes.emptyState", "Aucune commande dans cette catégorie.")} />
         </div>
       ) : (
         <div className="space-y-3">
@@ -97,7 +98,7 @@ export default function VendeurCommandesPage() {
                 <Link href={`/vendeur/commandes/${o.id}`} className="flex-1 min-w-0">
                   <p className="text-sm font-black text-slate-900">{o.numero_commande}</p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    {fullName(o.client?.user) || "Client"} · {new Date(o.date_commande).toLocaleDateString('fr-FR')}
+                    {fullName(o.client?.user) || t("vendor.common.clientFallback", "Client")} · {new Date(o.date_commande).toLocaleDateString('fr-FR')}
                   </p>
                 </Link>
                 <div className="flex items-center gap-3 shrink-0">
@@ -113,14 +114,14 @@ export default function VendeurCommandesPage() {
                     disabled={busyId === o.id}
                     className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold transition-colors cursor-pointer"
                   >
-                    {busyId === o.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Accepter
+                    {busyId === o.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} {t("vendor.commandes.accept", "Accepter")}
                   </button>
                   <button
                     onClick={() => setRefusing(o)}
                     disabled={busyId === o.id}
                     className="flex-1 flex items-center justify-center gap-2 h-9 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50 text-xs font-bold transition-colors cursor-pointer"
                   >
-                    <X className="h-3.5 w-3.5" /> Refuser
+                    <X className="h-3.5 w-3.5" /> {t("vendor.commandes.refuse", "Refuser")}
                   </button>
                 </div>
               )}
@@ -131,23 +132,23 @@ export default function VendeurCommandesPage() {
 
       {refusing && (
         <Modal
-          title="Refuser cette commande"
+          title={t("vendor.commandes.refuseModalTitle", "Refuser cette commande")}
           onClose={() => { setRefusing(null); setMotif(""); }}
           footer={
             <>
-              <Button variant="ghost" onClick={() => { setRefusing(null); setMotif(""); }}>Annuler</Button>
-              <Button variant="danger" onClick={handleRefuse} loading={busyId === refusing.id} disabled={!motif.trim()}>Refuser la commande</Button>
+              <Button variant="ghost" onClick={() => { setRefusing(null); setMotif(""); }}>{t("vendor.common.cancel", "Annuler")}</Button>
+              <Button variant="danger" onClick={handleRefuse} loading={busyId === refusing.id} disabled={!motif.trim()}>{t("vendor.commandes.confirmRefuseBtn", "Refuser la commande")}</Button>
             </>
           }
         >
           <p className="text-sm text-slate-600 mb-3">
-            Commande <span className="font-bold">{refusing.numero_commande}</span> — le stock sera automatiquement restitué.
+            {t("vendor.commandes.refuseModalBodyPrefix", "Commande")} <span className="font-bold">{refusing.numero_commande}</span> {t("vendor.commandes.refuseModalBodySuffix", "— le stock sera automatiquement restitué.")}
           </p>
           <textarea
             value={motif}
             onChange={(e) => setMotif(e.target.value)}
             rows={3}
-            placeholder="Motif du refus…"
+            placeholder={t("vendor.commandes.refusePlaceholder", "Motif du refus…")}
             className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
           />
         </Modal>

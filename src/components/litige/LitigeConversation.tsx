@@ -11,10 +11,11 @@ import {
   uploadLitigePreuve,
   type LitigeMessage,
 } from "@/lib/api";
-
-const SENDER_LABEL: Record<string, string> = { client: "Client", vendeur: "Vendeur", admin: "Zando na Ndako" };
+import { useLanguage } from "@/lib/language-context";
 
 export function LitigeConversation({ litigeId, estResolu, viewerType }: { litigeId: string; estResolu: boolean; viewerType: "client" | "vendeur" }) {
+  const { t } = useLanguage();
+  const SENDER_LABEL: Record<string, string> = { client: t('client.litigeConversation.clientLabel', 'Client'), vendeur: t('client.litigeConversation.vendorLabel', 'Vendeur'), admin: "Zando na Ndako" };
   const [messages, setMessages] = useState<LitigeMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
@@ -43,7 +44,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
       setMessages((prev) => [...prev, created]);
       setText("");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'envoyer ce message.");
+      setError(err instanceof ApiError ? err.message : t('client.litigeConversation.sendError', "Impossible d'envoyer ce message."));
     } finally {
       setSending(false);
     }
@@ -56,7 +57,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
       await uploadLitigePreuve(litigeId, file);
       load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'envoyer cette preuve.");
+      setError(err instanceof ApiError ? err.message : t('client.litigeConversation.uploadError', "Impossible d'envoyer cette preuve."));
     } finally {
       setUploading(false);
     }
@@ -70,7 +71,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
     <div className="flex flex-col">
       <div className="space-y-3 max-h-[420px] overflow-y-auto p-1">
         {messages.length === 0 && (
-          <p className="text-xs text-slate-400 text-center py-6">Aucun message pour le moment.</p>
+          <p className="text-xs text-slate-400 text-center py-6">{t('client.litigeConversation.noMessages', 'Aucun message pour le moment.')}</p>
         )}
         {messages.map((m) => {
           const mine = m.sender_type === viewerType;
@@ -101,7 +102,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
 
       {estResolu ? (
         <p className="text-xs font-semibold text-slate-400 text-center mt-4 py-2 border-t border-slate-100">
-          Ce litige est clôturé — la conversation est en lecture seule.
+          {t('client.litigeConversation.closedNotice', 'Ce litige est clôturé — la conversation est en lecture seule.')}
         </p>
       ) : (
         <form onSubmit={handleSend} className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
@@ -113,7 +114,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Écrire un message…"
+            placeholder={t('client.litigeConversation.messagePlaceholder', 'Écrire un message…')}
             className="flex-1 h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]"
           />
           <button type="submit" disabled={!text.trim() || sending}

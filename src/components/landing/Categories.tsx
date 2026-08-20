@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Grid } from 'lucide-react';
 import { fetchCategoriesFromApi } from '@/lib/api';
+import { useLanguage } from '@/lib/language-context';
 import type { Category } from './data';
 import { CategoryCard } from './CategoryCard';
 
 export function Categories() {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,10 +34,10 @@ export function Categories() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Grid className="h-5 w-5 text-[#0B2545]" />
-            <h2 className="text-lg sm:text-xl font-black text-slate-900">Nos catégories populaires</h2>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.categoriesSection.title', 'Nos catégories populaires')}</h2>
           </div>
           <Link href="/produits" className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline">
-            <span>Voir toutes les catégories</span>
+            <span>{t('client.categoriesSection.viewAll', 'Voir toutes les catégories')}</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>

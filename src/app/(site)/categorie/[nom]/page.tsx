@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { ArrowLeft, PackageSearch, SlidersHorizontal } from 'lucide-react';
 import { fetchCategoriesFromApi, fetchProduits, produitToDisplayProduct, type Produit } from '@/lib/api';
 import { ProductCard } from '@/components/landing/ProductCard';
+import { useLanguage } from '@/lib/language-context';
 
 type Sort = 'pertinence' | 'prix_asc' | 'prix_desc';
 type Availability = 'tous' | 'disponible' | 'rupture';
 
 export default function CategoryPage({ params }: { params: Promise<{ nom: string }> }) {
+  const { t } = useLanguage();
   const { nom } = use(params);
   const categoryName = decodeURIComponent(nom);
 
@@ -48,14 +50,14 @@ export default function CategoryPage({ params }: { params: Promise<{ nom: string
   return (
     <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <Link href="/" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-4">
-        <ArrowLeft className="h-4 w-4" /> Accueil
+        <ArrowLeft className="h-4 w-4" /> {t('client.categoryDetail.home', 'Accueil')}
       </Link>
 
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900">{categoryName}</h1>
           <p className="text-sm text-slate-500 mt-1">
-            {loading ? 'Chargement…' : `${filtered.length} produit${filtered.length > 1 ? 's' : ''} disponible${filtered.length > 1 ? 's' : ''}`}
+            {loading ? t('client.common.loading', 'Chargement…') : `${filtered.length} ${t('client.categoriesPage.productSuffix', 'produit')}${filtered.length > 1 ? 's' : ''} ${t('client.categoryDetail.productsAvailableSuffix', 'disponible')}${filtered.length > 1 ? 's' : ''}`}
           </p>
         </div>
 
@@ -68,18 +70,18 @@ export default function CategoryPage({ params }: { params: Promise<{ nom: string
             onChange={(e) => setAvailability(e.target.value as Availability)}
             className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#0B2545]"
           >
-            <option value="tous">Toute disponibilité</option>
-            <option value="disponible">En stock</option>
-            <option value="rupture">Rupture</option>
+            <option value="tous">{t('client.categoryDetail.availabilityAll', 'Toute disponibilité')}</option>
+            <option value="disponible">{t('client.categoryDetail.inStock', 'En stock')}</option>
+            <option value="rupture">{t('client.categoryDetail.outOfStock', 'Rupture')}</option>
           </select>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as Sort)}
             className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#0B2545]"
           >
-            <option value="pertinence">Pertinence</option>
-            <option value="prix_asc">Prix croissant</option>
-            <option value="prix_desc">Prix décroissant</option>
+            <option value="pertinence">{t('client.categoryDetail.sortRelevance', 'Pertinence')}</option>
+            <option value="prix_asc">{t('client.categoryDetail.sortPriceAsc', 'Prix croissant')}</option>
+            <option value="prix_desc">{t('client.categoryDetail.sortPriceDesc', 'Prix décroissant')}</option>
           </select>
         </div>
       </div>
@@ -93,7 +95,7 @@ export default function CategoryPage({ params }: { params: Promise<{ nom: string
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <PackageSearch className="h-12 w-12 text-slate-300 mb-3" />
-          <p className="text-sm font-bold text-slate-700">Aucun produit dans cette catégorie pour le moment</p>
+          <p className="text-sm font-bold text-slate-700">{t('client.categoryDetail.emptyTitle', 'Aucun produit dans cette catégorie pour le moment')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">

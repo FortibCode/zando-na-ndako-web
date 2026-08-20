@@ -9,10 +9,12 @@ import { EtatStockBadge } from "@/components/Badge";
 import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { resolveMediaUrl, signalerVendeurRupture, supprimerVendeurProduit, fetchVendeurProduits, type Produit } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80';
 
 export default function VendeurProduitsPage() {
+  const { t } = useLanguage();
   const [produits, setProduits] = useState<Produit[]>([]);
   const [loading, setLoading] = useState(true);
   const [toDelete, setToDelete] = useState<Produit | null>(null);
@@ -51,21 +53,21 @@ export default function VendeurProduitsPage() {
   return (
     <div>
       <PageHeader
-        title="Mes produits"
-        description={loading ? undefined : `${produits.length} produit${produits.length > 1 ? "s" : ""}`}
+        title={t("vendor.produits.title", "Mes produits")}
+        description={loading ? undefined : `${produits.length} ${t(produits.length > 1 ? "vendor.produits.countMany" : "vendor.produits.countOne", produits.length > 1 ? "produits" : "produit")}`}
         actions={
           <Link href="/vendeur/produits/nouveau">
-            <Button variant="primary"><Plus className="h-4 w-4" /> Ajouter un produit</Button>
+            <Button variant="primary"><Plus className="h-4 w-4" /> {t("vendor.produits.addProduct", "Ajouter un produit")}</Button>
           </Link>
         }
       />
 
       {loading ? (
-        <LoadingBlock label="Chargement de vos produits…" />
+        <LoadingBlock label={t("vendor.produits.loading", "Chargement de vos produits…")} />
       ) : produits.length === 0 ? (
         <div className="flex flex-col items-center py-16">
           <Package className="h-12 w-12 text-slate-300 mb-3" />
-          <EmptyState message="Vous n'avez pas encore de produit. Ajoutez-en un pour commencer à vendre." />
+          <EmptyState message={t("vendor.produits.emptyState", "Vous n'avez pas encore de produit. Ajoutez-en un pour commencer à vendre.")} />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -77,21 +79,21 @@ export default function VendeurProduitsPage() {
               </div>
               <div className="p-4">
                 <p className="text-sm font-black text-slate-900 truncate">{p.nom_produit}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{p.categorie?.nom_categorie || "Sans catégorie"}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{p.categorie?.nom_categorie || t("vendor.produits.noCategory", "Sans catégorie")}</p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-sm font-black text-[#c00000]">{Number(p.prix_unitaire).toLocaleString('fr-FR')} FCFA</span>
-                  <span className="text-xs font-bold text-slate-500">Stock: {p.quantite_stock}</span>
+                  <span className="text-xs font-bold text-slate-500">{t("vendor.produits.stockLabelPrefix", "Stock:")} {p.quantite_stock}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
                   <Link href={`/vendeur/produits/${p.id}`} className="flex-1">
-                    <Button variant="ghost" className="w-full !py-2 !text-xs"><Pencil className="h-3.5 w-3.5" /> Modifier</Button>
+                    <Button variant="ghost" className="w-full !py-2 !text-xs"><Pencil className="h-3.5 w-3.5" /> {t("vendor.produits.edit", "Modifier")}</Button>
                   </Link>
                   {p.statut_disponibilite !== "rupture" && (
                     <button
                       onClick={() => handleRupture(p.id)}
                       disabled={busyId === p.id}
                       className="flex items-center justify-center h-9 w-9 rounded-xl border border-amber-200 text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-50 cursor-pointer"
-                      title="Signaler une rupture"
+                      title={t("vendor.produits.reportOutOfStockTooltip", "Signaler une rupture")}
                     >
                       <AlertTriangle className="h-4 w-4" />
                     </button>
@@ -99,7 +101,7 @@ export default function VendeurProduitsPage() {
                   <button
                     onClick={() => setToDelete(p)}
                     className="flex items-center justify-center h-9 w-9 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
-                    title="Supprimer"
+                    title={t("vendor.produits.deleteTooltip", "Supprimer")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -112,9 +114,9 @@ export default function VendeurProduitsPage() {
 
       {toDelete && (
         <ConfirmDialog
-          title="Supprimer ce produit ?"
-          message={`« ${toDelete.nom_produit} » sera définitivement retiré de votre boutique.`}
-          confirmLabel="Supprimer"
+          title={t("vendor.produits.deleteConfirmTitle", "Supprimer ce produit ?")}
+          message={`${t("vendor.produits.deleteConfirmPrefix", "«")} ${toDelete.nom_produit} ${t("vendor.produits.deleteConfirmSuffix", "» sera définitivement retiré de votre boutique.")}`}
+          confirmLabel={t("vendor.produits.deleteConfirmBtn", "Supprimer")}
           danger
           loading={deleting}
           onConfirm={handleDelete}

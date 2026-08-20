@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Check, Clock, MapPin, Search, Truck, X } from 'lucide-react';
 import { DEFAULT_ZONES, fetchDeliveryZonesFromApi, type DeliveryZone } from '@/lib/api';
+import { useLanguage } from '@/lib/language-context';
 
 interface ZoneModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface ZoneModalProps {
 }
 
 export function ZoneModal({ isOpen, onClose, selectedZone, onSelectZone }: ZoneModalProps) {
+  const { t } = useLanguage();
   const [zones, setZones] = useState<DeliveryZone[]>(DEFAULT_ZONES);
   const [search, setSearch] = useState('');
 
@@ -43,15 +45,15 @@ export function ZoneModal({ isOpen, onClose, selectedZone, onSelectZone }: ZoneM
               <MapPin className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-black text-slate-900">Zone de livraison</h2>
-              <p className="text-xs text-slate-500">Choisissez votre commune ou secteur</p>
+              <h2 className="text-base font-black text-slate-900">{t('client.zoneModal.title', 'Zone de livraison')}</h2>
+              <p className="text-xs text-slate-500">{t('client.zoneModal.subtitle', 'Choisissez votre commune ou secteur')}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-            aria-label="Fermer le modal"
+            aria-label={t('client.zoneModal.closeAria', 'Fermer le modal')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -63,7 +65,7 @@ export function ZoneModal({ isOpen, onClose, selectedZone, onSelectZone }: ZoneM
             <Search className="absolute left-3.5 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Rechercher une commune (Poto-Poto, Bacongo, Ouenzé...)"
+              placeholder={t('client.zoneModal.searchPlaceholder', 'Rechercher une commune (Poto-Poto, Bacongo, Ouenzé...)')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full rounded-2xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 py-2.5 text-xs font-semibold text-slate-800 placeholder-slate-400 focus:border-[#0B2545] focus:bg-white focus:outline-none transition-all"
@@ -74,7 +76,7 @@ export function ZoneModal({ isOpen, onClose, selectedZone, onSelectZone }: ZoneM
         {/* Zone List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filtered.length === 0 ? (
-            <p className="text-center text-xs text-slate-500 py-8">Aucune zone trouvée pour « {search} ».</p>
+            <p className="text-center text-xs text-slate-500 py-8">{t('client.zoneModal.noResultsPrefix', 'Aucune zone trouvée pour')} « {search} ».</p>
           ) : (
             filtered.map((zone) => {
               const isSelected = selectedZone.id === zone.id;
@@ -101,7 +103,7 @@ export function ZoneModal({ isOpen, onClose, selectedZone, onSelectZone }: ZoneM
                       )}
                     </div>
                     <p className="text-[11px] text-slate-500 leading-snug">
-                      <span className="font-semibold text-slate-700">Quartiers :</span> {zone.neighborhoods.join(', ')}
+                      <span className="font-semibold text-slate-700">{t('client.zoneModal.neighborhoodsLabel', 'Quartiers :')}</span> {zone.neighborhoods.join(', ')}
                     </p>
                     <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 pt-1">
                       <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">

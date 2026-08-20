@@ -7,16 +7,18 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/Button";
 import { usePublicAuth } from "@/lib/public-auth-context";
 import { ApiError, changePassword, updateVendeurProfil, uploadVendeurDocumentsPublic } from "@/lib/api";
-
-const DOCS = [
-  { key: "photo_boutique", label: "Photo de la boutique" },
-  { key: "document_identite", label: "Pièce d'identité" },
-  { key: "registre_commerce", label: "Registre de commerce (RCCM)" },
-] as const;
+import { useLanguage } from "@/lib/language-context";
 
 export default function VendeurProfilPage() {
   const { user, logout } = usePublicAuth();
   const router = useRouter();
+  const { t } = useLanguage();
+
+  const DOCS = [
+    { key: "photo_boutique" as const, label: t("vendor.profil.docPhotoBoutique", "Photo de la boutique") },
+    { key: "document_identite" as const, label: t("vendor.profil.docIdentite", "Pièce d'identité") },
+    { key: "registre_commerce" as const, label: t("vendor.profil.docRegistre", "Registre de commerce (RCCM)") },
+  ];
 
   const [nomCommerce, setNomCommerce] = useState("");
   const [numeroMobileMoney, setNumeroMobileMoney] = useState("");
@@ -63,7 +65,7 @@ export default function VendeurProfilPage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'enregistrer les modifications.");
+      setError(err instanceof ApiError ? err.message : t("vendor.profil.saveError", "Impossible d'enregistrer les modifications."));
     } finally {
       setSaving(false);
     }
@@ -72,7 +74,7 @@ export default function VendeurProfilPage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (nouveauMotDePasse !== confirmMotDePasse) {
-      setPasswordError("Les mots de passe ne correspondent pas.");
+      setPasswordError(t("vendor.profil.passwordMismatch", "Les mots de passe ne correspondent pas."));
       return;
     }
     setChangingPassword(true);
@@ -83,7 +85,7 @@ export default function VendeurProfilPage() {
       // Le backend révoque tous les tokens à la réussite — la session locale n'est plus valide.
       setTimeout(() => { logout(); router.push("/auth/login"); }, 1500);
     } catch (err) {
-      setPasswordError(err instanceof ApiError ? err.message : "Impossible de changer le mot de passe.");
+      setPasswordError(err instanceof ApiError ? err.message : t("vendor.profil.passwordError", "Impossible de changer le mot de passe."));
     } finally {
       setChangingPassword(false);
     }
@@ -105,53 +107,53 @@ export default function VendeurProfilPage() {
 
   return (
     <div className="max-w-xl">
-      <PageHeader title="Profil de la boutique" />
+      <PageHeader title={t("vendor.profil.title", "Profil de la boutique")} />
 
       <div className="p-5 rounded-2xl border border-slate-200 bg-white mb-6">
-        <p className="text-xs font-bold text-slate-500 mb-1">Compte connecté</p>
+        <p className="text-xs font-bold text-slate-500 mb-1">{t("vendor.profil.connectedAccount", "Compte connecté")}</p>
         <p className="text-sm font-black text-slate-900">{user?.nom_complet}</p>
         <p className="text-xs text-slate-500">{user?.telephone}{user?.email ? ` · ${user.email}` : ""}</p>
       </div>
 
       <form onSubmit={handleSave} className="p-5 rounded-2xl border border-slate-200 bg-white space-y-4 mb-6">
-        <p className="text-sm font-black text-slate-900">Boutique</p>
+        <p className="text-sm font-black text-slate-900">{t("vendor.profil.storeSectionTitle", "Boutique")}</p>
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">Nom commercial</label>
-          <input value={nomCommerce} onChange={(e) => setNomCommerce(e.target.value)} placeholder="Nom de votre boutique"
+          <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.storeNameLabel", "Nom commercial")}</label>
+          <input value={nomCommerce} onChange={(e) => setNomCommerce(e.target.value)} placeholder={t("vendor.profil.storeNamePlaceholder", "Nom de votre boutique")}
             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">Point de collecte (position GPS)</label>
-          <p className="text-xs text-slate-400 mb-2">Utilisé pour calculer les frais de livraison à la distance réelle.</p>
+          <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.gpsLabel", "Point de collecte (position GPS)")}</label>
+          <p className="text-xs text-slate-400 mb-2">{t("vendor.profil.gpsHint", "Utilisé pour calculer les frais de livraison à la distance réelle.")}</p>
           <button type="button" onClick={handleLocate} disabled={locating}
             className="flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors cursor-pointer">
             {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
-            {coords ? `Position : ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}` : "Utiliser ma position actuelle"}
+            {coords ? `${t("vendor.profil.positionPrefix", "Position :")} ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}` : t("vendor.profil.useCurrentPosition", "Utiliser ma position actuelle")}
           </button>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">Coordonnées de paiement</label>
-          <p className="text-xs text-slate-400 mb-2">Numéro mobile money qui recevra vos retraits.</p>
-          <input value={numeroMobileMoney} onChange={(e) => setNumeroMobileMoney(e.target.value)} placeholder="ex: 06 123 45 67"
+          <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.paymentInfoLabel", "Coordonnées de paiement")}</label>
+          <p className="text-xs text-slate-400 mb-2">{t("vendor.profil.paymentInfoHint", "Numéro mobile money qui recevra vos retraits.")}</p>
+          <input value={numeroMobileMoney} onChange={(e) => setNumeroMobileMoney(e.target.value)} placeholder={t("vendor.profil.mobileMoneyPlaceholder", "ex: 06 123 45 67")}
             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">Horaires d&apos;ouverture</label>
-          <input value={horairesOuverture} onChange={(e) => setHorairesOuverture(e.target.value)} placeholder="ex: Lun-Sam 8h-19h"
+          <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.hoursLabel", "Horaires d'ouverture")}</label>
+          <input value={horairesOuverture} onChange={(e) => setHorairesOuverture(e.target.value)} placeholder={t("vendor.profil.hoursPlaceholder", "ex: Lun-Sam 8h-19h")}
             className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
         <Button type="submit" variant="primary" disabled={saving} className="w-full !py-3">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? "Enregistré !" : "Enregistrer"}
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : saved ? t("vendor.profil.savedBtn", "Enregistré !") : t("vendor.profil.saveBtn", "Enregistrer")}
         </Button>
       </form>
 
       <div id="documents" className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3 scroll-mt-24">
-        <p className="text-sm font-black text-slate-900">Documents de la boutique</p>
+        <p className="text-sm font-black text-slate-900">{t("vendor.profil.documentsTitle", "Documents de la boutique")}</p>
         {DOCS.map((doc) => (
           <label key={doc.key} className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-[#0B2545]/40 cursor-pointer transition-colors">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
@@ -163,31 +165,31 @@ export default function VendeurProfilPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-800">{doc.label}</p>
-              <p className="text-[11px] text-slate-400 truncate">{docs[doc.key]?.name || "Aucun fichier sélectionné"}</p>
+              <p className="text-[11px] text-slate-400 truncate">{docs[doc.key]?.name || t("vendor.profil.noFileSelected", "Aucun fichier sélectionné")}</p>
             </div>
             {docs[doc.key] && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
             <input type="file" accept="image/*" className="hidden" onChange={(e) => setDocs((prev) => ({ ...prev, [doc.key]: e.target.files?.[0] || null }))} />
           </label>
         ))}
         <Button type="button" variant="secondary" onClick={handleUploadDocs} disabled={uploading} className="w-full !py-2.5">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : docsSaved ? "Documents envoyés !" : "Envoyer les documents"}
+          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : docsSaved ? t("vendor.profil.docsSentBtn", "Documents envoyés !") : t("vendor.profil.sendDocsBtn", "Envoyer les documents")}
         </Button>
       </div>
 
       <form onSubmit={handleChangePassword} className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3 mt-6">
-        <p className="text-sm font-black text-slate-900">Changer le mot de passe</p>
+        <p className="text-sm font-black text-slate-900">{t("vendor.profil.changePasswordTitle", "Changer le mot de passe")}</p>
         <input required type="password" value={ancienMotDePasse} onChange={(e) => setAncienMotDePasse(e.target.value)}
-          placeholder="Mot de passe actuel"
+          placeholder={t("vendor.profil.currentPasswordPlaceholder", "Mot de passe actuel")}
           className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
         <input required type="password" value={nouveauMotDePasse} onChange={(e) => setNouveauMotDePasse(e.target.value)}
-          placeholder="Nouveau mot de passe (min. 8 caractères)"
+          placeholder={t("vendor.profil.newPasswordPlaceholder", "Nouveau mot de passe (min. 8 caractères)")}
           className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
         <input required type="password" value={confirmMotDePasse} onChange={(e) => setConfirmMotDePasse(e.target.value)}
-          placeholder="Confirmer le nouveau mot de passe"
+          placeholder={t("vendor.profil.confirmPasswordPlaceholder", "Confirmer le nouveau mot de passe")}
           className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
         {passwordError && <p className="text-xs font-semibold text-red-600">{passwordError}</p>}
         <Button type="submit" variant="secondary" disabled={changingPassword || nouveauMotDePasse.length < 8} className="w-full !py-2.5">
-          {changingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : passwordChanged ? "Mot de passe changé, reconnexion…" : "Changer le mot de passe"}
+          {changingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : passwordChanged ? t("vendor.profil.passwordChangedBtn", "Mot de passe changé, reconnexion…") : t("vendor.profil.changePasswordBtn", "Changer le mot de passe")}
         </Button>
       </form>
     </div>

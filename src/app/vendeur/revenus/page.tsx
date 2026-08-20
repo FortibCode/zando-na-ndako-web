@@ -16,21 +16,26 @@ import {
   type RetraitVendeur,
   type VendeurRevenus,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 function formatFcfa(value: number | string) {
   return `${Math.round(Number(value)).toLocaleString('fr-FR')} FCFA`;
 }
 
-const METHODE_OPTIONS = [
-  { id: "mtn_momo", label: "MTN Mobile Money" },
-  { id: "airtel_money", label: "Airtel Money" },
-  { id: "virement", label: "Virement bancaire" },
-] as const;
-
 const RETRAIT_STATUT_TONE: Record<string, "gold" | "green" | "red"> = { en_attente: "gold", valide: "green", rejete: "red" };
-const RETRAIT_STATUT_LABEL: Record<string, string> = { en_attente: "En attente", valide: "Validé", rejete: "Rejeté" };
 
 export default function VendeurRevenusPage() {
+  const { t } = useLanguage();
+  const METHODE_OPTIONS = [
+    { id: "mtn_momo" as const, label: t("vendor.revenus.methodMtn", "MTN Mobile Money") },
+    { id: "airtel_money" as const, label: t("vendor.revenus.methodAirtel", "Airtel Money") },
+    { id: "virement" as const, label: t("vendor.revenus.methodBank", "Virement bancaire") },
+  ];
+  const RETRAIT_STATUT_LABEL: Record<string, string> = {
+    en_attente: t("vendor.revenus.statusPending", "En attente"),
+    valide: t("vendor.revenus.statusValidated", "Validé"),
+    rejete: t("vendor.revenus.statusRejected", "Rejeté"),
+  };
   const [data, setData] = useState<VendeurRevenus | null>(null);
   const [retraits, setRetraits] = useState<RetraitVendeur[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,8 +55,8 @@ export default function VendeurRevenusPage() {
 
   useEffect(load, []);
 
-  if (loading) return <LoadingBlock label="Chargement de vos revenus…" />;
-  if (!data) return <p className="text-sm text-slate-500">Impossible de charger vos revenus.</p>;
+  if (loading) return <LoadingBlock label={t("vendor.revenus.loading", "Chargement de vos revenus…")} />;
+  if (!data) return <p className="text-sm text-slate-500">{t("vendor.revenus.loadError", "Impossible de charger vos revenus.")}</p>;
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +72,7 @@ export default function VendeurRevenusPage() {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible de soumettre la demande.");
+      setError(err instanceof ApiError ? err.message : t("vendor.revenus.submitError", "Impossible de soumettre la demande."));
     } finally {
       setSubmitting(false);
     }
@@ -75,18 +80,18 @@ export default function VendeurRevenusPage() {
 
   return (
     <div>
-      <PageHeader title="Revenus" description="Suivez vos ventes et gérez vos retraits." />
+      <PageHeader title={t("vendor.revenus.title", "Revenus")} description={t("vendor.revenus.subtitle", "Suivez vos ventes et gérez vos retraits.")} />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Solde disponible" value={formatFcfa(data.solde_disponible)} accent="gold" icon={<Wallet className="h-5 w-5" />} />
-        <StatCard label="Revenus bruts (mois)" value={formatFcfa(data.revenus_bruts)} accent="navy" icon={<TrendingUp className="h-5 w-5" />} />
-        <StatCard label="Commissions" value={formatFcfa(data.commissions)} accent="red" />
-        <StatCard label="Revenus nets (mois)" value={formatFcfa(data.revenus_nets)} accent="green" />
+        <StatCard label={t("vendor.revenus.statAvailableBalance", "Solde disponible")} value={formatFcfa(data.solde_disponible)} accent="gold" icon={<Wallet className="h-5 w-5" />} />
+        <StatCard label={t("vendor.revenus.statGrossRevenue", "Revenus bruts (mois)")} value={formatFcfa(data.revenus_bruts)} accent="navy" icon={<TrendingUp className="h-5 w-5" />} />
+        <StatCard label={t("vendor.revenus.statCommissions", "Commissions")} value={formatFcfa(data.commissions)} accent="red" />
+        <StatCard label={t("vendor.revenus.statNetRevenue", "Revenus nets (mois)")} value={formatFcfa(data.revenus_nets)} accent="green" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="p-5 rounded-2xl border border-slate-200 bg-white">
-          <p className="text-sm font-black text-slate-900 mb-4">Ventes des 7 derniers jours</p>
+          <p className="text-sm font-black text-slate-900 mb-4">{t("vendor.revenus.salesChartTitle", "Ventes des 7 derniers jours")}</p>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.ventes_semaine}>
               <XAxis dataKey="jour" tick={{ fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
@@ -98,15 +103,15 @@ export default function VendeurRevenusPage() {
         </div>
 
         <div className="p-5 rounded-2xl border border-slate-200 bg-white">
-          <p className="text-sm font-black text-slate-900 mb-4">Produits les plus vendus</p>
+          <p className="text-sm font-black text-slate-900 mb-4">{t("vendor.revenus.topProductsTitle", "Produits les plus vendus")}</p>
           {data.produits_plus_vendus.length === 0 ? (
-            <p className="text-sm text-slate-400 py-8 text-center">Aucune vente livrée pour le moment.</p>
+            <p className="text-sm text-slate-400 py-8 text-center">{t("vendor.revenus.noSales", "Aucune vente livrée pour le moment.")}</p>
           ) : (
             <div className="space-y-2.5">
               {data.produits_plus_vendus.map((p, i) => (
                 <div key={p.nom} className="flex items-center justify-between text-sm">
                   <span className="font-bold text-slate-700">{i + 1}. {p.nom}</span>
-                  <span className="text-slate-500 font-semibold">{p.ventes} vendus</span>
+                  <span className="text-slate-500 font-semibold">{p.ventes} {t("vendor.revenus.soldSuffix", "vendus")}</span>
                 </div>
               ))}
             </div>
@@ -116,35 +121,35 @@ export default function VendeurRevenusPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <form onSubmit={handleWithdraw} className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3 h-fit">
-          <p className="text-sm font-black text-slate-900">Demander un retrait</p>
+          <p className="text-sm font-black text-slate-900">{t("vendor.revenus.withdrawFormTitle", "Demander un retrait")}</p>
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Montant (FCFA)</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.revenus.amountLabel", "Montant (FCFA)")}</label>
             <input required type="number" min="1" value={montant} onChange={(e) => setMontant(e.target.value)}
               className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Méthode</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.revenus.methodLabel", "Méthode")}</label>
             <select value={methode} onChange={(e) => setMethode(e.target.value as typeof methode)}
               className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
               {METHODE_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Numéro de réception</label>
-            <input required value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="Numéro mobile money ou RIB"
+            <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.revenus.receptionNumberLabel", "Numéro de réception")}</label>
+            <input required value={numero} onChange={(e) => setNumero(e.target.value)} placeholder={t("vendor.revenus.receptionNumberPlaceholder", "Numéro mobile money ou RIB")}
               className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
           <Button type="submit" variant="primary" disabled={submitting} className="w-full !py-2.5">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {success ? "Demande envoyée !" : "Soumettre la demande"}
+            {success ? t("vendor.revenus.submittedBtn", "Demande envoyée !") : t("vendor.revenus.submitBtn", "Soumettre la demande")}
           </Button>
         </form>
 
         <div className="p-5 rounded-2xl border border-slate-200 bg-white">
-          <p className="text-sm font-black text-slate-900 mb-4">Historique des retraits</p>
+          <p className="text-sm font-black text-slate-900 mb-4">{t("vendor.revenus.withdrawHistoryTitle", "Historique des retraits")}</p>
           {retraits.length === 0 ? (
-            <p className="text-sm text-slate-400 py-8 text-center">Aucune demande de retrait.</p>
+            <p className="text-sm text-slate-400 py-8 text-center">{t("vendor.revenus.noWithdrawals", "Aucune demande de retrait.")}</p>
           ) : (
             <div className="space-y-2.5">
               {retraits.map((r) => (

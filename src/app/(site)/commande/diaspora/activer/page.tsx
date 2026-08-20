@@ -2,15 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Globe2, Radar, ShieldCheck, Truck } from "lucide-react";
-
-const FEATURES = [
-  { icon: ShieldCheck, text: "Paiement sécurisé en € ou $" },
-  { icon: Truck, text: "Livraison rapide à Brazzaville" },
-  { icon: Radar, text: "Suivi en temps réel" },
-];
+import { useLanguage } from "@/lib/language-context";
 
 export default function DiasporaActivationPage() {
+  const { t } = useLanguage();
   const router = useRouter();
+
+  const FEATURES = [
+    { icon: ShieldCheck, text: t('client.diasporaActivation.feature1', 'Paiement sécurisé en € ou $') },
+    { icon: Truck, text: t('client.diasporaActivation.feature2', 'Livraison rapide à Brazzaville') },
+    { icon: Radar, text: t('client.diasporaActivation.feature3', 'Suivi en temps réel') },
+  ];
 
   return (
     <main className="mx-auto w-full max-w-lg px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
@@ -18,7 +20,7 @@ export default function DiasporaActivationPage() {
         onClick={() => router.back()}
         className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-8 cursor-pointer"
       >
-        <ArrowLeft className="h-4 w-4" /> Retour
+        <ArrowLeft className="h-4 w-4" /> {t('client.diasporaActivation.back', 'Retour')}
       </button>
 
       <div className="flex flex-col items-center text-center">
@@ -26,8 +28,8 @@ export default function DiasporaActivationPage() {
           <Globe2 className="w-16 h-16 text-white" />
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-black text-[#0B2545] leading-tight">
-          Envoyez des courses<br />à vos proches au Congo
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0B2545] leading-tight whitespace-pre-line">
+          {t('client.diasporaActivation.title', 'Envoyez des courses\nà vos proches au Congo')}
         </h1>
 
         <div className="w-full space-y-3.5 mt-8 mb-10">
@@ -45,10 +47,10 @@ export default function DiasporaActivationPage() {
           onClick={() => router.push("/commande/diaspora/beneficiaire")}
           className="w-full h-14 rounded-2xl bg-[#e01313] hover:bg-[#c00000] text-white font-black text-base shadow-lg shadow-[#e01313]/25 transition-all cursor-pointer"
         >
-          Activer le Mode Diaspora
+          {t('client.diasporaActivation.cta', 'Activer le Mode Diaspora')}
         </button>
         <button onClick={() => router.back()} className="mt-3 text-sm font-bold text-slate-500 hover:text-slate-700 cursor-pointer">
-          Plus tard
+          {t('client.diasporaActivation.later', 'Plus tard')}
         </button>
       </div>
     </main>

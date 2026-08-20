@@ -8,10 +8,12 @@ import { StatutLitigeBadge } from "@/components/Badge";
 import { LoadingBlock } from "@/components/Spinner";
 import { LitigeConversation } from "@/components/litige/LitigeConversation";
 import { LITIGE_MOTIFS, fetchVendeurLitigeDetail, fullName, type Litige } from "@/lib/api";
+import { useLanguage } from "@/lib/language-context";
 
 const CLOS = ["resolu", "rejete", "annule"];
 
 export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useLanguage();
   const { id } = use(params);
   const [litige, setLitige] = useState<Litige | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,13 +22,13 @@ export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ 
     fetchVendeurLitigeDetail(id).then(setLitige).catch(() => setLitige(null)).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <LoadingBlock label="Chargement du litige…" />;
+  if (loading) return <LoadingBlock label={t("vendor.litigeDetail.loading", "Chargement du litige…")} />;
   if (!litige) {
     return (
       <div className="text-center py-16">
-        <p className="text-sm font-bold text-slate-700">Litige introuvable.</p>
+        <p className="text-sm font-bold text-slate-700">{t("vendor.litigeDetail.notFound", "Litige introuvable.")}</p>
         <Link href="/vendeur/litiges" className="inline-flex items-center gap-2 mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Retour aux litiges
+          <ArrowLeft className="h-4 w-4" /> {t("vendor.litigeDetail.backToLitigesNotFound", "Retour aux litiges")}
         </Link>
       </div>
     );
@@ -35,12 +37,12 @@ export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="max-w-2xl">
       <Link href="/vendeur/litiges" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-4">
-        <ArrowLeft className="h-4 w-4" /> Mes litiges
+        <ArrowLeft className="h-4 w-4" /> {t("vendor.litigeDetail.backToLitigesLink", "Mes litiges")}
       </Link>
 
       <PageHeader
         title={litige.numero}
-        description={`Commande ${litige.commande?.numero_commande} · ${fullName(litige.plaignant) || "Client"}`}
+        description={`${t("vendor.litiges.orderPrefix", "Commande")} ${litige.commande?.numero_commande} · ${fullName(litige.plaignant) || t("vendor.common.clientFallback", "Client")}`}
         actions={<StatutLitigeBadge value={litige.statut} />}
       />
 
@@ -53,7 +55,7 @@ export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ 
 
       {(litige.decisions || []).length > 0 && (
         <div className="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/50 mb-4 space-y-2">
-          <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-wide">Décision de l&apos;administration</p>
+          <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-wide">{t("vendor.litigeDetail.decisionTitle", "Décision de l'administration")}</p>
           {litige.decisions!.map((d) => (
             <div key={d.id} className="text-sm text-slate-700">
               <p className="font-bold capitalize">{d.decision_type.replace(/_/g, ' ')}</p>
@@ -67,7 +69,7 @@ export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ 
       )}
 
       <div className="p-4 rounded-2xl border border-slate-200 bg-white">
-        <p className="text-sm font-black text-slate-900 mb-3">Conversation</p>
+        <p className="text-sm font-black text-slate-900 mb-3">{t("vendor.litigeDetail.conversationTitle", "Conversation")}</p>
         <LitigeConversation litigeId={litige.id} estResolu={CLOS.includes(litige.statut)} viewerType="vendeur" />
       </div>
     </div>

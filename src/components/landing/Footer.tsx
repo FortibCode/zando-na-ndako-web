@@ -1,6 +1,9 @@
+"use client";
+
 import Link from 'next/link';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { useLanguage } from '@/lib/language-context';
 import { CATEGORIES } from './data';
 
 const SOCIALS = [
@@ -27,13 +30,14 @@ const SOCIALS = [
 ];
 
 export function Footer() {
+  const { t } = useLanguage();
   return (
     <footer id="contact" className="border-t border-slate-100 bg-white text-slate-600 mt-12">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
         <div className="space-y-3">
           <Logo size="md" showSubtitle={true} />
           <p className="text-xs leading-relaxed text-slate-500 max-w-xs">
-            Votre marché en ligne de confiance. Des produits frais, livrés chez vous en toute simplicité.
+            {t('client.footer.tagline', 'Votre marché en ligne de confiance. Des produits frais, livrés chez vous en toute simplicité.')}
           </p>
 
           <div className="flex items-center gap-2.5 pt-1">
@@ -53,19 +57,19 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">Liens utiles</h4>
+          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">{t('client.footer.usefulLinks', 'Liens utiles')}</h4>
           <ul className="space-y-2 text-xs font-semibold text-slate-600">
-            <li><Link href="/" className="hover:text-[#0B2545]">À propos</Link></li>
-            <li><a href="#how-it-works" className="hover:text-[#0B2545]">Comment ça marche</a></li>
-            <li><a href="#partners" className="hover:text-[#0B2545]">Nos partenaires</a></li>
-            <li><Link href="/" className="hover:text-[#0B2545]">Conditions générales</Link></li>
-            <li><Link href="/" className="hover:text-[#0B2545]">Politique de confidentialité</Link></li>
-            <li><Link href="/" className="hover:text-[#0B2545]">FAQ</Link></li>
+            <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.about', 'À propos')}</Link></li>
+            <li><a href="#how-it-works" className="hover:text-[#0B2545]">{t('client.footer.howItWorks', 'Comment ça marche')}</a></li>
+            <li><a href="#partners" className="hover:text-[#0B2545]">{t('client.footer.ourPartners', 'Nos partenaires')}</a></li>
+            <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.terms', 'Conditions générales')}</Link></li>
+            <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.privacy', 'Politique de confidentialité')}</Link></li>
+            <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.faq', 'FAQ')}</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">Catégories</h4>
+          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">{t('client.footer.categoriesTitle', 'Catégories')}</h4>
           <ul className="space-y-2 text-xs font-semibold text-slate-600">
             {CATEGORIES.map((c) => (
               <li key={c.id}>
@@ -76,7 +80,7 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">Contact</h4>
+          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">{t('client.footer.contactTitle', 'Contact')}</h4>
           <ul className="space-y-2.5 text-xs font-semibold text-slate-600">
             <li className="flex items-center gap-2">
               <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
@@ -88,7 +92,7 @@ export function Footer() {
             </li>
             <li className="flex items-start gap-2">
               <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <span>Avenue de l&apos;Indépendance, Poto-Poto, Brazzaville, Congo</span>
+              <span>{t('client.footer.addressLine', "Avenue de l'Indépendance, Poto-Poto, Brazzaville, Congo")}</span>
             </li>
           </ul>
         </div>
@@ -96,11 +100,11 @@ export function Footer() {
 
       <div className="bg-[#0B2545] py-3.5 text-xs font-bold text-slate-300">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6 lg:px-8">
-          <p>© 2024 Zando na Ndako. Tous droits réservés.</p>
+          <p>{t('client.footer.rightsReserved', '© 2024 Zando na Ndako. Tous droits réservés.')}</p>
           <div className="flex items-center gap-6 text-[11px]">
-            <Link href="/" className="hover:text-white">CGU</Link>
-            <Link href="/" className="hover:text-white">Confidentialité</Link>
-            <a href="#contact" className="hover:text-white">Contact</a>
+            <Link href="/" className="hover:text-white">{t('client.footer.cgu', 'CGU')}</Link>
+            <Link href="/" className="hover:text-white">{t('client.footer.confidentiality', 'Confidentialité')}</Link>
+            <a href="#contact" className="hover:text-white">{t('client.footer.contact', 'Contact')}</a>
           </div>
         </div>
       </div>

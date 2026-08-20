@@ -7,6 +7,7 @@ import { fetchProduitDetail, resolveMediaUrl, type Produit, ApiError } from '@/l
 import { useCart } from '@/components/landing/cart-context';
 import { useFavorites } from '@/lib/favorites';
 import { useToast } from '@/lib/toast-context';
+import { useLanguage } from '@/lib/language-context';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80';
 
@@ -15,6 +16,7 @@ function formatFcfa(value: number | string) {
 }
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useLanguage();
   const { id } = use(params);
   const [product, setProduct] = useState<Produit | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'not_found'>('loading');
@@ -54,10 +56,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     return (
       <main className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 my-16 flex-1 text-center">
         <PackageX className="h-14 w-14 text-slate-300 mx-auto mb-4" />
-        <h1 className="text-xl font-black text-slate-900">Produit introuvable</h1>
-        <p className="text-sm text-slate-500 mt-2">Ce produit n&apos;existe pas ou n&apos;est plus disponible.</p>
+        <h1 className="text-xl font-black text-slate-900">{t('client.produitDetail.notFoundTitle', 'Produit introuvable')}</h1>
+        <p className="text-sm text-slate-500 mt-2">{t('client.produitDetail.notFoundDesc', "Ce produit n'existe pas ou n'est plus disponible.")}</p>
         <Link href="/produits" className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#0B2545] px-6 py-2.5 text-xs font-extrabold text-white hover:bg-[#061830] transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Retour au catalogue
+          <ArrowLeft className="h-4 w-4" /> {t('client.produitDetail.backToCatalog', 'Retour au catalogue')}
         </Link>
       </main>
     );
@@ -82,14 +84,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       },
       quantity,
     );
-    notify(`« ${product.nom_produit} » (x${quantity}) ajouté à votre panier.`);
+    notify(`« ${product.nom_produit} » (x${quantity}) ${t('client.produitDetail.addedToCartSuffix', 'ajouté à votre panier.')}`);
     setTimeout(() => setIsAdding(false), 500);
   };
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
       <Link href="/produits" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-6">
-        <ArrowLeft className="h-4 w-4" /> Retour au catalogue
+        <ArrowLeft className="h-4 w-4" /> {t('client.produitDetail.backToCatalog', 'Retour au catalogue')}
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -100,13 +102,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             className={`absolute top-4 right-4 rounded-full p-2.5 backdrop-blur-md transition-all cursor-pointer ${
               fav ? 'bg-red-50 text-red-500 shadow-sm' : 'bg-white/90 text-slate-400 hover:text-red-500'
             }`}
-            aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+            aria-label={fav ? t('client.produitDetail.removeFavoriteAria', 'Retirer des favoris') : t('client.produitDetail.addFavoriteAria', 'Ajouter aux favoris')}
           >
             <Heart className={`h-5 w-5 ${fav ? 'fill-current' : ''}`} />
           </button>
           {outOfStock && (
             <span className="absolute bottom-4 left-4 rounded-full bg-slate-900/85 text-white text-xs font-bold px-3 py-1.5">
-              Rupture de stock
+              {t('client.produitDetail.outOfStockBadge', 'Rupture de stock')}
             </span>
           )}
         </div>
@@ -138,7 +140,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-700 shadow-xs hover:bg-slate-100 transition-all cursor-pointer"
-                aria-label="Diminuer la quantité"
+                aria-label={t('client.produitDetail.decreaseAria', 'Diminuer la quantité')}
               >
                 <Minus className="h-4 w-4" />
               </button>
@@ -146,7 +148,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <button
                 onClick={() => setQuantity((q) => q + 1)}
                 className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-700 shadow-xs hover:bg-slate-100 transition-all cursor-pointer"
-                aria-label="Augmenter la quantité"
+                aria-label={t('client.produitDetail.increaseAria', 'Augmenter la quantité')}
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -159,7 +161,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 isAdding ? 'scale-95 bg-emerald-700' : ''
               }`}
             >
-              <span>{outOfStock ? 'Indisponible' : isAdding ? 'Ajouté !' : 'Ajouter au panier'}</span>
+              <span>{outOfStock ? t('client.produitDetail.unavailable', 'Indisponible') : isAdding ? t('client.produitDetail.added', 'Ajouté !') : t('client.produitDetail.addToCart', 'Ajouter au panier')}</span>
               {!outOfStock && <ShoppingCart className="h-4 w-4" />}
             </button>
           </div>

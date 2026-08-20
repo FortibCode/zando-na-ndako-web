@@ -5,7 +5,12 @@
 // jamais introduire une traduction différente de celle que l'utilisateur voit déjà sur mobile.
 export type Language = 'fr' | 'lingala' | 'kituba' | 'en';
 
+import { clientTranslations, type ClientTranslations } from './client-translations';
+import { vendorTranslations, type VendorTranslations } from './vendor-translations';
+
 interface Translations {
+  client: ClientTranslations;
+  vendor: VendorTranslations;
   tabs: {
     discover: string;
     categories: string;
@@ -87,6 +92,8 @@ const fr: Translations = {
     logout: 'Se déconnecter',
     createAccount: 'Créer un compte',
   },
+  client: clientTranslations.fr,
+  vendor: vendorTranslations.fr,
 };
 
 const lingala: Translations = {
@@ -129,6 +136,8 @@ const lingala: Translations = {
     logout: 'Kolongwa',
     createAccount: 'Sala compte',
   },
+  client: clientTranslations.lingala,
+  vendor: vendorTranslations.lingala,
 };
 
 const kituba: Translations = {
@@ -171,6 +180,8 @@ const kituba: Translations = {
     logout: 'Basika',
     createAccount: 'Sala compte',
   },
+  client: clientTranslations.kituba,
+  vendor: vendorTranslations.kituba,
 };
 
 const en: Translations = {
@@ -213,6 +224,8 @@ const en: Translations = {
     logout: 'Log out',
     createAccount: 'Create an account',
   },
+  client: clientTranslations.en,
+  vendor: vendorTranslations.en,
 };
 
 export const translations: Record<Language, Translations> = { fr, lingala, kituba, en };

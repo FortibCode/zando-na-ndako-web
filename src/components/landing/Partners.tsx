@@ -1,4 +1,7 @@
-import { BadgeCheck, Shield, Star, Store } from 'lucide-react';
+"use client";
+
+import { BadgeCheck, Star, Store } from 'lucide-react';
+import { useLanguage } from '@/lib/language-context';
 
 const PARTNERS = [
   {
@@ -40,6 +43,7 @@ const PARTNERS = [
 ];
 
 export function Partners() {
+  const { t } = useLanguage();
   return (
     <section id="partners" className="w-full">
       <div className="rounded-3xl border border-slate-200/60 bg-white p-5 sm:p-7 shadow-xs">
@@ -47,12 +51,12 @@ export function Partners() {
           <div>
             <div className="flex items-center gap-2">
               <Store className="h-5 w-5 text-[#0B2545]" />
-              <h2 className="text-lg sm:text-xl font-black text-slate-900">Nos partenaires & vendeurs de confiance</h2>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.partners.title', 'Nos partenaires & vendeurs de confiance')}</h2>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">Les meilleurs marchés et producteurs locaux livrés chez vous.</p>
+            <p className="text-xs text-slate-500 mt-0.5">{t('client.partners.subtitle', 'Les meilleurs marchés et producteurs locaux livrés chez vous.')}</p>
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200/60 shadow-xs self-start sm:self-auto hover:scale-105 transition-transform cursor-pointer">
-            <BadgeCheck className="h-4 w-4 text-emerald-600 icon-glow-green" /> 100% Vendeurs vérifiés
+            <BadgeCheck className="h-4 w-4 text-emerald-600 icon-glow-green" /> {t('client.partners.verifiedBadge', '100% Vendeurs vérifiés')}
           </span>
         </div>
 
