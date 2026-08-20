@@ -1,0 +1,573 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+
+  --color-brand-red: #c00000;
+  --color-brand-red-bright: #e01313;
+  --color-brand-red-deep: #8f0000;
+  --color-brand-red-soft: #fbeaea;
+
+  --color-brand-navy: #1a2e5a;
+  --color-brand-navy-bright: #26407a;
+  --color-brand-navy-deep: #101c38;
+  --color-brand-navy-soft: #eaf0ff;
+
+  --color-brand-gold: #f1a105;
+  --color-brand-gold-soft: #fff1cd;
+
+  --color-brand-green: #2e7d32;
+  --color-brand-green-soft: #e4f7e5;
+
+  /* Premium admin surface + shadow tokens */
+  --admin-ink: #0c1424;
+  --admin-navy-950: #060c1a;
+  --admin-navy-900: #0a1428;
+  --admin-navy-850: #0d192f;
+  --admin-navy-800: #132449;
+  --admin-border: rgba(15, 23, 42, 0.08);
+  --admin-border-soft: rgba(15, 23, 42, 0.05);
+
+  --shadow-sm-premium: 0 1px 2px rgba(12, 20, 36, 0.04), 0 1px 1px rgba(12, 20, 36, 0.03);
+  --shadow-md-premium: 0 2px 6px rgba(12, 20, 36, 0.05), 0 10px 24px -8px rgba(12, 20, 36, 0.10);
+  --shadow-lg-premium: 0 4px 10px rgba(12, 20, 36, 0.06), 0 20px 44px -12px rgba(12, 20, 36, 0.16);
+  --shadow-xl-premium: 0 8px 16px rgba(12, 20, 36, 0.07), 0 32px 64px -16px rgba(12, 20, 36, 0.22);
+
+  /* Base app background/foreground — Zando's premium light theme */
+  --background: #eef1f6;
+  --foreground: #0b0e14;
+
+  /* shadcn/ui tokens */
+  --card: #ffffff;
+  --card-foreground: #0b0e14;
+  --popover: #ffffff;
+  --popover-foreground: #0b0e14;
+  --primary: #1a2e5a;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1a2e5a;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0b0e14;
+  --destructive: #c00000;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1a2e5a;
+  --chart-1: #1a2e5a;
+  --chart-2: #2e7d32;
+  --chart-3: #f1a105;
+  --chart-4: #c00000;
+  --chart-5: #7c3aed;
+  --radius: 0.75rem;
+  --sidebar: var(--admin-navy-900);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #c00000;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: #1a2e5a;
+}
+
+/* Dark mode theme overrides */
+.dark {
+  --background: #090e1a;
+  --foreground: #f1f5f9;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+  --border: #1e293b;
+  --input: #1e293b;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --admin-border-soft: rgba(255, 255, 255, 0.08);
+}
+
+.dark .admin-shell-bg {
+  background-color: #080d18;
+  background-image:
+    radial-gradient(900px circle at 100% -10%, rgba(192, 0, 0, 0.12), transparent 45%),
+    radial-gradient(1100px circle at -10% 0%, rgba(38, 64, 122, 0.16), transparent 42%),
+    radial-gradient(700px circle at 50% 100%, rgba(241, 161, 5, 0.06), transparent 40%);
+}
+
+.dark .surface-card {
+  background: #0f172a;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+.dark header {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/80,
+.dark .bg-slate-50\/90,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/60 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-white {
+  background-color: #0f172a !important;
+}
+
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/90,
+.dark .border-slate-200\/70 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Couvre aussi les interfaces client/vendeur (pas seulement l'admin) : fonds de page
+   codés en couleur brute (bg-[#f0f2f5] etc.) et fonds de survol usuels. */
+.dark .bg-\[\#f0f2f5\] {
+  background-color: #090e1a !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-blue-50,
+.dark .bg-blue-50\/60 {
+  background-color: rgba(30, 64, 175, 0.16) !important;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover {
+  background-color: #1e293b !important;
+}
+
+
+@theme inline {
+  /* Échelle de texte relevée pour l'espace admin : le thème par défaut de Tailwind
+     (text-xs à 12px, text-sm à 14px) est trop petit pour un usage professionnel prolongé. */
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-red: var(--color-brand-red);
+  --color-brand-red-bright: var(--color-brand-red-bright);
+  --color-brand-red-deep: var(--color-brand-red-deep);
+  --color-brand-red-soft: var(--color-brand-red-soft);
+  --color-brand-navy: var(--color-brand-navy);
+  --color-brand-navy-bright: var(--color-brand-navy-bright);
+  --color-brand-navy-deep: var(--color-brand-navy-deep);
+  --color-brand-navy-soft: var(--color-brand-navy-soft);
+  --color-brand-gold: var(--color-brand-gold);
+  --color-brand-gold-soft: var(--color-brand-gold-soft);
+  --color-brand-green: var(--color-brand-green);
+  --color-brand-green-soft: var(--color-brand-green-soft);
+  --color-admin-ink: var(--admin-ink);
+  --color-admin-navy-950: var(--admin-navy-950);
+  --color-admin-navy-900: var(--admin-navy-900);
+  --color-admin-navy-850: var(--admin-navy-850);
+  --color-admin-navy-800: var(--admin-navy-800);
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+body {
+  font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+.font-tnum { font-variant-numeric: tabular-nums; }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ────────────────────────────────────────────
+   KEYFRAMES
+─────────────────────────────────────────────*/
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-10px) rotate(1deg); }
+  66%       { transform: translateY(-5px) rotate(-1deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-8px) scale(1.02); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes shine-sweep {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(250%) skewX(-15deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11, 37, 69, 0.2); }
+  50%       { box-shadow: 0 0 0 10px rgba(11, 37, 69, 0); }
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.82); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce-light {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes icon-pop {
+  0%   { transform: scale(1) rotate(0deg); }
+  30%  { transform: scale(1.25) rotate(-8deg); }
+  60%  { transform: scale(1.15) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes gradient-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes number-rise {
+  from { transform: translateY(8px) scale(0.8); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Ces classes composant vivaient hors de tout @layer, donc plus prioritaires que N'IMPORTE
+   quelle classe utilitaire Tailwind (@layer utilities) par construction du cascade layers —
+   un bg-slate-50 posé sur .surface-card ne s'affichait jamais, entre autres symptômes. */
+@layer components {
+
+/* ────────────────────────────────────────────
+   ANIMATION CLASSES
+─────────────────────────────────────────────*/
+
+.animate-fade-in      { animation: fade-in-up 0.6s ease-out both; }
+.animate-float        { animation: float 5s ease-in-out infinite; }
+.animate-float-slow   { animation: float-slow 7s ease-in-out infinite; }
+.animate-float-fast   { animation: float-fast 3s ease-in-out infinite; }
+.animate-spin-slow    { animation: spin-slow 12s linear infinite; }
+.animate-scale-in     { animation: scale-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+.animate-bounce-light { animation: bounce-light 2.2s ease-in-out infinite; }
+.animate-pulse-glow   { animation: pulse-glow 2.5s ease-in-out infinite; }
+
+/* ────────────────────────────────────────────
+   3D CARD SYSTEM
+─────────────────────────────────────────────*/
+
+.perspective-800  { perspective: 800px; }
+.preserve-3d      { transform-style: preserve-3d; }
+
+.card-3d {
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+}
+.card-3d:hover {
+  transform: translateY(-10px) rotateX(5deg) rotateY(-4deg) scale(1.025);
+  box-shadow: 0 28px 60px -12px rgba(11,37,69,0.2),
+              0 10px 24px -4px rgba(0,0,0,0.08),
+              0 0 0 1px rgba(11,37,69,0.06);
+}
+
+.card-3d-sm {
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 0.35s ease;
+}
+.card-3d-sm:hover {
+  transform: translateY(-6px) rotateX(3deg) scale(1.02);
+  box-shadow: 0 18px 40px -8px rgba(11,37,69,0.16),
+              0 6px 16px -3px rgba(0,0,0,0.06);
+}
+
+/* ────────────────────────────────────────────
+   SHINE SWEEP ON HOVER
+─────────────────────────────────────────────*/
+
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: translateX(-120%) skewX(-15deg);
+}
+.shine-effect:hover::after {
+  animation: shine-sweep 0.55s ease forwards;
+}
+
+/* ────────────────────────────────────────────
+   GLASSMORPHISM
+─────────────────────────────────────────────*/
+
+.glass {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.65);
+}
+
+.glass-dark {
+  background: rgba(11,37,69,0.78);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* ────────────────────────────────────────────
+   GRADIENT TEXT
+─────────────────────────────────────────────*/
+
+.gradient-text {
+  background: linear-gradient(135deg, #1a2e5a 0%, #0B2545 40%, #c00000 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-gold {
+  background: linear-gradient(135deg, #f1a105 0%, #e8920a 60%, #d4780a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ────────────────────────────────────────────
+   ICON GLOW
+─────────────────────────────────────────────*/
+
+.icon-glow-green { filter: drop-shadow(0 0 10px rgba(46,125,50,0.45)); }
+.icon-glow-red   { filter: drop-shadow(0 0 10px rgba(192,0,0,0.45)); }
+.icon-glow-navy  { filter: drop-shadow(0 0 10px rgba(11,37,69,0.45)); }
+.icon-glow-gold  { filter: drop-shadow(0 0 10px rgba(241,161,5,0.55)); }
+
+/* ────────────────────────────────────────────
+   ANIMATION DELAYS
+─────────────────────────────────────────────*/
+
+.delay-75  { animation-delay: 75ms; }
+.delay-150 { animation-delay: 150ms; }
+.delay-225 { animation-delay: 225ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-800 { animation-delay: 800ms; }
+
+/* ────────────────────────────────────────────
+   ADMIN SHELL — premium mesh backdrop
+─────────────────────────────────────────────*/
+
+.admin-shell-bg {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(900px circle at 100% -10%, rgba(192, 0, 0, 0.05), transparent 45%),
+    radial-gradient(1100px circle at -10% 0%, rgba(26, 46, 90, 0.07), transparent 42%),
+    radial-gradient(700px circle at 50% 100%, rgba(241, 161, 5, 0.03), transparent 40%);
+  background-attachment: fixed;
+}
+
+.admin-sidebar-bg {
+  background:
+    radial-gradient(520px circle at 10% -8%, rgba(192, 0, 0, 0.16), transparent 55%),
+    radial-gradient(420px circle at 100% 0%, rgba(38, 64, 122, 0.35), transparent 50%),
+    linear-gradient(190deg, var(--admin-navy-850) 0%, var(--admin-navy-900) 45%, var(--admin-navy-950) 100%);
+}
+
+.scrollbar-dark {
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+/* ────────────────────────────────────────────
+   PREMIUM SURFACES & SHADOWS
+─────────────────────────────────────────────*/
+
+.shadow-premium-sm { box-shadow: var(--shadow-sm-premium); }
+.shadow-premium-md { box-shadow: var(--shadow-md-premium); }
+.shadow-premium-lg { box-shadow: var(--shadow-lg-premium); }
+.shadow-premium-xl { box-shadow: var(--shadow-xl-premium); }
+
+.surface-card {
+  background: #fff;
+  border: 1px solid var(--admin-border-soft);
+  box-shadow: var(--shadow-sm-premium);
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+.surface-card:hover {
+  box-shadow: var(--shadow-md-premium);
+}
+
+.surface-card-interactive:hover {
+  box-shadow: var(--shadow-lg-premium);
+  transform: translateY(-2px);
+  border-color: rgba(15, 23, 42, 0.10);
+}
+
+/* Inset top highlight — gives buttons/cards a subtle "premium" glass edge */
+.edge-highlight {
+  position: relative;
+}
+.edge-highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0) 40%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ────────────────────────────────────────────
+   TABLE ROW ACCENT
+─────────────────────────────────────────────*/
+
+.row-accent {
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+.row-accent::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2.5px;
+  background: linear-gradient(180deg, var(--color-brand-navy), var(--color-brand-red));
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+  border-radius: 0 3px 3px 0;
+}
+.row-accent:hover::before {
+  transform: scaleY(1);
+}
+
+/* ────────────────────────────────────────────
+   FOCUS RING
+─────────────────────────────────────────────*/
+
+.focus-premium:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 46, 90, 0.16), 0 0 0 1px rgba(26, 46, 90, 0.4);
+}
+.delay-800 { animation-delay: 800ms; }
+
+} /* @layer components */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  /* Tailwind v4 a retiré le curseur "main" par défaut sur <button> — la moitié des boutons
+     de l'admin (ceux qui n'ajoutent pas cursor-pointer eux-mêmes) affichaient une flèche. */
+  button:not(:disabled), select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* La plupart des champs de formulaire de l'admin n'ont qu'un focus:border-* Tailwind sans
+     transition ni retour au survol — le changement d'état est instantané et le champ semble
+     inerte tant qu'on ne clique pas dedans. */
+  input, textarea, select {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(:disabled):hover,
+  textarea:not(:disabled):hover,
+  select:not(:disabled):hover {
+    border-color: rgba(15, 23, 42, 0.28);
+  }
+}
