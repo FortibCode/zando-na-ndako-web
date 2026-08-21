@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check, MapPin, Phone, Star, Truck, User, X } from "lucide-react";
+import { ArrowLeft, Check, MapPin, MessageCircle, Phone, Star, Truck, User, X } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { StatutCommandeBadge } from "@/components/Badge";
 import { LoadingBlock } from "@/components/Spinner";
@@ -59,6 +59,19 @@ function NoterClientCard({ commandeId, onDone }: { commandeId: string; onDone: (
 export default function VendeurCommandeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLanguage();
   const { id } = use(params);
+
+  // Étapes réelles du cycle de vie d'une commande côté backend (voir statut_commande enum dans
+  // zando_na_ndako_api/database/migrations/…_create_commandes_table.php et
+  // Commande::getStatutLabelAttribute). 'annulee' est un état terminal alternatif, jamais affiché
+  // dans cette timeline linéaire — la commande annulée a déjà sa propre carte (motif_annulation)
+  // plus bas.
+  const ORDER_STAGES: { key: string; label: string; desc: string }[] = [
+    { key: "confirmee", label: t("vendor.commandeDetail.stageConfirmee", "Confirmée"), desc: t("vendor.commandeDetail.stageConfirmeeDesc", "La commande a été reçue et attend votre acceptation.") },
+    { key: "achat_marche", label: t("vendor.commandeDetail.stageAchatMarche", "Achat au marché"), desc: t("vendor.commandeDetail.stageAchatMarcheDesc", "Vous préparez les achats des produits commandés.") },
+    { key: "preparation", label: t("vendor.commandeDetail.stagePreparation", "Préparation"), desc: t("vendor.commandeDetail.stagePreparationDesc", "La commande est emballée et prête pour le livreur.") },
+    { key: "en_route", label: t("vendor.commandeDetail.stageEnRoute", "En route"), desc: t("vendor.commandeDetail.stageEnRouteDesc", "Le livreur a récupéré la commande et l'achemine vers le client.") },
+    { key: "livree", label: t("vendor.commandeDetail.stageLivree", "Livrée"), desc: t("vendor.commandeDetail.stageLivreeDesc", "Le client a reçu sa commande.") },
+  ];
   const [order, setOrder] = useState<VendeurCommande | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -112,6 +125,8 @@ export default function VendeurCommandeDetailPage({ params }: { params: Promise<
     }
   };
 
+  const currentStageIndex = ORDER_STAGES.findIndex((s) => s.key === order.statut_commande);
+
   return (
     <div className="max-w-2xl">
       <Link href="/vendeur/commandes" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-4">
@@ -139,12 +154,52 @@ export default function VendeurCommandeDetailPage({ params }: { params: Promise<
           <span className="text-slate-600">{order.adresse_livraison}</span>
         </div>
         {order.livreur?.user && (
-          <div className="flex items-center gap-2.5 text-sm pt-2 border-t border-slate-100">
-            <Truck className="h-4 w-4 text-slate-400" />
-            <span className="text-slate-600">{t("vendor.commandeDetail.driverLabel", "Livreur :")} {fullName(order.livreur.user)}</span>
+          <div className="flex items-center justify-between gap-2.5 text-sm pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-2.5">
+              <Truck className="h-4 w-4 text-slate-400" />
+              <span className="text-slate-600">{t("vendor.commandeDetail.driverLabel", "Livreur :")} {fullName(order.livreur.user)}</span>
+            </div>
+            {order.livreur.user.telephone && (
+              <a href={`tel:${order.livreur.user.telephone}`} className="flex items-center gap-1.5 text-xs font-bold text-[#0B2545]">
+                <Phone className="h-3.5 w-3.5" /> {order.livreur.user.telephone}
+              </a>
+            )}
           </div>
         )}
+        <Link
+          href={`/vendeur/commandes/${id}/chat`}
+          className="flex items-center gap-2.5 text-sm font-bold text-[#0B2545] pt-2 border-t border-slate-100 hover:underline"
+        >
+          <MessageCircle className="h-4 w-4" /> {t("vendor.commandeDetail.chatBtn", "Discuter à propos de cette commande")}
+        </Link>
       </div>
+
+      {order.statut_commande !== "annulee" && (
+        <div className="p-4 rounded-2xl border border-slate-200 bg-white mb-4">
+          <p className="text-sm font-black text-slate-900 mb-4">{t("vendor.commandeDetail.statusTimelineTitle", "Statut de la commande")}</p>
+          <div>
+            {ORDER_STAGES.map((stage, i) => {
+              const done = currentStageIndex >= 0 && i < currentStageIndex;
+              const current = i === currentStageIndex;
+              const isLast = i === ORDER_STAGES.length - 1;
+              return (
+                <div key={stage.key} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 ${done ? "bg-emerald-500" : current ? "bg-[#0B2545]" : "bg-slate-200"}`}>
+                      {done ? <Check className="h-3.5 w-3.5 text-white" /> : <span className={`h-2 w-2 rounded-full ${current ? "bg-white" : "bg-slate-400"}`} />}
+                    </div>
+                    {!isLast && <div className={`w-0.5 flex-1 min-h-[24px] ${done ? "bg-emerald-500" : "bg-slate-200"}`} />}
+                  </div>
+                  <div className={isLast ? "pb-0" : "pb-5"}>
+                    <p className={`text-sm font-bold ${done || current ? "text-slate-900" : "text-slate-400"}`}>{stage.label}</p>
+                    <p className={`text-xs mt-0.5 ${done || current ? "text-slate-500" : "text-slate-300"}`}>{stage.desc}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="p-4 rounded-2xl border border-slate-200 bg-white mb-4">
         <p className="text-sm font-black text-slate-900 mb-3">{t("vendor.commandeDetail.articlesTitle", "Articles")}</p>

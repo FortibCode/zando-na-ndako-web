@@ -17,6 +17,9 @@ interface CartContextValue {
   count: number;
   totalAmount: number;
   isOpen: boolean;
+  /** true once the cart has been read from localStorage — lets pages that redirect on an
+   * empty cart (e.g. checkout steps) wait for the real value instead of the initial []. */
+  hydrated: boolean;
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
@@ -101,6 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       count,
       totalAmount,
       isOpen,
+      hydrated,
       openCart: () => setIsOpen(true),
       closeCart: () => setIsOpen(false),
       toggleCart: () => setIsOpen((prev) => !prev),
@@ -109,7 +113,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       updateQuantity,
       clearCart,
     }),
-    [items, count, totalAmount, isOpen]
+    [items, count, totalAmount, isOpen, hydrated]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

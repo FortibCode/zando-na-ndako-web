@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Loader2, Package, Search } from "lucide-react";
+import { Loader2, Package, Search, Star } from "lucide-react";
 import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { fetchClientCommandes, type ApiCommande } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
@@ -10,6 +10,16 @@ import { clientTranslations } from "@/i18n/client-translations";
 import type { Language } from "@/i18n/translations";
 
 type Tab = "tous" | "termines" | "en_cours" | "annules";
+
+// Une commande livrée reste "à noter" tant que le vendeur ET/OU le livreur présents sur la
+// commande n'ont pas encore reçu de note de ce client — les deux cibles sont indépendantes.
+function commandeNeedsRating(o: ApiCommande): boolean {
+  if (o.statut_commande !== "livree") return false;
+  const notations = o.notations || [];
+  const vendeurNote = notations.some((n) => n.type_cible === "vendeur");
+  const livreurNote = notations.some((n) => n.type_cible === "livreur");
+  return (!!o.vendeur_id && !vendeurNote) || (!!o.livreur_id && !livreurNote);
+}
 
 function statusLabel(statut: string, language: Language): { label: string; className: string } {
   const c = clientTranslations[language].mesCommandes;
@@ -111,6 +121,11 @@ export default function OrdersPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-black text-[#0B2545]">{Math.round(Number(o.montant_total)).toLocaleString('fr-FR')} FCFA</span>
+                  {commandeNeedsRating(o) && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
+                      <Star size={11} className="fill-amber-500 text-amber-500" /> {t('client.mesCommandes.needsRating', 'À noter')}
+                    </span>
+                  )}
                   <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${status.className}`}>{status.label}</span>
                 </div>
               </Link>

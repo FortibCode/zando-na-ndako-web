@@ -50,6 +50,9 @@ interface Translations {
     logout: string;
     createAccount: string;
   };
+  header: {
+    freshCategories: string;
+  };
 }
 
 const fr: Translations = {
@@ -91,6 +94,9 @@ const fr: Translations = {
     login: 'Se connecter',
     logout: 'Se déconnecter',
     createAccount: 'Créer un compte',
+  },
+  header: {
+    freshCategories: 'Catégories fraîches',
   },
   client: clientTranslations.fr,
   vendor: vendorTranslations.fr,
@@ -136,6 +142,9 @@ const lingala: Translations = {
     logout: 'Kolongwa',
     createAccount: 'Sala compte',
   },
+  header: {
+    freshCategories: 'Bibale ya sika',
+  },
   client: clientTranslations.lingala,
   vendor: vendorTranslations.lingala,
 };
@@ -180,6 +189,9 @@ const kituba: Translations = {
     logout: 'Basika',
     createAccount: 'Sala compte',
   },
+  header: {
+    freshCategories: 'Bitini ya mpa',
+  },
   client: clientTranslations.kituba,
   vendor: vendorTranslations.kituba,
 };
@@ -223,6 +235,9 @@ const en: Translations = {
     login: 'Log in',
     logout: 'Log out',
     createAccount: 'Create an account',
+  },
+  header: {
+    freshCategories: 'Fresh categories',
   },
   client: clientTranslations.en,
   vendor: vendorTranslations.en,

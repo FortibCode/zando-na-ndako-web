@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/Button";
-import { ApiError, ajouterVendeurProduit, fetchCategoriesFromApi } from "@/lib/api";
+import { ApiError, ajouterVendeurProduit, fetchCategoriesFromApi, fetchVendeurDashboard } from "@/lib/api";
 import type { Category } from "@/components/landing/data";
 import { useLanguage } from "@/lib/language-context";
 
@@ -29,12 +29,19 @@ export default function NewProductPage() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationStatus, setValidationStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategoriesFromApi().then(setCategories);
+    // Même check que mobile/src/app/vendor/products/add.tsx (vendorValidationStatus, alimenté par
+    // GET /vendeur/dashboard → statut_validation) : un compte suspendu ne peut pas publier, un
+    // compte en attente est seulement averti (peut quand même publier).
+    fetchVendeurDashboard().then((d) => setValidationStatus(d.statut_validation)).catch(() => undefined);
   }, []);
 
-  const isValid = nom.trim() && categorieId && Number(prix) > 0 && unite.trim() && stock !== "" && Number(stock) >= 0;
+  const isPending = validationStatus === "en_attente";
+  const isSuspended = validationStatus === "suspendu";
+  const isValid = nom.trim() && categorieId && Number(prix) > 0 && unite.trim() && stock !== "" && Number(stock) >= 0 && !isSuspended;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +73,17 @@ export default function NewProductPage() {
         <ArrowLeft className="h-4 w-4" /> {t("vendor.produitNouveau.backToProductsLink", "Mes produits")}
       </Link>
       <PageHeader title={t("vendor.produitNouveau.title", "Ajouter un produit")} description={t("vendor.produitNouveau.subtitle", "Renseignez les informations de votre nouvel article.")} />
+
+      {(isPending || isSuspended) && (
+        <div className={`flex items-start gap-2.5 p-4 rounded-2xl border mb-4 text-sm font-bold ${isSuspended ? "bg-red-50 border-red-200 text-red-700" : "bg-amber-50 border-amber-200 text-amber-800"}`}>
+          <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+          <span>
+            {isSuspended
+              ? t("vendor.produitNouveau.validationSuspendedWarning", "Votre compte vendeur est suspendu. Contactez le support pour publier des produits.")
+              : t("vendor.produitNouveau.validationPendingWarning", "Votre compte vendeur est en attente de validation par un administrateur. Vous pourrez publier dès qu'il sera validé.")}
+          </span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-slate-300 hover:border-[#0B2545] cursor-pointer transition-colors">

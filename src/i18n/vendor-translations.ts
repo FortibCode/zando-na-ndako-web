@@ -86,6 +86,29 @@ export interface VendorTranslations {
     confirmRefuseBtn: string;
     driverLabel: string;
     starsAriaLabel: string;
+    chatBtn: string;
+    statusTimelineTitle: string;
+    stageConfirmee: string;
+    stageAchatMarche: string;
+    stagePreparation: string;
+    stageEnRoute: string;
+    stageLivree: string;
+    stageConfirmeeDesc: string;
+    stageAchatMarcheDesc: string;
+    stagePreparationDesc: string;
+    stageEnRouteDesc: string;
+    stageLivreeDesc: string;
+  };
+  chat: {
+    title: string;
+    backToOrderLink: string;
+    loading: string;
+    noMessages: string;
+    messagePlaceholder: string;
+    sendError: string;
+    clientLabel: string;
+    driverLabel: string;
+    youLabel: string;
   };
   litiges: {
     title: string;
@@ -140,6 +163,9 @@ export interface VendorTranslations {
     currentStockPrefix: string;
     stockAddPlaceholder: string;
     addBtn: string;
+    stockRemovePlaceholder: string;
+    removeBtn: string;
+    stockRemoveExceedsError: string;
     nameLabel: string;
     descriptionLabel: string;
     priceLabel: string;
@@ -156,6 +182,8 @@ export interface VendorTranslations {
     backToProductsLink: string;
     title: string;
     subtitle: string;
+    validationPendingWarning: string;
+    validationSuspendedWarning: string;
     photoLabel: string;
     photoHint: string;
     nameLabel: string;
@@ -337,6 +365,29 @@ const fr: VendorTranslations = {
     confirmRefuseBtn: 'Refuser la commande',
     driverLabel: 'Livreur :',
     starsAriaLabel: 'étoiles',
+    chatBtn: 'Discuter à propos de cette commande',
+    statusTimelineTitle: 'Statut de la commande',
+    stageConfirmee: 'Confirmée',
+    stageAchatMarche: 'Achat au marché',
+    stagePreparation: 'Préparation',
+    stageEnRoute: 'En route',
+    stageLivree: 'Livrée',
+    stageConfirmeeDesc: "La commande a été reçue et attend votre acceptation.",
+    stageAchatMarcheDesc: 'Vous préparez les achats des produits commandés.',
+    stagePreparationDesc: 'La commande est emballée et prête pour le livreur.',
+    stageEnRouteDesc: "Le livreur a récupéré la commande et l'achemine vers le client.",
+    stageLivreeDesc: 'Le client a reçu sa commande.',
+  },
+  chat: {
+    title: 'Conversation',
+    backToOrderLink: 'Retour à la commande',
+    loading: 'Chargement de la conversation…',
+    noMessages: 'Aucun message pour le moment.',
+    messagePlaceholder: 'Écrire un message…',
+    sendError: "Impossible d'envoyer ce message.",
+    clientLabel: 'Client',
+    driverLabel: 'Livreur',
+    youLabel: 'Vous',
   },
   litiges: {
     title: 'Litiges',
@@ -391,6 +442,9 @@ const fr: VendorTranslations = {
     currentStockPrefix: 'Stock actuel :',
     stockAddPlaceholder: 'Quantité à ajouter',
     addBtn: 'Ajouter',
+    stockRemovePlaceholder: 'Quantité à retirer',
+    removeBtn: 'Retirer',
+    stockRemoveExceedsError: 'Cette quantité dépasse le stock disponible.',
     nameLabel: 'Nom du produit',
     descriptionLabel: 'Description',
     priceLabel: 'Prix unitaire (FCFA)',
@@ -407,6 +461,8 @@ const fr: VendorTranslations = {
     backToProductsLink: 'Mes produits',
     title: 'Ajouter un produit',
     subtitle: 'Renseignez les informations de votre nouvel article.',
+    validationPendingWarning: "Votre compte vendeur est en attente de validation par un administrateur. Vous pourrez publier dès qu'il sera validé.",
+    validationSuspendedWarning: 'Votre compte vendeur est suspendu. Contactez le support pour publier des produits.',
     photoLabel: 'Photo du produit',
     photoHint: 'JPEG, PNG ou WebP, 3 Mo max',
     nameLabel: 'Nom du produit',
@@ -588,6 +644,29 @@ const lingala: VendorTranslations = {
     confirmRefuseBtn: 'Boya commande',
     driverLabel: 'Livreur :',
     starsAriaLabel: 'ba étoile',
+    chatBtn: 'Solola na ntina ya commande oyo',
+    statusTimelineTitle: 'Statut ya commande',
+    stageConfirmee: 'Endimami',
+    stageAchatMarche: 'Kosomba na zando',
+    stagePreparation: 'Kobongisa',
+    stageEnRoute: 'Na nzela',
+    stageLivree: 'Epesami',
+    stageConfirmeeDesc: 'Commande ezwami mpe ezali kozela ndingisa na yo.',
+    stageAchatMarcheDesc: 'Ozali kosomba biloko ya commande.',
+    stagePreparationDesc: 'Commande ebongisami mpe ezali pene mpo na livreur.',
+    stageEnRouteDesc: 'Livreur azwi commande mpe azali komema yango epai ya client.',
+    stageLivreeDesc: 'Client azwi commande na ye.',
+  },
+  chat: {
+    title: 'Masolo',
+    backToOrderLink: 'Kozonga na commande',
+    loading: 'Kozela masolo…',
+    noMessages: 'Ata message moko te sikoyo.',
+    messagePlaceholder: 'Koma message…',
+    sendError: 'Ekoki te kotinda message oyo.',
+    clientLabel: 'Client',
+    driverLabel: 'Livreur',
+    youLabel: 'Yo',
   },
   litiges: {
     title: 'Ba litige',
@@ -642,6 +721,9 @@ const lingala: VendorTranslations = {
     currentStockPrefix: "Stock ya sik'oyo :",
     stockAddPlaceholder: 'Quantité ya kobakisa',
     addBtn: 'Bakisa',
+    stockRemovePlaceholder: 'Quantité ya kolongola',
+    removeBtn: 'Longola',
+    stockRemoveExceedsError: 'Quantité oyo eleki stock oyo ezali.',
     nameLabel: 'Kombo ya eloko',
     descriptionLabel: 'Description',
     priceLabel: 'Ntalo ya eloko (FCFA)',
@@ -658,6 +740,8 @@ const lingala: VendorTranslations = {
     backToProductsLink: 'Biloko na ngai',
     title: 'Bakisa eloko',
     subtitle: 'Tia ba makambo ya eloko na yo ya sika.',
+    validationPendingWarning: 'Compte na yo ya vendeur ezali kozela ndingisa ya administrateur. Okoki kotinda kaka soki endimami.',
+    validationSuspendedWarning: 'Compte na yo ya vendeur epekisami. Benga support mpo na kotinda biloko.',
     photoLabel: 'Photo ya eloko',
     photoHint: 'JPEG, PNG to WebP, 3 Mo na se-esika',
     nameLabel: 'Kombo ya eloko',
@@ -839,6 +923,29 @@ const kituba: VendorTranslations = {
     confirmRefuseBtn: 'Buisa commande',
     driverLabel: 'Livreur :',
     starsAriaLabel: 'ba étoile',
+    chatBtn: 'Solula na diambu ya commande yayi',
+    statusTimelineTitle: 'Statut ya commande',
+    stageConfirmee: 'Me ndimama',
+    stageAchatMarche: 'Kusumba na zando',
+    stagePreparation: 'Kubongisa',
+    stageEnRoute: 'Na nzila',
+    stageLivree: 'Me pesama',
+    stageConfirmeeDesc: 'Commande me zwama mpe ke kekele ndingisa na nge.',
+    stageAchatMarcheDesc: 'Nge ke sumba bima ya commande.',
+    stagePreparationDesc: 'Commande me bongisama mpe kele pene ya livreur.',
+    stageEnRouteDesc: 'Livreur me baka commande mpe ke nata yawu na client.',
+    stageLivreeDesc: 'Client me baka commande na yandi.',
+  },
+  chat: {
+    title: 'Disolo',
+    backToOrderLink: 'Vutuka na commande',
+    loading: 'Kekele disolo…',
+    noMessages: 'Ata message mosi ve bubu.',
+    messagePlaceholder: 'Sonika message…',
+    sendError: 'Ta kuka ve kutinda message yayi.',
+    clientLabel: 'Client',
+    driverLabel: 'Livreur',
+    youLabel: 'Nge',
   },
   litiges: {
     title: 'Ba litige',
@@ -893,6 +1000,9 @@ const kituba: VendorTranslations = {
     currentStockPrefix: 'Stock ya bubu :',
     stockAddPlaceholder: 'Quantité ya kuyika',
     addBtn: 'Yika',
+    stockRemovePlaceholder: 'Quantité ya kukatula',
+    removeBtn: 'Katula',
+    stockRemoveExceedsError: 'Quantité yayi me luta stock ya kubaka.',
     nameLabel: 'Zina ya kima',
     descriptionLabel: 'Description',
     priceLabel: 'Ntalu ya kima (FCFA)',
@@ -909,6 +1019,8 @@ const kituba: VendorTranslations = {
     backToProductsLink: 'Bima na mono',
     title: 'Yika kima',
     subtitle: 'Tula ba malongi ya kima na nge ya mpa.',
+    validationPendingWarning: 'Compte na nge ya vendeur ke kekele ndingisa ya administrateur. Nge ta kuka kutinda kaka kana yandi me ndimama.',
+    validationSuspendedWarning: 'Compte na nge ya vendeur me kangama. Binga support sambu na kutinda bima.',
     photoLabel: 'Photo ya kima',
     photoHint: 'JPEG, PNG to WebP, 3 Mo na se-esika',
     nameLabel: 'Zina ya kima',
@@ -1090,6 +1202,29 @@ const en: VendorTranslations = {
     confirmRefuseBtn: 'Refuse the order',
     driverLabel: 'Driver:',
     starsAriaLabel: 'stars',
+    chatBtn: 'Chat about this order',
+    statusTimelineTitle: 'Order status',
+    stageConfirmee: 'Confirmed',
+    stageAchatMarche: 'Market purchase',
+    stagePreparation: 'Preparation',
+    stageEnRoute: 'On the way',
+    stageLivree: 'Delivered',
+    stageConfirmeeDesc: 'The order has been received and is awaiting your acceptance.',
+    stageAchatMarcheDesc: 'You are purchasing the ordered products.',
+    stagePreparationDesc: 'The order is packed and ready for the driver.',
+    stageEnRouteDesc: 'The driver has picked up the order and is delivering it to the client.',
+    stageLivreeDesc: 'The client has received their order.',
+  },
+  chat: {
+    title: 'Conversation',
+    backToOrderLink: 'Back to order',
+    loading: 'Loading conversation…',
+    noMessages: 'No messages yet.',
+    messagePlaceholder: 'Write a message…',
+    sendError: 'Unable to send this message.',
+    clientLabel: 'Client',
+    driverLabel: 'Driver',
+    youLabel: 'You',
   },
   litiges: {
     title: 'Disputes',
@@ -1144,6 +1279,9 @@ const en: VendorTranslations = {
     currentStockPrefix: 'Current stock:',
     stockAddPlaceholder: 'Quantity to add',
     addBtn: 'Add',
+    stockRemovePlaceholder: 'Quantity to remove',
+    removeBtn: 'Remove',
+    stockRemoveExceedsError: 'This quantity exceeds the available stock.',
     nameLabel: 'Product name',
     descriptionLabel: 'Description',
     priceLabel: 'Unit price (FCFA)',
@@ -1160,6 +1298,8 @@ const en: VendorTranslations = {
     backToProductsLink: 'My products',
     title: 'Add a product',
     subtitle: 'Fill in the details of your new item.',
+    validationPendingWarning: 'Your vendor account is awaiting validation by an administrator. You will be able to publish once it is validated.',
+    validationSuspendedWarning: 'Your vendor account is suspended. Contact support to publish products.',
     photoLabel: 'Product photo',
     photoHint: 'JPEG, PNG or WebP, 3 MB max',
     nameLabel: 'Product name',

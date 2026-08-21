@@ -165,6 +165,48 @@
   background-color: #1e293b !important;
 }
 
+/* Brand navy text-[#0B2545] (arbitrary-value Tailwind class, so the literal string is the
+   selector to target — see .dark .bg-\[\#f0f2f5\] above for the same escaping pattern) has
+   ~1.16:1 contrast against the dark background/cards, i.e. effectively invisible. Used ~120
+   times for links, prices, active-tab labels, selected chips, focus states, etc. Remap it and
+   its interactive variants to a light blue tint that keeps the brand hue recognizable. */
+.dark .text-\[\#0B2545\],
+.dark .hover\:text-\[\#0B2545\]:hover,
+.dark .group:hover .group-hover\:text-\[\#0B2545\] {
+  color: #a9c2f5 !important;
+}
+
+.dark .border-\[\#0B2545\],
+.dark .focus\:border-\[\#0B2545\]:focus {
+  border-color: #a9c2f5 !important;
+}
+
+.dark .ring-\[\#0B2545\],
+.dark .ring-\[\#0B2545\]\/20,
+.dark .focus\:ring-\[\#0B2545\]:focus,
+.dark .group:hover .group-hover\:ring-\[\#0B2545\] {
+  --tw-ring-color: #a9c2f5 !important;
+}
+
+.dark .after\:bg-\[\#0B2545\]::after {
+  background-color: #a9c2f5 !important;
+}
+
+/* Same navy used at low opacity as an "accent chip" background (e.g. selected settings
+   option, icon badge backdrop) — keep it a visible tinted chip instead of the same near-black
+   as the page background. */
+.dark .bg-\[\#0B2545\]\/5 {
+  background-color: rgba(169, 194, 245, 0.10) !important;
+}
+
+.dark .bg-\[\#0B2545\]\/8 {
+  background-color: rgba(169, 194, 245, 0.16) !important;
+}
+
+.dark .bg-\[\#0B2545\]\/10 {
+  background-color: rgba(169, 194, 245, 0.20) !important;
+}
+
 
 @theme inline {
   /* Échelle de texte relevée pour l'espace admin : le thème par défaut de Tailwind

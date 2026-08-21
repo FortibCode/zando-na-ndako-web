@@ -53,6 +53,7 @@ export default function LivraisonDetailPage() {
   });
 
   const proofUrl = resolveMediaUrl(livraison?.photo_preuve);
+  const incidentPhotoUrl = resolveMediaUrl(livraison?.photo_incident);
   const positions = livraison?.suivi_positions ?? [];
 
   return (
@@ -119,6 +120,14 @@ export default function LivraisonDetailPage() {
                 <p className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-slate-400">Preuve de livraison</p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={proofUrl} alt="Preuve de livraison" className="max-h-64 rounded-xl ring-1 ring-slate-100 object-cover" />
+              </div>
+            )}
+
+            {incidentPhotoUrl && (
+              <div className="surface-card rounded-2xl p-6">
+                <p className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-slate-400">Photo du signalement</p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={incidentPhotoUrl} alt="Photo du signalement" className="max-h-64 rounded-xl ring-1 ring-slate-100 object-cover" />
               </div>
             )}
 

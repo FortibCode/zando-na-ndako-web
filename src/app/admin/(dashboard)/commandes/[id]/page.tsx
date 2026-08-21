@@ -86,6 +86,7 @@ export default function CommandeDetailPage() {
   });
 
   const proofUrl = resolveMediaUrl(commande?.livraison?.photo_preuve);
+  const incidentPhotoUrl = resolveMediaUrl(commande?.livraison?.photo_incident);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -206,6 +207,13 @@ export default function CommandeDetailPage() {
               ) : commande.statut_commande === "livree" ? (
                 <p className="mt-4 text-xs font-semibold text-slate-400">Aucune preuve de livraison fournie.</p>
               ) : null}
+              {incidentPhotoUrl && (
+                <div className="mt-4">
+                  <p className="mb-2 text-[12.5px] font-bold uppercase tracking-wide text-slate-400">Photo du signalement</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={incidentPhotoUrl} alt="Photo du signalement" className="max-h-64 rounded-xl ring-1 ring-slate-100 object-cover" />
+                </div>
+              )}
             </div>
 
             {/* Paiement */}

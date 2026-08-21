@@ -256,6 +256,7 @@ export interface Livraison {
   distance_parcourue: string | number | null;
   duree_reelle: number | null;
   motif_incident: string | null;
+  photo_incident: string | null;
   created_at?: string;
   livreur?: Livreur;
   commande?: Commande;

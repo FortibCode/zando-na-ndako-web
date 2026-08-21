@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { useLanguage } from '@/lib/language-context';
@@ -31,6 +32,10 @@ const SOCIALS = [
 
 export function Footer() {
   const { t } = useLanguage();
+  const pathname = usePathname();
+  // #how-it-works et #partners n'existent que sur la page d'accueil (voir Header.tsx pour le
+  // même correctif) — depuis toute autre route il faut d'abord naviguer vers "/".
+  const anchorHref = (hash: string) => (pathname === "/" ? hash : `/${hash}`);
   return (
     <footer id="contact" className="border-t border-slate-100 bg-white text-slate-600 mt-12">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
@@ -60,8 +65,8 @@ export function Footer() {
           <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">{t('client.footer.usefulLinks', 'Liens utiles')}</h4>
           <ul className="space-y-2 text-xs font-semibold text-slate-600">
             <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.about', 'À propos')}</Link></li>
-            <li><a href="#how-it-works" className="hover:text-[#0B2545]">{t('client.footer.howItWorks', 'Comment ça marche')}</a></li>
-            <li><a href="#partners" className="hover:text-[#0B2545]">{t('client.footer.ourPartners', 'Nos partenaires')}</a></li>
+            <li><a href={anchorHref('#how-it-works')} className="hover:text-[#0B2545]">{t('client.footer.howItWorks', 'Comment ça marche')}</a></li>
+            <li><a href={anchorHref('#partners')} className="hover:text-[#0B2545]">{t('client.footer.ourPartners', 'Nos partenaires')}</a></li>
             <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.terms', 'Conditions générales')}</Link></li>
             <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.privacy', 'Politique de confidentialité')}</Link></li>
             <li><Link href="/" className="hover:text-[#0B2545]">{t('client.footer.faq', 'FAQ')}</Link></li>

@@ -430,6 +430,36 @@ export async function fetchZonesRaw(): Promise<ZoneOption[]> {
   return res.data;
 }
 
+export interface TopVendeur {
+  id: string;
+  nom_commerce: string;
+  categorie_principale: string;
+  note_moyenne: number;
+  ville: string | null;
+  photo_boutique: string | null;
+}
+
+// PUBLIC — meilleurs vendeurs actifs (note > 0), pour la vitrine de la page d'accueil. Retourne un
+// tableau vide tant qu'aucun vendeur n'a reçu de note réelle, jamais de partenaire inventé.
+export async function fetchTopVendeurs(): Promise<TopVendeur[]> {
+  const res = await api.get<{ success: boolean; data: TopVendeur[] }>("/vendeurs/top", { auth: false });
+  return res.data;
+}
+
+export interface AvisPublic {
+  id: string;
+  note: number;
+  commentaire: string;
+  date_notation: string;
+  client: { nom: string; photo: string | null; ville: string | null };
+}
+
+// PUBLIC — derniers avis clients réellement commentés, pour la vitrine de la page d'accueil.
+export async function fetchAvisPublics(): Promise<AvisPublic[]> {
+  const res = await api.get<{ success: boolean; data: AvisPublic[] }>("/avis/publics", { auth: false });
+  return res.data;
+}
+
 // Nécessite le token du COMPTE PUBLIC connecté (pas celui de l'admin) — auth:false désactive
 // l'injection automatique du token admin, et l'en-tête Authorization explicite ci-dessous la
 // remplace par le bon token, appelé uniquement une fois le vendeur inscrit et connecté.
@@ -644,6 +674,9 @@ export interface ApiCommande {
   litige?: { id: string } | null;
   vendeur_id?: string | null;
   livreur_id?: string | null;
+  // Notations déjà laissées par CE client pour cette commande (voir CommandeController::index) —
+  // permet de savoir si une commande livrée reste "à noter" sans requête supplémentaire.
+  notations?: { type_cible: 'vendeur' | 'livreur'; note: number }[];
 }
 
 export interface ApiCommandeSuivi {
@@ -692,6 +725,9 @@ export interface ApiPaiement {
   montant: number | string;
   devise: string;
   statut: string;
+  reference_id?: string;
+  external_id?: string;
+  mode?: string;
 }
 
 export async function confirmerPaiementLivraison(commandeId: string): Promise<ApiPaiement> {
@@ -708,13 +744,29 @@ export async function confirmerCarteLocale(paiementId: string, reference: string
   await api.post("/payment/carte-locale/confirm", { paiement_id: paiementId, reference }, publicAuthOptions());
 }
 
-export async function initierMtnMoMo(commandeId: string): Promise<ApiPaiement> {
-  const res = await api.post<{ success: boolean; data: ApiPaiement }>("/payment/mtn-momo/init", { commande_id: commandeId }, publicAuthOptions());
+export async function initierMtnMoMo(commandeId: string, telephone?: string): Promise<ApiPaiement> {
+  const res = await api.post<{ success: boolean; data: ApiPaiement }>("/payment/mtn-momo/init", {
+    commande_id: commandeId,
+    telephone,
+  }, publicAuthOptions());
   return res.data;
 }
 
-export async function confirmerMtnMoMo(paiementId: string, reference: string): Promise<void> {
-  await api.post("/payment/mtn-momo/confirm", { paiement_id: paiementId, reference }, publicAuthOptions());
+export interface MtnMomoConfirmResult {
+  status: "valide" | "en_attente" | "echoue";
+  message: string;
+  reason?: string;
+}
+
+// Interrogeable en polling — tant que le paiement n'a pas de statut définitif côté MTN, l'API
+// renvoie status:'en_attente' (HTTP 200, ce n'est pas une erreur) plutôt que de valider par défaut.
+export async function confirmerMtnMoMo(paiementId: string): Promise<MtnMomoConfirmResult> {
+  const res = await api.post<{ success: boolean; status: MtnMomoConfirmResult["status"]; message?: string; reason?: string }>(
+    "/payment/mtn-momo/confirm",
+    { paiement_id: paiementId },
+    publicAuthOptions()
+  );
+  return { status: res.status, message: res.message || "", reason: res.reason };
 }
 
 export async function initierAirtelMoney(commandeId: string): Promise<ApiPaiement> {
@@ -995,22 +1047,29 @@ export async function convertirDevise(montant: number, deviseSource: "USD" | "EU
   return res.data;
 }
 
-// Peg fixe FCFA/EUR (accord de coopération monétaire, invariable) — même constante que mobile
-// (client-context.tsx). Le taux USD est lui dynamique, dérivé de convertirDevise(1, 'USD').
-const FCFA_PER_EUR = 655.957;
+// Taux de repli FCFA/EUR (parité fixe XAF/EUR) si le taux du jour est indisponible — même
+// constante que mobile (diaspora-context.tsx). Les deux devises sont désormais dérivées en direct
+// de convertirDevise(), qui reste la seule source de vérité (voir /diaspora/convertir côté API).
+const FCFA_PER_EUR_FALLBACK = 655.957;
 
 export async function fetchDeviseEquivalents(montantFcfa: number): Promise<{ eur: number; usd: number }> {
-  const eur = montantFcfa / FCFA_PER_EUR;
-  try {
-    const { taux_applique } = await convertirDevise(1, "USD");
-    return { eur, usd: taux_applique > 0 ? montantFcfa / taux_applique : 0 };
-  } catch {
-    return { eur, usd: 0 };
-  }
+  const [eurResult, usdResult] = await Promise.allSettled([
+    convertirDevise(1, "EUR"),
+    convertirDevise(1, "USD"),
+  ]);
+  const eurTaux = eurResult.status === "fulfilled" && eurResult.value.taux_applique > 0
+    ? eurResult.value.taux_applique
+    : FCFA_PER_EUR_FALLBACK;
+  const usdTaux = usdResult.status === "fulfilled" ? usdResult.value.taux_applique : 0;
+  return { eur: montantFcfa / eurTaux, usd: usdTaux > 0 ? montantFcfa / usdTaux : 0 };
 }
 
-export async function initierPayPal(commandeId: string): Promise<{ url: string; order_id: string | null }> {
-  const res = await api.post<{ success: boolean; data: { url: string; order_id: string | null } }>("/payment/paypal/init", { commande_id: commandeId }, publicAuthOptions());
+export async function initierPayPal(commandeId: string, returnUrl: string, cancelUrl: string): Promise<{ url: string; order_id: string | null }> {
+  const res = await api.post<{ success: boolean; data: { url: string; order_id: string | null } }>(
+    "/payment/paypal/init",
+    { commande_id: commandeId, return_url: returnUrl, cancel_url: cancelUrl },
+    publicAuthOptions()
+  );
   return res.data;
 }
 
@@ -1018,13 +1077,17 @@ export async function confirmerPayPal(commandeId: string, paypalOrderId: string)
   await api.post("/payment/paypal/confirm", { commande_id: commandeId, paypal_order_id: paypalOrderId }, publicAuthOptions());
 }
 
-export async function initierStripe(commandeId: string): Promise<{ url: string; client_secret: string | null }> {
-  const res = await api.post<{ success: boolean; data: { url: string; client_secret: string | null } }>("/payment/stripe/init", { commande_id: commandeId }, publicAuthOptions());
+export async function initierStripe(commandeId: string, successUrl: string, cancelUrl: string): Promise<{ url: string; session_id: string | null }> {
+  const res = await api.post<{ success: boolean; data: { url: string; session_id: string | null } }>(
+    "/payment/stripe/init",
+    { commande_id: commandeId, success_url: successUrl, cancel_url: cancelUrl },
+    publicAuthOptions()
+  );
   return res.data;
 }
 
-export async function confirmerStripe(commandeId: string, paymentIntentId: string): Promise<void> {
-  await api.post("/payment/stripe/confirm", { commande_id: commandeId, payment_intent_id: paymentIntentId }, publicAuthOptions());
+export async function confirmerStripe(commandeId: string, sessionId: string): Promise<void> {
+  await api.post("/payment/stripe/confirm", { commande_id: commandeId, session_id: sessionId }, publicAuthOptions());
 }
 
 // ─── Litiges (client, vendeur) ───
@@ -1163,6 +1226,31 @@ export async function uploadLitigePreuve(litigeId: string, fichier: File, messag
   form.append("fichier", fichier);
   if (messageId) form.append("message_id", messageId);
   const res = await api.post<{ success: boolean; data: LitigePieceJointe }>(`/litiges/${litigeId}/pieces-jointes`, form, publicAuthOptions());
+  return res.data;
+}
+
+// ─── Messagerie liée à une commande (client / vendeur / livreur) ───
+// Fil unique par commande, partagé entre les trois participants — voir
+// MessageCommandeController côté backend (route/api.php: role:client,vendeur,livreur). Miroir
+// exact de mobile/src/services/api.ts (ApiMessageCommande, fetchMessagesCommande,
+// envoyerMessageCommande) : mêmes noms de champs, même endpoint.
+export interface CommandeMessage {
+  id: string;
+  commande_id: string;
+  expediteur_user_id: string;
+  contenu: string;
+  lu: boolean;
+  created_at: string;
+  expediteur?: { id: string; nom: string; prenom: string; photo_profil?: string | null; type_utilisateur?: string } | null;
+}
+
+export async function fetchMessagesCommande(commandeId: string): Promise<CommandeMessage[]> {
+  const res = await api.get<{ success: boolean; data: CommandeMessage[] }>(`/commandes/${commandeId}/messages`, publicAuthOptions());
+  return Array.isArray(res.data) ? res.data : [];
+}
+
+export async function envoyerMessageCommande(commandeId: string, contenu: string): Promise<CommandeMessage> {
+  const res = await api.post<{ success: boolean; data: CommandeMessage }>(`/commandes/${commandeId}/messages`, { contenu }, publicAuthOptions());
   return res.data;
 }
 

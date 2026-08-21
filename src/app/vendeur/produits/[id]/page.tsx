@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Info, Loader2, PackagePlus } from "lucide-react";
+import { ArrowLeft, Info, Loader2, PackageMinus, PackagePlus } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/Button";
 import { LoadingBlock } from "@/components/Spinner";
@@ -40,6 +40,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
 
   const [stockDelta, setStockDelta] = useState("");
   const [stockBusy, setStockBusy] = useState(false);
+  const [stockRemoveDelta, setStockRemoveDelta] = useState("");
+  const [stockRemoveBusy, setStockRemoveBusy] = useState(false);
 
   useEffect(() => {
     // Pas de GET /vendeur/produits/{id} dédié côté backend — on retrouve le produit dans la liste.
@@ -106,6 +108,23 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  // Le backend n'expose pas d'opération de retrait dédiée (VendeurController::gererStock n'accepte
+  // que 'ajouter' et 'definir') — un retrait manuel se fait donc en calculant nous-mêmes le nouveau
+  // total (jamais négatif) et en l'envoyant avec operation: 'definir'.
+  const handleStockRemove = async () => {
+    const qty = Number(stockRemoveDelta);
+    if (!qty || qty <= 0 || !produit) return;
+    const nouveauQty = Math.max(0, produit.quantite_stock - qty);
+    setStockRemoveBusy(true);
+    try {
+      const nouveauStock = await gererVendeurStock(id, nouveauQty, "definir");
+      setProduit((prev) => (prev ? { ...prev, quantite_stock: nouveauStock, statut_disponibilite: nouveauStock > 0 ? "disponible" : "rupture" } : prev));
+      setStockRemoveDelta("");
+    } finally {
+      setStockRemoveBusy(false);
+    }
+  };
+
   return (
     <div className="max-w-xl">
       <Link href="/vendeur/produits" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-4">
@@ -130,6 +149,16 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             {stockBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackagePlus className="h-4 w-4" />} {t("vendor.produitDetail.addBtn", "Ajouter")}
           </Button>
         </div>
+        <div className="flex gap-2 mt-2">
+          <input type="number" min="1" max={produit.quantite_stock} value={stockRemoveDelta} onChange={(e) => setStockRemoveDelta(e.target.value)} placeholder={t("vendor.produitDetail.stockRemovePlaceholder", "Quantité à retirer")}
+            className="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+          <Button type="button" variant="danger" onClick={handleStockRemove} disabled={!stockRemoveDelta || Number(stockRemoveDelta) > produit.quantite_stock || stockRemoveBusy} className="!py-2">
+            {stockRemoveBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageMinus className="h-4 w-4" />} {t("vendor.produitDetail.removeBtn", "Retirer")}
+          </Button>
+        </div>
+        {Number(stockRemoveDelta) > produit.quantite_stock && (
+          <p className="text-xs font-semibold text-red-600 mt-1.5">{t("vendor.produitDetail.stockRemoveExceedsError", "Cette quantité dépasse le stock disponible.")}</p>
+        )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-4">

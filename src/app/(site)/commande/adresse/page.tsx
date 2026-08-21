@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, MapPin, Plus, Star, Trash2, X } from "lucide-react";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useCheckout } from "@/lib/checkout-context";
+import { useCart } from "@/components/landing/cart-context";
 import {
   ApiError,
   createAddress,
@@ -22,6 +23,7 @@ export default function CheckoutAddressPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { address, setAddress } = useCheckout();
+  const { items, hydrated } = useCart();
 
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +48,12 @@ export default function CheckoutAddressPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Un panier vide n'a rien à livrer — on renvoie vers l'accueil client (pas la vitrine "/",
+  // réservée aux visiteurs anonymes) plutôt que de laisser choisir une adresse pour rien.
+  useEffect(() => {
+    if (hydrated && items.length === 0) router.replace("/accueil");
+  }, [hydrated, items, router]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

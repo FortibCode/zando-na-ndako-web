@@ -27,7 +27,7 @@ import { useLanguage } from "@/lib/language-context";
 
 type MethodKey = "cod" | "carte" | "mtn" | "airtel";
 
-type Phase = "selecting" | "placing" | "awaiting_reference" | "confirming" | "error";
+type Phase = "selecting" | "placing" | "awaiting_reference" | "confirming" | "mtn_polling" | "error";
 
 export default function CheckoutPaymentPage() {
   const { t } = useLanguage();
@@ -44,6 +44,7 @@ export default function CheckoutPaymentPage() {
   const [method, setMethod] = useState<MethodKey>("cod");
   const [phase, setPhase] = useState<Phase>("selecting");
   const [error, setError] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
   const [reference, setReference] = useState("");
   const [pendingPaiement, setPendingPaiement] = useState<ApiPaiement | null>(null);
   const [pendingOrder, setPendingOrder] = useState<{ commande_id: string; numero_commande: string; montant_total: number } | null>(null);
@@ -56,11 +57,53 @@ export default function CheckoutPaymentPage() {
 
   const zone = useMemo(() => resolveZoneForQuartier(zones, address?.quartier || undefined, address?.ville), [zones, address]);
 
+  // MTN Mobile Money : vraie demande de paiement déjà envoyée (voir placeOrder) — on interroge
+  // périodiquement le vrai statut MTN plutôt que de faire saisir un code de confirmation qui
+  // n'existe pas dans le flux réel MTN (le client valide via son téléphone, pas via un code).
+  useEffect(() => {
+    if (phase !== "mtn_polling" || !pendingPaiement || !pendingOrder) return;
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 40; // ~160s de polling, cohérent avec le timer USSD de l'app mobile
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+
+    const poll = async () => {
+      if (cancelled) return;
+      attempts += 1;
+      try {
+        const result = await confirmerMtnMoMo(pendingPaiement.id);
+        if (cancelled) return;
+        if (result.status === "valide") {
+          clearCart();
+          router.push(`/commande/confirmee?numero=${encodeURIComponent(pendingOrder.numero_commande)}&montant=${pendingOrder.montant_total}&id=${pendingOrder.commande_id}`);
+          return;
+        }
+        if (result.status === "echoue") {
+          setError(result.message || t('client.checkoutPayment.mtnFailed', 'Le paiement MTN MoMo a échoué.'));
+          setPhase("error");
+          return;
+        }
+      } catch {
+        // Erreur réseau ponctuelle pendant le polling : on retente au prochain intervalle.
+      }
+      if (cancelled) return;
+      if (attempts >= maxAttempts) {
+        setError(t('client.checkoutPayment.mtnTimeout', "Délai dépassé. Vous n'avez pas validé le paiement à temps."));
+        setPhase("error");
+        return;
+      }
+      timeout = setTimeout(poll, 4000);
+    };
+
+    timeout = setTimeout(poll, 3000);
+    return () => { cancelled = true; if (timeout) clearTimeout(timeout); };
+  }, [phase, pendingPaiement, pendingOrder, clearCart, router, t]);
+
   if (!address || !slot) return null;
 
   const placeOrder = async () => {
     if (!zone) { setError(t('client.checkoutPayment.deliveryUnavailableError', 'Livraison indisponible pour ce quartier pour le moment.')); setPhase("error"); return; }
-    if (items.length === 0) { router.replace("/"); return; }
+    if (items.length === 0) { router.replace("/accueil"); return; }
 
     setPhase("placing");
     setError(null);
@@ -85,8 +128,19 @@ export default function CheckoutPaymentPage() {
         return;
       }
 
-      const initier = method === "carte" ? initierCarteLocale : method === "mtn" ? initierMtnMoMo : initierAirtelMoney;
-      const paiement = await initier(order.commande_id);
+      if (method === "mtn") {
+        const paiement = await initierMtnMoMo(order.commande_id, phone.trim() || undefined);
+        setPendingPaiement(paiement);
+        setPhase("mtn_polling");
+        return;
+      }
+
+      let paiement: ApiPaiement;
+      if (method === "airtel") {
+        paiement = await initierAirtelMoney(order.commande_id);
+      } else {
+        paiement = await initierCarteLocale(order.commande_id);
+      }
       setPendingPaiement(paiement);
       setPhase("awaiting_reference");
     } catch (err) {
@@ -100,7 +154,9 @@ export default function CheckoutPaymentPage() {
     setPhase("confirming");
     setError(null);
     try {
-      const confirmer = method === "carte" ? confirmerCarteLocale : method === "mtn" ? confirmerMtnMoMo : confirmerAirtelMoney;
+      // MTN Mobile Money ne passe jamais par ici : il est confirmé via le polling automatique
+      // de statut réel (voir le useEffect sur phase === "mtn_polling").
+      const confirmer = method === "carte" ? confirmerCarteLocale : confirmerAirtelMoney;
       await confirmer(pendingPaiement.id, reference.trim());
       finish(pendingOrder.numero_commande, pendingOrder.montant_total, pendingOrder.commande_id);
     } catch (err) {
@@ -122,7 +178,19 @@ export default function CheckoutPaymentPage() {
         {t('client.checkoutPayment.totalToPayPrefix', 'Total à payer :')} <span className="font-black text-[#0B2545]">{Math.round(totalAmount).toLocaleString('fr-FR')} FCFA</span>
       </p>
 
-      {phase === "awaiting_reference" || phase === "confirming" ? (
+      {phase === "mtn_polling" ? (
+        <div className="p-6 rounded-2xl border-2 border-slate-200 bg-white text-center space-y-4">
+          <Smartphone className="h-10 w-10 text-[#0B2545] mx-auto" />
+          <p className="text-sm font-bold text-slate-800">
+            {t('client.checkoutPayment.mtnRequestSent', 'Une notification MTN Mobile Money a été envoyée à')} +242 {phone.trim()}.
+          </p>
+          <p className="text-xs text-slate-500">
+            {t('client.checkoutPayment.mtnEnterPin', 'Entrez votre code PIN sur votre téléphone pour valider le paiement de')} {Math.round(totalAmount).toLocaleString('fr-FR')} FCFA.
+          </p>
+          <Loader2 className="h-6 w-6 animate-spin text-[#0B2545] mx-auto" />
+          <p className="text-xs text-slate-400">{t('client.checkoutPayment.mtnWaiting', 'En attente de votre validation…')}</p>
+        </div>
+      ) : phase === "awaiting_reference" || phase === "confirming" ? (
         <div className="p-6 rounded-2xl border-2 border-slate-200 bg-white text-center space-y-4">
           <Smartphone className="h-10 w-10 text-[#0B2545] mx-auto" />
           <p className="text-sm font-bold text-slate-800">
@@ -148,22 +216,40 @@ export default function CheckoutPaymentPage() {
         <>
           <div className="space-y-3">
             {METHODS.map((m) => (
-              <button
-                key={m.key}
-                onClick={() => setMethod(m.key)}
-                className={`w-full flex items-center gap-3.5 p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
-                  method === m.key ? "border-[#0B2545] bg-blue-50/40" : "border-slate-200 bg-white hover:border-slate-300"
-                }`}
-              >
-                <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${method === m.key ? "bg-[#0B2545] text-white" : "bg-slate-100 text-slate-500"}`}>
-                  <m.icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-black text-slate-900">{m.label}</p>
-                  <p className="text-xs text-slate-500">{m.hint}</p>
-                </div>
-                {method === m.key && <Check className="h-5 w-5 text-[#0B2545]" />}
-              </button>
+              <div key={m.key} className="space-y-2">
+                <button
+                  onClick={() => setMethod(m.key)}
+                  className={`w-full flex items-center gap-3.5 p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                    method === m.key ? "border-[#0B2545] bg-blue-50/40" : "border-slate-200 bg-white hover:border-slate-300"
+                  }`}
+                >
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${method === m.key ? "bg-[#0B2545] text-white" : "bg-slate-100 text-slate-500"}`}>
+                    <m.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-black text-slate-900">{m.label}</p>
+                    <p className="text-xs text-slate-500">{m.hint}</p>
+                  </div>
+                  {method === m.key && <Check className="h-5 w-5 text-[#0B2545]" />}
+                </button>
+                {method === m.key && (m.key === "mtn" || m.key === "airtel") && (
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Numéro de téléphone {m.label} (ex: 06 123 45 67)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-2 text-xs font-black bg-slate-200 text-slate-700 rounded-lg">+242</span>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="06 123 45 67"
+                        className="flex-1 h-10 px-3.5 rounded-lg border border-slate-200 text-sm font-bold focus:outline-none focus:border-[#0B2545] bg-white"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 

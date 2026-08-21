@@ -3,18 +3,23 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, Compass, Grid3X3, LogOut, Menu, Receipt, ShoppingCart, Sparkles, User, X } from 'lucide-react';
+import { ChevronDown, Compass, Globe, Grid3X3, LogOut, Menu, Moon, Receipt, ShoppingCart, Sparkles, Sun, User, X } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { fetchCategoriesFromApi } from '@/lib/api';
 import type { Category } from './data';
 import { useCart } from './cart-context';
 import { usePublicAuth } from '@/lib/public-auth-context';
 import { useLanguage } from '@/lib/language-context';
+import { useTheme } from '@/lib/theme-context';
 
+// #how-it-works et #partners n'existent que dans HowItWorks.tsx/Partners.tsx, rendus
+// uniquement sur la page d'accueil (/) — un <a href="#how-it-works"> depuis une autre route
+// (/produits, /panier, ...) ne fait donc rien. On calcule le href complet au rendu (voir
+// anchorHref ci-dessous) pour toujours renvoyer vers "/#ancre" hors de la page d'accueil.
 const NAV_LINKS = [
-  { href: '#how-it-works', label: 'Comment ça marche' },
-  { href: '#partners', label: 'Nos partenaires' },
-  { href: '#contact', label: 'Contact' },
+  { hash: '#how-it-works', key: 'client.footer.howItWorks', fallback: 'Comment ça marche' },
+  { hash: '#partners', key: 'client.footer.ourPartners', fallback: 'Nos partenaires' },
+  { hash: '#contact', key: 'client.footer.contact', fallback: 'Contact' },
 ];
 
 // Mêmes 5 onglets, mêmes icônes, même ordre que mobile/src/app/client/(tabs)/_layout.tsx —
@@ -32,19 +37,26 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const categoriesDropdownRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
 
   const { count, openCart } = useCart();
   const { user, isReady, logout } = usePublicAuth();
-  const { t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   // Un client connecté a sa propre interface (/accueil), distincte de la vitrine visiteur — même
   // logique que le tableau de bord vendeur, mais gardée ici plutôt qu'une redirection forcée
   // puisque client/diaspora partagent réellement le catalogue public avec les visiteurs.
   const homeHref = user ? "/accueil" : "/";
+  // #contact fonctionne déjà partout (le <footer id="contact"> est global), mais
+  // #how-it-works/#partners n'existent que sur "/" — sur toute autre route on doit d'abord
+  // naviguer vers la page d'accueil avant l'ancre.
+  const anchorHref = (hash: string) => (pathname === "/" ? hash : `/${hash}`);
 
   useEffect(() => {
     fetchCategoriesFromApi().then(setCategories);
@@ -57,6 +69,9 @@ export function Header() {
       }
       if (accountDropdownRef.current && !accountDropdownRef.current.contains(e.target as Node)) {
         setAccountOpen(false);
+      }
+      if (languageDropdownRef.current && !languageDropdownRef.current.contains(e.target as Node)) {
+        setLanguageOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -106,7 +121,7 @@ export function Header() {
         ) : (
           <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-700 md:flex">
             <Link href={homeHref} className="relative py-1 font-extrabold text-[#0B2545] transition-colors after:absolute after:-bottom-1 after:left-0 after:h-[2.5px] after:w-full after:rounded-full after:bg-[#0B2545]">
-              Accueil
+              {t('client.categoryDetail.home', 'Accueil')}
             </Link>
 
             {/* Dynamic Interactive Categories Dropdown */}
@@ -116,7 +131,7 @@ export function Header() {
                 className="flex items-center gap-1.5 py-1 transition-colors hover:text-[#0B2545] cursor-pointer font-bold"
                 aria-expanded={categoriesOpen}
               >
-                <span>Catégories</span>
+                <span>{t('tabs.categories', 'Catégories')}</span>
                 <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${categoriesOpen ? 'rotate-180 text-[#0B2545]' : ''}`} />
               </button>
 
@@ -125,7 +140,7 @@ export function Header() {
                 <div className="absolute top-full left-0 mt-3 w-64 rounded-3xl border border-slate-200/90 bg-white p-3 shadow-2xl z-50 animate-scale-in">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-2 mb-1.5">
                     <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Catégories fraîches
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" /> {t('header.freshCategories', 'Catégories fraîches')}
                     </span>
                   </div>
                   <div className="space-y-1">
@@ -152,21 +167,72 @@ export function Header() {
             </div>
 
             {NAV_LINKS.map((link) => (
-              <a key={link.href} href={link.href} className="py-1 transition-colors hover:text-[#0B2545]">
-                {link.label}
+              <a key={link.hash} href={anchorHref(link.hash)} className="py-1 transition-colors hover:text-[#0B2545]">
+                {t(link.key, link.fallback)}
               </a>
             ))}
           </nav>
         )}
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+        {/* Right Actions : Thème, Langue, Panier, Profil */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          {/* Bouton Mode Clair / Sombre */}
+          <button
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            title={theme === "dark" ? t("settings.themeLight", "Mode clair") : t("settings.themeDark", "Mode sombre")}
+            aria-label="Changer le thème"
+          >
+            {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+          </button>
+
+          {/* Sélecteur de Langue (FR, LN, KG, EN) */}
+          <div ref={languageDropdownRef} className="relative">
+            <button
+              onClick={() => setLanguageOpen((v) => !v)}
+              className="flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+              title="Changer de langue"
+            >
+              <Globe className="h-3.5 w-3.5 text-[#0B2545] dark:text-amber-400" />
+              <span className="uppercase">{language === "lingala" ? "LN" : language === "kituba" ? "KG" : language.slice(0, 2)}</span>
+              <ChevronDown className={`h-3 w-3 transition-transform ${languageOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {languageOpen && (
+              <div className="absolute top-full right-0 mt-2 w-44 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-2xl z-50 animate-scale-in">
+                {[
+                  { code: "fr", label: "Français", flag: "🇫🇷" },
+                  { code: "lingala", label: "Lingála", flag: "🇨🇬" },
+                  { code: "kituba", label: "Kituba", flag: "🇨🇬" },
+                  { code: "en", label: "English", flag: "🇬🇧" },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => { setLanguage(lang.code as any); setLanguageOpen(false); }}
+                    className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                      language === lang.code
+                        ? "bg-[#0B2545] text-white"
+                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{lang.flag}</span>
+                      <span>{lang.label}</span>
+                    </span>
+                    {language === lang.code && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Panier */}
           <button
             onClick={openCart}
-            className="relative p-2 text-slate-700 transition-colors hover:text-[#0B2545] cursor-pointer"
+            className="relative p-2 text-slate-700 dark:text-slate-200 transition-colors hover:text-[#0B2545] cursor-pointer"
             aria-label="Mon panier"
           >
-            <ShoppingCart className="h-6 w-6 text-[#0B2545]" />
+            <ShoppingCart className="h-6 w-6 text-[#0B2545] dark:text-amber-400" />
             {count > 0 && (
               <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-[#D32F2F] text-[11px] font-black text-white shadow-xs animate-scale-in">
                 {count}
@@ -262,7 +328,7 @@ export function Header() {
             <>
               {/* Mobile Categories Grid */}
               <div className="space-y-1.5">
-                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-2">Catégories</p>
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-2">{t('tabs.categories', 'Catégories')}</p>
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   {categories.map((c) => (
                     <Link
@@ -286,16 +352,16 @@ export function Header() {
                   onClick={() => setMenuOpen(false)}
                   className="rounded-xl bg-slate-50 px-3 py-2.5 font-extrabold text-[#0B2545]"
                 >
-                  Accueil
+                  {t('client.categoryDetail.home', 'Accueil')}
                 </Link>
                 {NAV_LINKS.map((link) => (
                   <a
-                    key={link.href}
-                    href={link.href}
+                    key={link.hash}
+                    href={anchorHref(link.hash)}
                     onClick={() => setMenuOpen(false)}
                     className="rounded-xl px-3 py-2.5 transition-colors hover:bg-slate-50 hover:text-[#0B2545]"
                   >
-                    {link.label}
+                    {t(link.key, link.fallback)}
                   </a>
                 ))}
               </nav>

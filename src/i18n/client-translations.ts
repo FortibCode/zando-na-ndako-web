@@ -382,6 +382,11 @@ export interface ClientTranslations {
     deliveryUnavailableError: string;
     finalizeOrderError: string;
     invalidCodeError: string;
+    mtnRequestSent: string;
+    mtnEnterPin: string;
+    mtnWaiting: string;
+    mtnFailed: string;
+    mtnTimeout: string;
   };
   checkoutConfirmed: {
     title: string;
@@ -833,6 +838,11 @@ const fr: ClientTranslations = {
     deliveryUnavailableError: 'Livraison indisponible pour ce quartier pour le moment.',
     finalizeOrderError: 'Impossible de finaliser la commande.',
     invalidCodeError: 'Code de confirmation invalide.',
+    mtnRequestSent: 'Une notification MTN Mobile Money a été envoyée à',
+    mtnEnterPin: 'Entrez votre code PIN sur votre téléphone pour valider le paiement de',
+    mtnWaiting: 'En attente de votre validation…',
+    mtnFailed: 'Le paiement MTN MoMo a échoué.',
+    mtnTimeout: "Délai dépassé. Vous n'avez pas validé le paiement à temps.",
   },
   checkoutConfirmed: {
     title: 'Commande confirmée !',
@@ -1284,6 +1294,11 @@ const lingala: ClientTranslations = {
     deliveryUnavailableError: 'Kokumisa ezali te na quartier oyo sikoyo.',
     finalizeOrderError: 'Ekoki kosukisa commande te.',
     invalidCodeError: 'Code ya kondima ebongi te.',
+    mtnRequestSent: 'Notification MTN Mobile Money etindami na',
+    mtnEnterPin: 'Kotisa code PIN na yo na telephone mpo na kondima kofuta ya',
+    mtnWaiting: 'Kozela kondima na yo…',
+    mtnFailed: 'Kofuta na MTN MoMo elongi te.',
+    mtnTimeout: 'Ntango eleki. Ondimaki kofuta te na ntango.',
   },
   checkoutConfirmed: {
     title: 'Commande endimami !',
@@ -1735,6 +1750,11 @@ const kituba: ClientTranslations = {
     deliveryUnavailableError: 'Kwiza kele ve na quartier yayi bubu.',
     finalizeOrderError: 'Kemana commande ve.',
     invalidCodeError: 'Code ya kundima mefwana ve.',
+    mtnRequestSent: 'Notification MTN Mobile Money metindibwa na',
+    mtnEnterPin: 'Tula code PIN na nge na telefone mpo kundima kufuta ya',
+    mtnWaiting: 'Kevanda kundima na nge…',
+    mtnFailed: 'Kufuta na MTN MoMo mekwendaka ve.',
+    mtnTimeout: 'Ntangu meluta. Nge kundimaka ve kufuta na ntangu.',
   },
   checkoutConfirmed: {
     title: 'Commande mendima !',
@@ -2186,6 +2206,11 @@ const en: ClientTranslations = {
     deliveryUnavailableError: 'Delivery unavailable for this district right now.',
     finalizeOrderError: 'Unable to finalize the order.',
     invalidCodeError: 'Invalid confirmation code.',
+    mtnRequestSent: 'An MTN Mobile Money notification has been sent to',
+    mtnEnterPin: 'Enter your PIN code on your phone to confirm the payment of',
+    mtnWaiting: 'Waiting for your confirmation…',
+    mtnFailed: 'The MTN MoMo payment failed.',
+    mtnTimeout: "Time's up. You did not confirm the payment in time.",
   },
   checkoutConfirmed: {
     title: 'Order confirmed!',

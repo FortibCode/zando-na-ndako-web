@@ -265,8 +265,8 @@ export default function RegisterPage() {
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f4f6f9] p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-[1080px] min-h-[660px] bg-white rounded-3xl shadow-2xl border border-slate-100/90 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
         {/* Left Column: Branding & Illustration */}
-        <div className="hidden lg:flex flex-col justify-between p-8 xl:p-10 bg-gradient-to-b from-blue-50/40 via-white to-amber-50/30 border-r border-slate-100">
-          <div className="relative z-10">
+        <div className="hidden lg:flex flex-col p-8 xl:p-10 bg-gradient-to-b from-blue-50/40 via-white to-amber-50/30 border-r border-slate-100">
+          <div className="relative z-10 shrink-0">
             <Logo size="md" showSubtitle={false} className="!items-start" />
             <div className="mt-8">
               <h2 className="text-2xl font-black text-[#1a2e5a] leading-tight">
@@ -280,7 +280,9 @@ export default function RegisterPage() {
               </p>
             </div>
           </div>
-          <GroceryBasketIllustration />
+          <div className="flex-1 min-h-0">
+            <GroceryBasketIllustration />
+          </div>
         </div>
 
         {/* Right Column */}

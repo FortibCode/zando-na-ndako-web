@@ -4,16 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  AlertTriangle, Bell, ChevronDown, ClipboardList, FileCheck, Gem,
-  Headset, Home, LogOut, Menu, Settings, Star, Tag, User,
+  AlertTriangle, Bell, ChevronDown, ClipboardList, FileCheck, Gem, Globe,
+  Headset, Home, LogOut, Menu, Moon, Settings, Star, Sun, Tag, User,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Spinner } from "@/components/Spinner";
 import { usePublicAuth } from "@/lib/public-auth-context";
 import { useLanguage } from "@/lib/language-context";
+import { useTheme } from "@/lib/theme-context";
 
-// Les 5 onglets principaux — mêmes libellés, icônes et ordre exacts que
-// mobile/src/app/vendor/(tabs)/_layout.tsx (via VendorBottomNav).
 const TABS = [
   { href: "/vendeur", key: "vendorNav.home", fallback: "Accueil", icon: Home },
   { href: "/vendeur/commandes", key: "vendorNav.orders", fallback: "Commandes", icon: ClipboardList },
@@ -22,9 +21,6 @@ const TABS = [
   { href: "/vendeur/profil", key: "vendorNav.profile", fallback: "Profil", icon: User },
 ];
 
-// Destinations secondaires — mêmes libellés que le menu hamburger de
-// mobile/src/components/vendor-ui.tsx (VendorMenu). "Avis clients" est maintenant réel (backend
-// GET /vendeur/avis) ; "Mes promotions" reste exclu, toujours sans endpoint backend côté vendeur.
 const MORE_MENU = [
   { href: "/vendeur/avis", key: "vendorNav.reviews", fallback: "Avis clients", icon: Star },
   { href: "/vendeur/profil#documents", key: "vendorNav.documents", fallback: "Documents", icon: FileCheck },
@@ -36,11 +32,14 @@ const MORE_MENU = [
 
 export default function VendeurLayout({ children }: { children: React.ReactNode }) {
   const { user, isReady, logout } = usePublicAuth();
-  const { t } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const languageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isReady) return;
@@ -51,6 +50,7 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+      if (languageRef.current && !languageRef.current.contains(e.target as Node)) setLanguageOpen(false);
     };
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
@@ -94,7 +94,57 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
               })}
             </nav>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Bouton Mode Clair / Sombre */}
+            <button
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              title={theme === "dark" ? t("settings.themeLight", "Mode clair") : t("settings.themeDark", "Mode sombre")}
+              aria-label="Changer le thème"
+            >
+              {theme === "dark" ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+            </button>
+
+            {/* Sélecteur de Langue (FR, LN, KG, EN) */}
+            <div ref={languageRef} className="relative">
+              <button
+                onClick={() => setLanguageOpen((v) => !v)}
+                className="flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+                title="Changer de langue"
+              >
+                <Globe className="h-3.5 w-3.5 text-[#0B2545] dark:text-amber-400" />
+                <span className="uppercase">{language === "lingala" ? "LN" : language === "kituba" ? "KG" : language.slice(0, 2)}</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${languageOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {languageOpen && (
+                <div className="absolute top-full right-0 mt-2 w-44 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1.5 shadow-2xl z-50 animate-scale-in">
+                  {[
+                    { code: "fr", label: "Français", flag: "🇫🇷" },
+                    { code: "lingala", label: "Lingála", flag: "🇨🇬" },
+                    { code: "kituba", label: "Kituba", flag: "🇨🇬" },
+                    { code: "en", label: "English", flag: "🇬🇧" },
+                  ].map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => { setLanguage(lang.code as any); setLanguageOpen(false); }}
+                      className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors cursor-pointer ${
+                        language === lang.code
+                          ? "bg-[#0B2545] text-white"
+                          : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{lang.flag}</span>
+                        <span>{lang.label}</span>
+                      </span>
+                      {language === lang.code && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div ref={moreRef} className="relative">
               <button
                 onClick={() => setMoreOpen((v) => !v)}

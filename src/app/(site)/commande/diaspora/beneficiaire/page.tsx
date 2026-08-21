@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Loader2, Plus, Star, Trash2, User, X } from "lucide-react";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useCheckout } from "@/lib/checkout-context";
+import { useCart } from "@/components/landing/cart-context";
 import {
   ApiError,
   createBeneficiaire,
@@ -22,6 +23,7 @@ export default function DiasporaBeneficiaryPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { beneficiaire, setBeneficiaire } = useCheckout();
+  const { items, hydrated } = useCart();
 
   const [list, setList] = useState<Beneficiaire[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,12 @@ export default function DiasporaBeneficiaryPage() {
   };
 
   useEffect(load, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Un panier vide n'a rien à livrer — on renvoie vers l'accueil client (pas la vitrine "/",
+  // réservée aux visiteurs anonymes) plutôt que de laisser choisir un bénéficiaire pour rien.
+  useEffect(() => {
+    if (hydrated && items.length === 0) router.replace("/accueil");
+  }, [hydrated, items, router]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

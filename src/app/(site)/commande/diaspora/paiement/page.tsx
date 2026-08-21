@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, CreditCard, Loader2 } from "lucide-react";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useCheckout } from "@/lib/checkout-context";
@@ -24,39 +24,115 @@ import { useLanguage } from "@/lib/language-context";
 
 type MethodKey = "stripe" | "paypal" | "carte";
 
-type Phase = "selecting" | "placing" | "awaiting_reference" | "confirming" | "error";
+type Phase = "selecting" | "placing" | "redirecting" | "confirming" | "error";
 
 export default function DiasporaPaymentPage() {
+  return (
+    <Suspense>
+      <DiasporaPaymentInner />
+    </Suspense>
+  );
+}
+
+function DiasporaPaymentInner() {
   const { t } = useLanguage();
   const METHODS: { key: MethodKey; label: string; hint: string }[] = [
     { key: "stripe", label: t('client.diasporaPayment.methodCard', 'Carte bancaire internationale'), hint: t('client.diasporaPayment.methodCardHint', 'Visa, Mastercard via Stripe') },
     { key: "paypal", label: t('client.diasporaPayment.methodPaypal', 'PayPal'), hint: t('client.diasporaPayment.methodPaypalHint', 'Payer avec votre compte PayPal') },
   ];
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { beneficiaire, slot } = useCheckout();
   const { items, totalAmount, clearCart } = useCart();
 
   const [method, setMethod] = useState<MethodKey>("stripe");
   const [phase, setPhase] = useState<Phase>("selecting");
   const [error, setError] = useState<string | null>(null);
-  const [reference, setReference] = useState("");
-  const [pendingOrder, setPendingOrder] = useState<{ commande_id: string; numero_commande: string; montant_total: number } | null>(null);
   const [zones, setZones] = useState<ZoneOption[]>([]);
   const [equivalents, setEquivalents] = useState<{ eur: number; usd: number } | null>(null);
 
+  // Retour d'une redirection pleine page vers Stripe Checkout / l'approbation PayPal — à ce stade
+  // le contexte React (bénéficiaire/créneau) a été perdu par le rechargement de page, donc tout ce
+  // dont on a besoin (commande_id, numero, montant) voyage dans l'URL de retour elle-même.
+  const returnCommandeId = searchParams.get("commande_id");
+  const returnSessionId = searchParams.get("session_id");
+  const returnToken = searchParams.get("token");
+  const returnPayerId = searchParams.get("PayerID");
+  const returnCancelled = searchParams.get("cancelled");
+  const isPaymentReturn = Boolean(returnCommandeId && (returnSessionId || returnToken || returnCancelled));
+
   useEffect(() => {
+    if (isPaymentReturn) return;
     if (!beneficiaire || !slot) { router.replace("/commande/diaspora/beneficiaire"); return; }
     fetchZonesRaw().then(setZones).catch(() => setZones([]));
     fetchDeviseEquivalents(totalAmount).then(setEquivalents).catch(() => setEquivalents(null));
-  }, [beneficiaire, slot, router, totalAmount]);
+  }, [beneficiaire, slot, router, totalAmount, isPaymentReturn]);
+
+  useEffect(() => {
+    if (!isPaymentReturn || !returnCommandeId) return;
+    const numeroCommande = searchParams.get("numero_commande") || "";
+    const montantTotal = searchParams.get("montant_total") || "0";
+
+    if (returnCancelled) {
+      setError(t('client.diasporaPayment.paymentCancelled', 'Paiement annulé.'));
+      router.replace("/commande/diaspora/paiement");
+      return;
+    }
+
+    (async () => {
+      setPhase("confirming");
+      setError(null);
+      try {
+        if (returnSessionId) {
+          await confirmerStripe(returnCommandeId, returnSessionId);
+        } else if (returnToken && returnPayerId) {
+          await confirmerPayPal(returnCommandeId, returnToken);
+        } else {
+          router.replace("/commande/diaspora/paiement");
+          return;
+        }
+        clearCart();
+        router.replace(`/commande/confirmee?numero=${encodeURIComponent(numeroCommande)}&montant=${montantTotal}&id=${returnCommandeId}`);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.invalidReferenceError', 'Confirmation de paiement invalide.'));
+        setPhase("error");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPaymentReturn, returnCommandeId, returnSessionId, returnToken, returnPayerId, returnCancelled]);
 
   const zone = useMemo(() => resolveZoneForQuartier(zones, beneficiaire?.quartier, beneficiaire?.ville || undefined), [zones, beneficiaire]);
+
+  if (isPaymentReturn) {
+    return (
+      <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
+        <div className="p-10 rounded-2xl border-2 border-slate-200 bg-white text-center space-y-4">
+          {phase === "error" ? (
+            <>
+              <p className="text-sm font-bold text-red-600">{error}</p>
+              <button
+                onClick={() => router.replace("/commande/diaspora/paiement")}
+                className="mt-2 h-11 px-6 rounded-xl bg-[#0B2545] text-white font-extrabold text-sm"
+              >
+                {t('client.diasporaPayment.backToPayment', 'Retour au paiement')}
+              </button>
+            </>
+          ) : (
+            <>
+              <Loader2 className="h-8 w-8 animate-spin text-[#0B2545] mx-auto" />
+              <p className="text-sm font-bold text-slate-800">{t('client.diasporaPayment.confirmingPayment', 'Confirmation de votre paiement…')}</p>
+            </>
+          )}
+        </div>
+      </main>
+    );
+  }
 
   if (!beneficiaire || !slot) return null;
 
   const placeOrder = async () => {
     if (!zone) { setError(t('client.diasporaPayment.deliveryUnavailableError', 'Livraison indisponible pour ce quartier pour le moment.')); setPhase("error"); return; }
-    if (items.length === 0) { router.replace("/"); return; }
+    if (items.length === 0) { router.replace("/accueil"); return; }
 
     setPhase("placing");
     setError(null);
@@ -73,29 +149,22 @@ export default function DiasporaPaymentPage() {
         beneficiaire_id: beneficiaire.id,
         coordonnees_gps: beneficiaire.coordonnees_gps || undefined,
       });
-      setPendingOrder(order);
 
-      if (method === "paypal") await initierPayPal(order.commande_id);
-      else await initierStripe(order.commande_id);
-      setPhase("awaiting_reference");
+      const base = `${window.location.origin}/commande/diaspora/paiement`;
+      const params = `commande_id=${order.commande_id}&numero_commande=${encodeURIComponent(order.numero_commande)}&montant_total=${order.montant_total}`;
+      const cancelUrl = `${base}?${params}&cancelled=1`;
+
+      setPhase("redirecting");
+      if (method === "paypal") {
+        const { url } = await initierPayPal(order.commande_id, `${base}?${params}`, cancelUrl);
+        window.location.href = url;
+      } else {
+        const { url } = await initierStripe(order.commande_id, `${base}?${params}`, cancelUrl);
+        window.location.href = url;
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.finalizeOrderError', 'Impossible de finaliser la commande.'));
       setPhase("error");
-    }
-  };
-
-  const confirmReference = async () => {
-    if (!pendingOrder || !reference.trim()) return;
-    setPhase("confirming");
-    setError(null);
-    try {
-      if (method === "paypal") await confirmerPayPal(pendingOrder.commande_id, reference.trim());
-      else await confirmerStripe(pendingOrder.commande_id, reference.trim());
-      clearCart();
-      router.push(`/commande/confirmee?numero=${encodeURIComponent(pendingOrder.numero_commande)}&montant=${pendingOrder.montant_total}&id=${pendingOrder.commande_id}`);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.invalidReferenceError', 'Confirmation de paiement invalide.'));
-      setPhase("awaiting_reference");
     }
   };
 
@@ -112,26 +181,12 @@ export default function DiasporaPaymentPage() {
         </p>
       )}
 
-      {phase === "awaiting_reference" || phase === "confirming" ? (
+      {phase === "redirecting" ? (
         <div className="p-6 rounded-2xl border-2 border-slate-200 bg-white text-center space-y-4">
-          <CreditCard className="h-10 w-10 text-[#0B2545] mx-auto" />
+          <Loader2 className="h-8 w-8 animate-spin text-[#0B2545] mx-auto" />
           <p className="text-sm font-bold text-slate-800">
-            {t('client.diasporaPayment.finalizeViaPrefix', 'Finalisez votre paiement via')} {method === "paypal" ? "PayPal" : "Stripe"}{t('client.diasporaPayment.finalizeViaSuffix', ', puis saisissez la référence de confirmation reçue.')}
+            {t('client.diasporaPayment.redirectingTo', 'Redirection vers')} {method === "paypal" ? "PayPal" : "Stripe"}…
           </p>
-          <input
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-            placeholder={t('client.diasporaPayment.referencePlaceholder', 'Référence de confirmation')}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-center text-sm font-bold tracking-wider focus:outline-none focus:border-[#0B2545]"
-          />
-          {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
-          <button
-            onClick={confirmReference}
-            disabled={!reference.trim() || phase === "confirming"}
-            className="w-full h-12 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 text-white font-extrabold text-sm transition-all flex items-center justify-center gap-2"
-          >
-            {phase === "confirming" ? <Loader2 className="h-4 w-4 animate-spin" /> : t('client.diasporaPayment.confirmPayment', 'Confirmer le paiement')}
-          </button>
         </div>
       ) : (
         <>
