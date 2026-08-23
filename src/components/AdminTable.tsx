@@ -47,7 +47,12 @@ export function AdminTable({
   return (
     <div className="surface-card overflow-hidden rounded-3xl border border-slate-200/80 shadow-premium-sm transition-all hover:shadow-premium-md">
       <div className="overflow-x-auto scrollbar-dark">
-        <table className="min-w-full divide-y divide-slate-100 text-sm">
+        {/* [&_td]:align-top : sans ça, un <td> se centre verticalement sur la ligne la plus haute
+            de sa <tr> (comportement HTML par défaut) — dès qu'une cellule fait 2-3 lignes (ex:
+            motif + description + décision d'un litige) pendant que ses voisines n'en font qu'une,
+            ces voisines "flottent" au milieu de la ligne au lieu de s'aligner en haut comme sur les
+            lignes courtes, donnant une impression de colonnes mal alignées d'une ligne à l'autre. */}
+        <table className="min-w-full divide-y divide-slate-100 text-sm [&_td]:align-top">
           <thead className="bg-slate-50/90 backdrop-blur-xs">
             <tr>
               {headers.map((h, i) => (

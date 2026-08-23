@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Users, Eye, Check, Ban, UserPlus } from "lucide-react";
+import { Search, Users, Eye, Check, Ban, UserPlus, Trash2 } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { buildQuery } from "@/lib/query";
 import type { AppUser, ApiEnvelope, PaginatedData, TypeUtilisateur, StatutCompte } from "@/lib/types";
@@ -46,6 +46,7 @@ export default function UtilisateursPage() {
   const { notify, notifyError } = useToast();
   const queryClient = useQueryClient();
   const canManageStatus = usePermission("manage_users_status");
+  const canDelete = usePermission("delete_users");
   const [page, setPage] = useState(1);
   const [type, setType] = useState("");
   const [statut, setStatut] = useState("");
@@ -54,6 +55,7 @@ export default function UtilisateursPage() {
   const [suspendTarget, setSuspendTarget] = useState<AppUser | null>(null);
   const [motif, setMotif] = useState("");
   const [activateTarget, setActivateTarget] = useState<AppUser | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AppUser | null>(null);
 
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["admin-utilisateurs", page, type, statut, search],
@@ -83,6 +85,16 @@ export default function UtilisateursPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-utilisateurs"] });
     },
     onError: (err) => notifyError(err, "Impossible de suspendre ce compte."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/utilisateurs/${id}`),
+    onSuccess: () => {
+      notify("Compte supprimé.");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-utilisateurs"] });
+    },
+    onError: (err) => notifyError(err, "Impossible de supprimer ce compte — il a peut-être des commandes ou d'autres données liées."),
   });
 
   const items = data?.data ?? [];
@@ -167,6 +179,9 @@ export default function UtilisateursPage() {
                   {canManageStatus && u.statut_compte !== "suspendu" && (
                     <IconAction icon={Ban} label="Suspendre" onClick={() => setSuspendTarget(u)} variant="danger" />
                   )}
+                  {canDelete && u.type_utilisateur !== "administrateur" && (
+                    <IconAction icon={Trash2} label="Supprimer définitivement" onClick={() => setDeleteTarget(u)} variant="danger" />
+                  )}
                 </div>
               </td>
             </tr>
@@ -197,6 +212,12 @@ export default function UtilisateursPage() {
             className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
             placeholder="Ex : comportement frauduleux, violation des CGU…" />
         </Modal>
+      )}
+      {deleteTarget && (
+        <ConfirmDialog title="Supprimer définitivement ce compte"
+          message={`Confirmez-vous la suppression du compte de ${fullName(deleteTarget.nom, deleteTarget.prenom)} ? Action irréversible, réservée aux comptes de test — la suppression échouera si ce compte a des commandes, produits ou autres données réelles liées.`}
+          confirmLabel="Supprimer" danger loading={deleteMutation.isPending}
+          onConfirm={() => deleteMutation.mutate(deleteTarget.id)} onClose={() => setDeleteTarget(null)} />
       )}
     </div>
   );

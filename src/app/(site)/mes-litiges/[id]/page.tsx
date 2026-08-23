@@ -6,7 +6,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { StatutLitigeBadge } from "@/components/Badge";
 import { LitigeConversation } from "@/components/litige/LitigeConversation";
-import { LITIGE_MOTIFS, fetchClientLitigeDetail, type Litige } from "@/lib/api";
+import { fetchClientLitigeDetail, fetchLitigeMotifs, type Litige, type LitigeMotifOption } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
 
 const CLOS = ["resolu", "rejete", "annule"];
@@ -17,10 +17,12 @@ export default function ClientLitigeDetailPage({ params }: { params: Promise<{ i
   const { user, isReady } = useRequirePublicAuth();
   const [litige, setLitige] = useState<Litige | null>(null);
   const [loading, setLoading] = useState(true);
+  const [motifs, setMotifs] = useState<LitigeMotifOption[]>([]);
 
   useEffect(() => {
     if (!user) return;
     fetchClientLitigeDetail(id).then(setLitige).catch(() => setLitige(null)).finally(() => setLoading(false));
+    fetchLitigeMotifs().then(setMotifs).catch(() => setMotifs([]));
   }, [user, id]);
 
   if (!isReady || !user || loading) {
@@ -56,7 +58,7 @@ export default function ClientLitigeDetailPage({ params }: { params: Promise<{ i
 
       <div className="p-4 rounded-2xl border border-slate-200 bg-white mb-4">
         <p className="text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1">
-          {LITIGE_MOTIFS.find((m) => m.id === litige.motif)?.label || litige.motif}
+          {motifs.find((m) => m.id === litige.motif)?.label || litige.motif}
         </p>
         <p className="text-sm text-slate-700">{litige.description}</p>
       </div>

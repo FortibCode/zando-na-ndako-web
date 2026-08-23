@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { BadgeCheck, Star, Store } from 'lucide-react';
 import { useLanguage } from '@/lib/language-context';
 import { fetchTopVendeurs, resolveMediaUrl, type TopVendeur } from '@/lib/api';
@@ -37,8 +38,9 @@ export function Partners() {
           {vendeurs.map((vendeur, idx) => {
             const image = resolveMediaUrl(vendeur.photo_boutique);
             return (
-              <div
+              <Link
                 key={vendeur.id}
+                href={`/boutique/${vendeur.id}`}
                 className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/50 p-4 transition-all duration-300 card-3d shine-effect hover:bg-white hover:border-slate-200 hover:shadow-xl cursor-pointer"
                 style={{ animationDelay: `${idx * 100}ms` }}
               >
@@ -69,7 +71,7 @@ export function Partners() {
                   <p className="text-[11px] font-bold text-[#0B2545] mt-0.5">{vendeur.categorie_principale}</p>
                   {vendeur.ville && <p className="text-[10px] text-slate-400 font-medium mt-0.5">{vendeur.ville}</p>}
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

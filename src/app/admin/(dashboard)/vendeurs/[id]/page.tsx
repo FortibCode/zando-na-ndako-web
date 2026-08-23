@@ -5,8 +5,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Store, Phone, Mail, MapPin, Star, Wallet, Timer, IdCard,
   Package, PackageX, ClipboardList, TrendingUp, Landmark, Check, Ban, ExternalLink,
+  Clock, MessageSquare, ImageOff, PackageSearch,
 } from "lucide-react";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, fetchVendeurTypesDisponibles, resolveMediaUrl } from "@/lib/api";
 import type { ApiEnvelope, VendeurDetailData } from "@/lib/types";
 import { LoadingBlock, ErrorBlock } from "@/components/Spinner";
 import { Badge, StatutValidationBadge } from "@/components/Badge";
@@ -16,7 +17,7 @@ import { InfoRow, MiniStat } from "@/components/AdminTable";
 import { formatDate, formatMontant, fullName } from "@/lib/format";
 import { useToast } from "@/lib/toast-context";
 import { usePermission } from "@/lib/usePermission";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const RETRAIT_TONE: Record<string, "gold" | "green" | "red"> = {
@@ -34,9 +35,19 @@ export default function VendeurDetailPage() {
   const queryClient = useQueryClient();
   const canValidate = usePermission("validate_vendeurs");
   const canSuspend = usePermission("suspendre_vendeurs");
+  const canEdit = usePermission("edit_vendeurs");
 
   const [validateOpen, setValidateOpen] = useState(false);
   const [suspendOpen, setSuspendOpen] = useState(false);
+  const [types, setTypes] = useState<string[]>([]);
+  const [editCategorie, setEditCategorie] = useState("");
+  const [editHoraires, setEditHoraires] = useState("");
+  const [editMessage, setEditMessage] = useState("");
+  const [formTouched, setFormTouched] = useState(false);
+
+  useEffect(() => {
+    fetchVendeurTypesDisponibles().then(setTypes).catch(() => setTypes([]));
+  }, []);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-vendeur-detail", params.id],
@@ -65,8 +76,26 @@ export default function VendeurDetailPage() {
     onError: (err) => notifyError(err, "Impossible de suspendre ce vendeur."),
   });
 
+  const modifierMutation = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => api.put(`/admin/vendeurs/${params.id}`, payload),
+    onSuccess: () => {
+      notify("Boutique mise à jour.");
+      setFormTouched(false);
+      queryClient.invalidateQueries({ queryKey: ["admin-vendeur-detail", params.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin-vendeurs"] });
+    },
+    onError: (err) => notifyError(err, "Impossible de mettre à jour cette boutique."),
+  });
+
   const v = data?.vendeur;
   const stats = data?.stats;
+
+  useEffect(() => {
+    if (!v || formTouched) return;
+    setEditCategorie(v.categorie_principale);
+    setEditHoraires(v.horaires_ouverture ?? "");
+    setEditMessage(v.message_boutique ?? "");
+  }, [v, formTouched]);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -143,6 +172,124 @@ export default function VendeurDetailPage() {
                   <InfoRow icon={Phone} label="Mobile Money" value={v.numero_mobile_money_reception} />
                 )}
               </div>
+            </div>
+
+            {/* Modération de la boutique — ce que le client voit réellement sur /boutique/[id]
+                (photo, horaires, message), avant invisible et non-éditable côté admin. */}
+            <div className="surface-card rounded-2xl p-6">
+              <h2 className="mb-4 text-sm font-black text-slate-800">Modération de la boutique</h2>
+
+              <div className="flex items-start gap-4 mb-5">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+                  {v.photo_boutique ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={resolveMediaUrl(v.photo_boutique) || undefined} alt={v.nom_commerce} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-slate-300"><Store className="h-8 w-8" /></div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 mb-2">Photo de la boutique (vue par les clients)</p>
+                  {v.photo_boutique && canEdit && (
+                    <Button
+                      variant="ghost"
+                      className="!text-red-600"
+                      loading={modifierMutation.isPending}
+                      onClick={() => modifierMutation.mutate({ photo_boutique: null })}
+                    >
+                      <ImageOff size={14} /> Retirer la photo
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1.5">Type de boutique</label>
+                  {canEdit ? (
+                    <select
+                      value={editCategorie}
+                      onChange={(e) => { setFormTouched(true); setEditCategorie(e.target.value); }}
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-[#1A2E5A]"
+                    >
+                      {types.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  ) : (
+                    <p className="text-xs font-semibold text-slate-700">{v.categorie_principale}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-1.5"><Clock size={12} /> Horaires d&apos;ouverture</label>
+                  {canEdit ? (
+                    <input
+                      value={editHoraires}
+                      onChange={(e) => { setFormTouched(true); setEditHoraires(e.target.value); }}
+                      placeholder="Ex : Lun-Sam 8h-18h"
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#1A2E5A]"
+                    />
+                  ) : (
+                    <p className="text-xs font-semibold text-slate-700">{v.horaires_ouverture || "—"}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-xs font-bold text-slate-600 mb-1.5"><MessageSquare size={12} /> Message de la boutique</label>
+                  {canEdit ? (
+                    <textarea
+                      value={editMessage}
+                      onChange={(e) => { setFormTouched(true); setEditMessage(e.target.value); }}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#1A2E5A] resize-none"
+                    />
+                  ) : (
+                    <p className="text-xs font-semibold text-slate-700">{v.message_boutique || "—"}</p>
+                  )}
+                </div>
+
+                {canEdit && formTouched && (
+                  <Button
+                    variant="secondary"
+                    loading={modifierMutation.isPending}
+                    onClick={() => modifierMutation.mutate({
+                      categorie_principale: editCategorie,
+                      horaires_ouverture: editHoraires || null,
+                      message_boutique: editMessage || null,
+                    })}
+                  >
+                    Enregistrer les modifications
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Aperçu produits — ce qu'un client verrait en visitant la fiche boutique */}
+            <div className="surface-card rounded-2xl">
+              <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                <h2 className="text-sm font-black text-slate-800">Produits ({stats.produits_total})</h2>
+              </div>
+              {data.produits.length === 0 ? (
+                <div className="py-10 text-center">
+                  <PackageSearch className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-400">Aucun produit dans cette boutique.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-50">
+                  {data.produits.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between gap-4 px-6 py-3.5">
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-800 truncate">{p.nom_produit}</p>
+                        <p className="text-[12.5px] text-slate-400">
+                          {p.categorie?.nom_categorie ?? "—"} · {Number(p.prix_unitaire).toLocaleString("fr-FR")} FCFA · stock {p.quantite_stock}
+                        </p>
+                      </div>
+                      <Badge tone={p.statut_disponibilite === "disponible" ? "green" : "red"}>
+                        {p.statut_disponibilite === "disponible" ? "Disponible" : "Rupture"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Retraits récents */}

@@ -1,11 +1,12 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { fetchVendeurTypes } from '@/lib/api';
 import { useLanguage } from '@/lib/language-context';
-import { CATEGORIES } from './data';
 
 const SOCIALS = [
   {
@@ -33,9 +34,14 @@ const SOCIALS = [
 export function Footer() {
   const { t } = useLanguage();
   const pathname = usePathname();
+  const [boutiqueTypes, setBoutiqueTypes] = useState<string[]>([]);
   // #how-it-works et #partners n'existent que sur la page d'accueil (voir Header.tsx pour le
   // même correctif) — depuis toute autre route il faut d'abord naviguer vers "/".
   const anchorHref = (hash: string) => (pathname === "/" ? hash : `/${hash}`);
+
+  useEffect(() => {
+    fetchVendeurTypes().then(setBoutiqueTypes).catch(() => setBoutiqueTypes([]));
+  }, []);
   return (
     <footer id="contact" className="border-t border-slate-100 bg-white text-slate-600 mt-12">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 md:grid-cols-4 lg:px-8">
@@ -74,11 +80,11 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">{t('client.footer.categoriesTitle', 'Catégories')}</h4>
+          <h4 className="mb-3 text-xs font-black tracking-wider text-slate-900 uppercase">{t('client.footer.categoriesTitle', 'Types de boutique')}</h4>
           <ul className="space-y-2 text-xs font-semibold text-slate-600">
-            {CATEGORIES.map((c) => (
-              <li key={c.id}>
-                <Link href={`/categorie/${encodeURIComponent(c.name)}`} className="hover:text-[#0B2545]">{c.name}</Link>
+            {boutiqueTypes.map((type) => (
+              <li key={type}>
+                <Link href={`/boutiques/${encodeURIComponent(type)}`} className="hover:text-[#0B2545] capitalize">{type}</Link>
               </li>
             ))}
           </ul>

@@ -20,22 +20,13 @@ import {
   resendPublicOtp,
   uploadVendeurDocumentsPublic,
   fetchZonesRaw,
+  fetchVendeurTypesDisponibles,
   type ZoneOption,
 } from '@/lib/api';
 
 type UserRole = 'client_local' | 'client_diaspora' | 'vendeur';
 type Step = 'form' | 'otp' | 'documents' | 'success';
 type Sexe = 'homme' | 'femme';
-
-const CATEGORIES = [
-  'Poissonnier & Produits de mer',
-  'Boucher & Charcutier',
-  'Maraîcher & Fruits / Légumes',
-  'Épicier & Produits alimentaires',
-  'Artisanat & Fait maison',
-  'Mode & Habillement',
-  'Autre commerce',
-];
 
 const PAYS_OPTIONS = [
   'France', 'Congo-Brazzaville', 'République Démocratique du Congo', 'Afrique du Sud',
@@ -85,7 +76,8 @@ export default function RegisterPage() {
 
   // Vendeur
   const [nomCommerce, setNomCommerce] = useState('');
-  const [categoriePrincipale, setCategoriePrincipale] = useState(CATEGORIES[0]);
+  const [categoriePrincipale, setCategoriePrincipale] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
   const [zoneId, setZoneId] = useState('');
   const [zones, setZones] = useState<ZoneOption[]>([]);
   const [zonesLoading, setZonesLoading] = useState(true);
@@ -125,6 +117,12 @@ export default function RegisterPage() {
       })
       .catch(() => setZones([]))
       .finally(() => setZonesLoading(false));
+    fetchVendeurTypesDisponibles()
+      .then((types) => {
+        setCategories(types);
+        setCategoriePrincipale((current) => current || types[0] || '');
+      })
+      .catch(() => setCategories([]));
   }, [role]);
 
   useEffect(() => {
@@ -394,7 +392,7 @@ export default function RegisterPage() {
                       <label className="block text-xs font-bold text-slate-700 mb-1">Catégorie principale</label>
                       <select value={categoriePrincipale} onChange={(e) => setCategoriePrincipale(e.target.value)}
                         className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
-                        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>

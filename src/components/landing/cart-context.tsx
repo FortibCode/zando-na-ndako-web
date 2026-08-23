@@ -10,6 +10,8 @@ export type CartItem = {
   unit: string;
   image: string;
   quantity: number;
+  vendeurId?: string;
+  vendeurName?: string;
 };
 
 interface CartContextValue {
@@ -23,7 +25,7 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  addItem: (product: { id: string; name: string; price: string; priceValue: number; unit: string; image: string }, quantity?: number) => void;
+  addItem: (product: { id: string; name: string; price: string; priceValue: number; unit: string; image: string; vendeurId?: string; vendeurName?: string }, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -68,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addItem = (
-    product: { id: string; name: string; price: string; priceValue: number; unit: string; image: string },
+    product: { id: string; name: string; price: string; priceValue: number; unit: string; image: string; vendeurId?: string; vendeurName?: string },
     quantity = 1
   ) => {
     setItems((prev) => {
@@ -77,6 +79,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return prev.map((i) =>
           i.id === product.id ? { ...i, quantity: i.quantity + quantity } : i
         );
+      }
+      // Une commande n'est rattachée qu'à un seul vendeur côté backend (voir
+      // PanierController::ajouter / CommandeController::valider) : mélanger deux boutiques ferait
+      // silencieusement disparaître les articles du second vendeur de la commande. Même garde-fou
+      // que mobile (client-context.tsx addToCart), via window.confirm ici faute d'un système de
+      // modale accessible depuis ce fichier (pas de composant React monté globalement, contrairement
+      // à mobile/src/contexts/alert-context.tsx).
+      const currentVendeurId = prev[0]?.vendeurId;
+      if (product.vendeurId && currentVendeurId && currentVendeurId !== product.vendeurId) {
+        const ok = typeof window !== "undefined" && window.confirm(
+          `Votre panier contient déjà des produits de « ${prev[0]?.vendeurName || "cette boutique"} ». Le vider pour ajouter ce produit d'une autre boutique ?`
+        );
+        if (!ok) return prev;
+        return [{ ...product, quantity }];
       }
       return [...prev, { ...product, quantity }];
     });

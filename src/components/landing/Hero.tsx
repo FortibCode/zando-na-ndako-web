@@ -38,7 +38,7 @@ export function Hero() {
 
           <div className="animate-fade-in flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row lg:justify-start" style={{ animationDelay: '200ms' }}>
             <Link
-              href="/produits"
+              href="/categories"
               className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0B2545] px-8 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-[#0B2545]/20 transition-all hover:bg-[#061830] active:scale-95 sm:w-auto"
             >
               <span>{t('client.hero.orderNow', 'Commander maintenant')}</span>

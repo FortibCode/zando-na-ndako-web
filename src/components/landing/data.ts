@@ -44,6 +44,8 @@ export type Product = {
   priceValue: number;
   unit: string;
   image: string;
+  vendeurId?: string;
+  vendeurName?: string;
 };
 
 export const FEATURED_PRODUCTS: Product[] = [

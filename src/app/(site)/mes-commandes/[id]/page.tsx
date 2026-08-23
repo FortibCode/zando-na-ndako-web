@@ -8,7 +8,7 @@ import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { useCart } from "@/components/landing/cart-context";
 import {
   ApiError,
-  LITIGE_MOTIFS,
+  fetchLitigeMotifs,
   annulerClientCommande,
   fetchClientCommandeDetail,
   fetchClientCommandeSuivi,
@@ -19,6 +19,7 @@ import {
   type ApiCommande,
   type ApiCommandeSuivi,
   type ApiNotation,
+  type LitigeMotifOption,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
 import { clientTranslations } from "@/i18n/client-translations";
@@ -117,7 +118,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null);
 
   const [showLitigeForm, setShowLitigeForm] = useState(false);
-  const [litigeMotif, setLitigeMotif] = useState(LITIGE_MOTIFS[0].id);
+  const [litigeMotifs, setLitigeMotifs] = useState<LitigeMotifOption[]>([]);
+  const [litigeMotif, setLitigeMotif] = useState("");
   const [litigeDescription, setLitigeDescription] = useState("");
   const [openingLitige, setOpeningLitige] = useState(false);
   const [litigeError, setLitigeError] = useState<string | null>(null);
@@ -137,6 +139,15 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, id]);
+
+  useEffect(() => {
+    fetchLitigeMotifs()
+      .then((list) => {
+        setLitigeMotifs(list);
+        setLitigeMotif((current) => current || list[0]?.id || "");
+      })
+      .catch(() => setLitigeMotifs([]));
+  }, []);
 
   useEffect(() => {
     if (!order || order.statut_commande === "livree" || order.statut_commande === "annulee") return;
@@ -371,7 +382,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <p className="text-sm font-black text-slate-900">{t('client.commandeDetail.reportProblem', 'Signaler un problème')}</p>
           <select value={litigeMotif} onChange={(e) => setLitigeMotif(e.target.value)}
             className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
-            {LITIGE_MOTIFS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+            {litigeMotifs.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
           </select>
           <textarea
             value={litigeDescription}

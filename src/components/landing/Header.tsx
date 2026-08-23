@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, Compass, Globe, Grid3X3, LogOut, Menu, Moon, Receipt, ShoppingCart, Sparkles, Sun, User, X } from 'lucide-react';
+import { ChevronDown, Compass, Globe, Grid3X3, LogOut, Menu, Moon, Receipt, ShoppingCart, Sparkles, Store, Sun, User, X } from 'lucide-react';
 import { Logo } from '@/components/Logo';
-import { fetchCategoriesFromApi } from '@/lib/api';
-import type { Category } from './data';
+import { fetchVendeurTypes } from '@/lib/api';
 import { useCart } from './cart-context';
 import { usePublicAuth } from '@/lib/public-auth-context';
 import { useLanguage } from '@/lib/language-context';
@@ -38,7 +37,7 @@ export function Header() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [boutiqueTypes, setBoutiqueTypes] = useState<string[]>([]);
   const categoriesDropdownRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
@@ -59,7 +58,7 @@ export function Header() {
   const anchorHref = (hash: string) => (pathname === "/" ? hash : `/${hash}`);
 
   useEffect(() => {
-    fetchCategoriesFromApi().then(setCategories);
+    fetchVendeurTypes().then(setBoutiqueTypes).catch(() => setBoutiqueTypes([]));
   }, []);
 
   useEffect(() => {
@@ -135,28 +134,28 @@ export function Header() {
                 <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${categoriesOpen ? 'rotate-180 text-[#0B2545]' : ''}`} />
               </button>
 
-              {/* Dynamic Categories Dropdown Menu */}
+              {/* Dynamic Boutique Types Dropdown Menu */}
               {categoriesOpen && (
                 <div className="absolute top-full left-0 mt-3 w-64 rounded-3xl border border-slate-200/90 bg-white p-3 shadow-2xl z-50 animate-scale-in">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-2 mb-1.5">
                     <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-amber-500" /> {t('header.freshCategories', 'Catégories fraîches')}
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" /> {t('header.freshCategories', 'Types de boutique')}
                     </span>
                   </div>
                   <div className="space-y-1">
-                    {categories.map((c) => (
+                    {boutiqueTypes.map((type) => (
                       <Link
-                        key={c.id}
-                        href={`/categorie/${encodeURIComponent(c.name)}`}
+                        key={type}
+                        href={`/boutiques/${encodeURIComponent(type)}`}
                         onClick={() => setCategoriesOpen(false)}
                         className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100"
                       >
                         <div className="flex items-center gap-2.5">
-                          <span className="h-8 w-8 shrink-0 overflow-hidden rounded-xl bg-slate-100">
-                            <img src={c.image} alt="" className="h-full w-full object-cover" />
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                            <Store className="h-4 w-4 text-slate-400" />
                           </span>
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#0B2545] transition-colors">
-                            {c.name}
+                          <span className="text-xs font-bold text-slate-800 capitalize group-hover:text-[#0B2545] transition-colors">
+                            {type}
                           </span>
                         </div>
                       </Link>
@@ -326,21 +325,21 @@ export function Header() {
             </>
           ) : (
             <>
-              {/* Mobile Categories Grid */}
+              {/* Mobile Boutique Types Grid */}
               <div className="space-y-1.5">
-                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-2">{t('tabs.categories', 'Catégories')}</p>
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-2">{t('tabs.categories', 'Types de boutique')}</p>
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  {categories.map((c) => (
+                  {boutiqueTypes.map((type) => (
                     <Link
-                      key={c.id}
-                      href={`/categorie/${encodeURIComponent(c.name)}`}
+                      key={type}
+                      href={`/boutiques/${encodeURIComponent(type)}`}
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2 p-2.5 rounded-2xl bg-slate-50 text-xs font-bold text-slate-800 border border-slate-100"
                     >
-                      <span className="h-6 w-6 shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                        <img src={c.image} alt="" className="h-full w-full object-cover" />
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100">
+                        <Store className="h-3.5 w-3.5 text-slate-400" />
                       </span>
-                      <span className="truncate">{c.name}</span>
+                      <span className="truncate capitalize">{type}</span>
                     </Link>
                   ))}
                 </div>

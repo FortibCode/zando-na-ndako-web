@@ -33,8 +33,8 @@ export default function CommissionsPage() {
     queryKey: ["admin-commissions", page, statut],
     queryFn: async () => {
       const qs = buildQuery({ page, statut });
-      const res = await api.get<ApiEnvelope<PaginatedData<CommissionAdmin>>>(`/admin/commissions${qs}`);
-      return res.data;
+      const res = await api.get<ApiEnvelope<PaginatedData<CommissionAdmin>> & { taux_commission_vendeur: string }>(`/admin/commissions${qs}`);
+      return { ...res.data, taux_commission_vendeur: res.taux_commission_vendeur };
     },
   });
 
@@ -54,7 +54,7 @@ export default function CommissionsPage() {
     <div className="space-y-5 animate-fade-in">
       <AdminPageHeader
         title="Commissions"
-        description="Commission de 10% prélevée sur chaque commande livrée."
+        description={`Commission de ${data?.taux_commission_vendeur ?? "—"}% prélevée sur chaque commande livrée.`}
         icon={Landmark}
         action={<HeaderStat icon={Landmark} label={`${data?.total ?? "—"} commissions`} tone="gold" />}
       />

@@ -40,8 +40,8 @@ export function PromoBanner() {
   const href = promoProduit
     ? `/produit/${promoProduit.id}`
     : fallbackProduit
-      ? `/categorie/${encodeURIComponent(fallbackProduit.categorie?.nom_categorie || '')}`
-      : '/produits';
+      ? `/boutique/${fallbackProduit.vendeur_id}`
+      : '/categories';
 
   const badgeText = promoProduit && promo
     ? discountLabel(promo)

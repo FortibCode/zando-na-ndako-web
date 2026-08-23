@@ -3,30 +3,31 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Grid } from 'lucide-react';
-import { fetchCategoriesFromApi } from '@/lib/api';
+import { fetchVendeurTypesLogos } from '@/lib/api';
 import { useLanguage } from '@/lib/language-context';
-import type { Category } from './data';
 import { CategoryCard } from './CategoryCard';
 
 export function Categories() {
   const { t } = useLanguage();
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<{ type: string; logo: string | null }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = (opts?: { silent?: boolean }) => {
       if (!opts?.silent) setIsLoading(true);
-      fetchCategoriesFromApi()
-        .then((data) => setCategories(data))
+      fetchVendeurTypesLogos()
+        .then((data) => setTypes(data))
         .finally(() => setIsLoading(false));
     };
     load();
-    // Une catégorie modifiée/ajoutée/supprimée côté admin doit apparaître sans que le visiteur
-    // ait besoin de recharger la page — pas de cache serveur ici (voir fetchCategoriesFromApi),
-    // donc un polling léger suffit à garder un onglet déjà ouvert à jour.
+    // Un type de boutique modifié/ajoutée/supprimée côté admin doit apparaître sans que le
+    // visiteur ait besoin de recharger la page — pas de cache serveur ici, donc un polling léger
+    // suffit à garder un onglet déjà ouvert à jour.
     const interval = setInterval(() => load({ silent: true }), 60_000);
     return () => clearInterval(interval);
   }, []);
+
+  if (!isLoading && types.length === 0) return null;
 
   return (
     <section className="w-full">
@@ -34,10 +35,10 @@ export function Categories() {
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Grid className="h-5 w-5 text-[#0B2545]" />
-            <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.categoriesSection.title', 'Nos catégories populaires')}</h2>
+            <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.categoriesSection.titleBoutiques', 'Nos types de boutique')}</h2>
           </div>
-          <Link href="/produits" className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline">
-            <span>{t('client.categoriesSection.viewAll', 'Voir toutes les catégories')}</span>
+          <Link href="/categories" className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline">
+            <span>{t('client.categoriesSection.viewAllBoutiques', 'Voir tous les types')}</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -50,8 +51,8 @@ export function Categories() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
-            {categories.map((category, index) => (
-              <CategoryCard key={category.id} category={category} index={index} />
+            {types.map(({ type, logo }, index) => (
+              <CategoryCard key={type} type={type} logo={logo} index={index} />
             ))}
           </div>
         )}

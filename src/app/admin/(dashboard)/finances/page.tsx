@@ -210,7 +210,7 @@ export default function FinancesPage() {
               )}
               <div className="mt-3 flex gap-5">
                 <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#2E7D32]" /><span className="text-[12.5px] font-bold text-slate-500">Revenus</span></div>
-                <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#1A2E5A]" /><span className="text-[12.5px] font-bold text-slate-500">Commissions (10%)</span></div>
+                <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[#1A2E5A]" /><span className="text-[12.5px] font-bold text-slate-500">Commissions ({finances?.taux_commission_vendeur ?? "—"}%)</span></div>
               </div>
             </div>
 

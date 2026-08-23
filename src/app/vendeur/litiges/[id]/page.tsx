@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatutLitigeBadge } from "@/components/Badge";
 import { LoadingBlock } from "@/components/Spinner";
 import { LitigeConversation } from "@/components/litige/LitigeConversation";
-import { LITIGE_MOTIFS, fetchVendeurLitigeDetail, fullName, type Litige } from "@/lib/api";
+import { fetchVendeurLitigeDetail, fetchLitigeMotifs, fullName, type Litige, type LitigeMotifOption } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
 
 const CLOS = ["resolu", "rejete", "annule"];
@@ -17,9 +17,11 @@ export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ 
   const { id } = use(params);
   const [litige, setLitige] = useState<Litige | null>(null);
   const [loading, setLoading] = useState(true);
+  const [motifs, setMotifs] = useState<LitigeMotifOption[]>([]);
 
   useEffect(() => {
     fetchVendeurLitigeDetail(id).then(setLitige).catch(() => setLitige(null)).finally(() => setLoading(false));
+    fetchLitigeMotifs().then(setMotifs).catch(() => setMotifs([]));
   }, [id]);
 
   if (loading) return <LoadingBlock label={t("vendor.litigeDetail.loading", "Chargement du litige…")} />;
@@ -48,7 +50,7 @@ export default function VendeurLitigeDetailPage({ params }: { params: Promise<{ 
 
       <div className="p-4 rounded-2xl border border-slate-200 bg-white mb-4">
         <p className="text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1">
-          {LITIGE_MOTIFS.find((m) => m.id === litige.motif)?.label || litige.motif}
+          {motifs.find((m) => m.id === litige.motif)?.label || litige.motif}
         </p>
         <p className="text-sm text-slate-700">{litige.description}</p>
       </div>

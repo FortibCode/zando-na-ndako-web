@@ -13,6 +13,8 @@ import {
   Bike,
   ClipboardList,
   Tags,
+  Images,
+  Flag,
   Package,
   Boxes,
   Truck,
@@ -35,6 +37,8 @@ import {
   Bell,
   LifeBuoy,
   FileDown,
+  ArrowLeftRight,
+  MessageSquareWarning,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -88,6 +92,7 @@ const GROUPS: NavGroup[] = [
       { href: "/admin/produits", label: "Produits", icon: Package, requirePermission: "view_all_produits" },
       { href: "/admin/stock", label: "Stock & Ruptures", icon: Boxes, badgeKey: "produits_rupture", requirePermission: "view_all_produits" },
       { href: "/admin/categories", label: "Catégories", icon: Tags },
+      { href: "/admin/types-boutique", label: "Types de boutique", icon: Images, requirePermission: "view_types_boutique" },
       { href: "/admin/zones", label: "Zones de livraison", icon: MapPin, requirePermission: "view_zones" },
     ],
   },
@@ -114,6 +119,7 @@ const GROUPS: NavGroup[] = [
       { href: "/admin/retraits", label: "Demandes de Retrait", icon: Wallet, requirePermission: "manage_retraits" },
       { href: "/admin/remboursements", label: "Remboursements", icon: RotateCcw, requirePermission: "view_finances" },
       { href: "/admin/rapports", label: "Rapports & Exports", icon: FileDown, requirePermission: "generate_reports" },
+      { href: "/admin/taux-change", label: "Taux de change", icon: ArrowLeftRight, requirePermission: "view_taux_change" },
     ],
   },
   {
@@ -123,6 +129,8 @@ const GROUPS: NavGroup[] = [
     items: [
       { href: "/admin/tickets", label: "Tickets d'assistance", icon: LifeBuoy, requirePermission: "view_tickets" },
       { href: "/admin/litiges", label: "Arbitrage des Litiges", icon: ShieldAlert, badgeKey: "litiges_ouverts", requirePermission: "view_litiges" },
+      { href: "/admin/avis", label: "Modération des avis", icon: MessageSquareWarning, requirePermission: "view_avis" },
+      { href: "/admin/litige-motifs", label: "Motifs de litige", icon: Flag, requirePermission: "view_litige_motifs" },
     ],
   },
   {

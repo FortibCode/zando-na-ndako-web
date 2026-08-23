@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useRequirePublicAuth } from "@/lib/use-require-public-auth";
 import { StatutLitigeBadge } from "@/components/Badge";
-import { fetchClientLitiges, LITIGE_MOTIFS, type Litige } from "@/lib/api";
+import { fetchClientLitiges, fetchLitigeMotifs, type Litige, type LitigeMotifOption } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
 
 export default function MesLitigesPage() {
@@ -13,10 +13,12 @@ export default function MesLitigesPage() {
   const { user, isReady } = useRequirePublicAuth();
   const [litiges, setLitiges] = useState<Litige[]>([]);
   const [loading, setLoading] = useState(true);
+  const [motifs, setMotifs] = useState<LitigeMotifOption[]>([]);
 
   useEffect(() => {
     if (!user) return;
     fetchClientLitiges().then(setLitiges).catch(() => setLitiges([])).finally(() => setLoading(false));
+    fetchLitigeMotifs().then(setMotifs).catch(() => setMotifs([]));
   }, [user]);
 
   if (!isReady || !user) {
@@ -49,7 +51,7 @@ export default function MesLitigesPage() {
               <div className="min-w-0">
                 <p className="text-sm font-black text-slate-900">{l.numero}</p>
                 <p className="text-xs text-slate-500 mt-0.5 truncate">
-                  {LITIGE_MOTIFS.find((m) => m.id === l.motif)?.label || l.motif} · Commande {l.commande?.numero_commande}
+                  {motifs.find((m) => m.id === l.motif)?.label || l.motif} · Commande {l.commande?.numero_commande}
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">{new Date(l.date_ouverture).toLocaleDateString('fr-FR')}</p>
               </div>

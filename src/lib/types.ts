@@ -133,11 +133,62 @@ export interface Vendeur {
   registre_commerce: string | null;
   numero_mobile_money_reception: string | null;
   horaires_ouverture: string | null;
+  message_boutique: string | null;
+  statut_boutique?: "ouverte" | "pause" | "fermee";
   delai_moyen_preparation: number;
   created_at: string;
   updated_at: string;
   user?: AppUser;
   zone?: ZoneLivraison;
+}
+
+// Type de boutique (categorie_principale) géré par un admin (créer/modifier/voir/supprimer) —
+// remplace l'ancienne constante Vendeur::TYPES_BOUTIQUE. `logo` vaut null tant qu'aucun admin n'en
+// a envoyé un pour ce type ; le frontend retombe alors sur une icône générique.
+export interface TypeBoutique {
+  id: string;
+  type: string;
+  logo: string | null;
+}
+
+// Motif de litige (litiges.motif) géré par un admin (créer/modifier/voir/supprimer) — remplace
+// l'ancienne constante LitigeController::MOTIFS.
+export interface LitigeMotifAdmin {
+  id: string;
+  code: string;
+  libelle: string;
+}
+
+// Taux de conversion (App\Models\TauxChange) géré par un admin (créer/modifier/voir/supprimer) —
+// jusqu'ici seulement peuplé par un seeder, sans aucun contrôle admin.
+export interface TauxChangeAdmin {
+  id: string;
+  devise_source: string;
+  devise_cible: string;
+  valeur_taux: string | number;
+  source_taux: string | null;
+  date_maj: string;
+}
+
+// Avis/notation (App\Models\NotationAvis) — vue de modération admin (voir/supprimer uniquement,
+// jamais créer : un faux avis n'a pas de sens métier).
+export interface AvisAdmin {
+  id: string;
+  note: number;
+  commentaire: string | null;
+  date_notation: string;
+  type_notateur: "client" | "vendeur" | "livreur";
+  type_cible: "client" | "vendeur" | "livreur";
+  notateur_nom: string;
+  cible_nom: string;
+  commande_id: string;
+}
+
+// Forme allégée renvoyée par l'endpoint public (/vendeurs/types-logos) — pas d'`id`, filtrée aux
+// types réellement en usage par une boutique ouverte/validée (voir CatalogueController).
+export interface TypeBoutiqueLogo {
+  type: string;
+  logo: string | null;
 }
 
 export interface Livreur {
@@ -471,6 +522,9 @@ export interface FinancesData {
   nb_commandes: number;
   mois: number;
   annee: number;
+  // Valeur actuelle du réglage taux_commission_vendeur (voir /admin/parametres) — jamais recopiée
+  // en dur ("10%") dans l'UI, seul le taux figé sur chaque Commission fait foi pour l'historique.
+  taux_commission_vendeur: string;
 }
 
 // ─── Statistiques & analytics du dashboard (GET /admin/dashboard/*) ───
@@ -681,6 +735,7 @@ export interface VendeurDetailData {
     commissions_en_attente: number;
   };
   retraits_recents: RetraitVendeur[];
+  produits: ProduitAdmin[];
 }
 
 export interface LivreurDetailData {

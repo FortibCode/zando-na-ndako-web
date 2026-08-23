@@ -67,7 +67,7 @@ export default function PanierPage() {
         <ShoppingBag className="h-14 w-14 text-slate-300 mx-auto mb-4" />
         <h1 className="text-xl font-black text-slate-900">{t('client.panier.emptyTitle', 'Votre panier est vide')}</h1>
         <p className="text-sm text-slate-500 mt-2">{t('client.panier.emptySub', 'Ajoutez des produits pour commencer.')}</p>
-        <Link href="/produits" className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#0B2545] px-6 py-2.5 text-xs font-extrabold text-white hover:bg-[#061830] transition-colors">
+        <Link href="/categories" className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#0B2545] px-6 py-2.5 text-xs font-extrabold text-white hover:bg-[#061830] transition-colors">
           <ShoppingCart className="h-4 w-4" /> {t('client.panier.discoverProducts', 'Découvrir nos produits')}
         </Link>
       </main>

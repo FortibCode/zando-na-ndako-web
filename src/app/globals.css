@@ -571,6 +571,32 @@ body {
 .row-accent:hover::before {
   transform: scaleY(1);
 }
+/* `position: relative` + `::before` sur un <tr> n'est pas un usage garanti par la spec CSS (les
+   lignes de tableau sont des boîtes internes de tableau, pas des boîtes de bloc normales) et rend
+   différemment selon le moteur — pour les tableaux (AdminTable), on désactive ça sur la <tr> et on
+   déplace l'accent sur sa première <td>, qui elle supporte position/pseudo-élément normalement. */
+tr.row-accent {
+  position: static;
+}
+tr.row-accent::before {
+  display: none;
+}
+tr.row-accent > td:first-child {
+  position: relative;
+}
+tr.row-accent > td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2.5px;
+  background: linear-gradient(180deg, var(--color-brand-navy), var(--color-brand-red));
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+  border-radius: 0 3px 3px 0;
+}
+tr.row-accent:hover > td:first-child::before {
+  transform: scaleY(1);
+}
 
 /* ────────────────────────────────────────────
    FOCUS RING

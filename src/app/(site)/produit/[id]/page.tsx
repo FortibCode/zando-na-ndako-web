@@ -58,7 +58,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         <PackageX className="h-14 w-14 text-slate-300 mx-auto mb-4" />
         <h1 className="text-xl font-black text-slate-900">{t('client.produitDetail.notFoundTitle', 'Produit introuvable')}</h1>
         <p className="text-sm text-slate-500 mt-2">{t('client.produitDetail.notFoundDesc', "Ce produit n'existe pas ou n'est plus disponible.")}</p>
-        <Link href="/produits" className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#0B2545] px-6 py-2.5 text-xs font-extrabold text-white hover:bg-[#061830] transition-colors">
+        <Link href="/categories" className="inline-flex items-center gap-2 mt-6 rounded-full bg-[#0B2545] px-6 py-2.5 text-xs font-extrabold text-white hover:bg-[#061830] transition-colors">
           <ArrowLeft className="h-4 w-4" /> {t('client.produitDetail.backToCatalog', 'Retour au catalogue')}
         </Link>
       </main>
@@ -81,6 +81,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         priceValue,
         unit: product.unite_mesure,
         image,
+        vendeurId: product.vendeur_id,
+        vendeurName: product.vendeur?.nom_commerce,
       },
       quantity,
     );
@@ -90,7 +92,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <Link href="/produits" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-6">
+      <Link href="/categories" className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-500 hover:text-[#0B2545] transition-colors mb-6">
         <ArrowLeft className="h-4 w-4" /> {t('client.produitDetail.backToCatalog', 'Retour au catalogue')}
       </Link>
 
@@ -122,9 +124,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{product.nom_produit}</h1>
 
           {product.vendeur && (
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 mt-2">
+            <Link href={`/boutique/${product.vendeur_id}`} className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 mt-2 hover:text-[#0B2545] transition-colors w-fit">
               <Store className="h-3.5 w-3.5" /> {product.vendeur.nom_commerce}
-            </div>
+            </Link>
           )}
 
           <p className="text-2xl font-black text-[#c00000] mt-4">

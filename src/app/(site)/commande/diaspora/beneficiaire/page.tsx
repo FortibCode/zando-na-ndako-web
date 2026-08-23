@@ -70,21 +70,23 @@ export default function DiasporaBeneficiaryPage() {
   };
 
   const handleDelete = async (id: string) => {
+    setError(null);
     try {
       await deleteBeneficiaire(id);
       setList((prev) => prev.filter((b) => b.id !== id));
       if (beneficiaire?.id === id) setBeneficiaire(null);
-    } catch {
-      // best-effort
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.deleteError', "Impossible de supprimer ce bénéficiaire."));
     }
   };
 
   const handleSetDefault = async (id: string) => {
+    setError(null);
     try {
       await updateBeneficiaire(id, { est_defaut: true });
       setList((prev) => prev.map((b) => ({ ...b, est_defaut: b.id === id })));
-    } catch {
-      // best-effort
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.setDefaultError', "Impossible de changer le bénéficiaire par défaut."));
     }
   };
 
@@ -138,6 +140,8 @@ export default function DiasporaBeneficiaryPage() {
               </div>
             </button>
           ))}
+
+          {error && !showForm && <p className="text-xs font-semibold text-red-600 px-1">{error}</p>}
 
           {!showForm ? (
             <button onClick={() => setShowForm(true)}

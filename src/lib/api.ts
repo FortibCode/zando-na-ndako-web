@@ -551,6 +551,59 @@ export async function fetchProduitDetail(id: string): Promise<Produit> {
   return res.data;
 }
 
+// ─── Boutiques (parcours "boutique d'abord") — même shape que mobile/src/services/api.ts ───
+export interface ApiVendeur {
+  id: string;
+  nom_commerce: string;
+  categorie_principale: string;
+  note_moyenne: number;
+  ville: string | null;
+  photo_boutique: string | null;
+  horaires_ouverture?: string | null;
+  message_boutique?: string | null;
+  statut_boutique?: "ouverte" | "pause" | "fermee";
+}
+
+export async function fetchVendeurTypes(): Promise<string[]> {
+  const res = await api.get<{ success: boolean; data: string[] }>("/vendeurs/types", { auth: false });
+  return res.data || [];
+}
+
+// Liste COMPLÈTE des types de boutique autorisés (pas seulement ceux déjà utilisés) — source
+// unique pour tout formulaire qui choisit un type (inscription vendeur, édition profil, édition
+// admin), remplace les listes codées en dur précédemment dupliquées à plusieurs endroits.
+export async function fetchVendeurTypesDisponibles(): Promise<string[]> {
+  const res = await api.get<{ success: boolean; data: string[] }>("/vendeurs/types-disponibles", { auth: false });
+  return res.data || [];
+}
+
+// Types de boutique réellement en usage (même filtrage que fetchVendeurTypes), avec le logo envoyé
+// par un admin s'il existe (voir /admin/types-boutique) — pour la grille "Nos types de boutique" de
+// la page d'accueil et de /categories. `logo` reste null tant qu'aucun admin n'en a envoyé un.
+export async function fetchVendeurTypesLogos(): Promise<{ type: string; logo: string | null }[]> {
+  const res = await api.get<{ success: boolean; data: { type: string; logo: string | null }[] }>("/vendeurs/types-logos", { auth: false });
+  return res.data || [];
+}
+
+export async function fetchVendeurs(params?: { type?: string; search?: string }): Promise<ApiVendeur[]> {
+  const qs = new URLSearchParams();
+  if (params?.type) qs.set("type", params.type);
+  if (params?.search) qs.set("search", params.search);
+  const res = await api.get<{ success: boolean; data: { data: ApiVendeur[] } | ApiVendeur[] }>(`/vendeurs${qs.toString() ? `?${qs}` : ""}`, { auth: false });
+  const payload = res.data;
+  return Array.isArray(payload) ? payload : payload?.data || [];
+}
+
+export async function fetchVendeurDetail(id: string): Promise<ApiVendeur> {
+  const res = await api.get<{ success: boolean; data: ApiVendeur }>(`/vendeurs/${id}`, { auth: false });
+  return res.data;
+}
+
+export async function fetchProduitsBoutique(vendeurId: string): Promise<Produit[]> {
+  const res = await api.get<{ success: boolean; data: Produit[] }>(`/vendeur/${vendeurId}/produits`, { auth: false });
+  return res.data || [];
+}
+
 // Recompose le nom complet à partir de prenom/nom — nom_complet est un accessor Eloquent jamais
 // inclus dans le JSON d'une relation imbriquée (voir VendeurCommande.client/livreur).
 export function fullName(user?: { nom?: string; prenom?: string } | null): string {
@@ -578,6 +631,8 @@ export function produitToDisplayProduct(p: Produit) {
     priceValue,
     unit: p.unite_mesure,
     image: resolveMediaUrl(p.photo_produit) || PRODUCT_FALLBACK_IMAGE,
+    vendeurId: p.vendeur_id,
+    vendeurName: p.vendeur?.nom_commerce,
   };
 }
 
@@ -1091,17 +1146,18 @@ export async function confirmerStripe(commandeId: string, sessionId: string): Pr
 }
 
 // ─── Litiges (client, vendeur) ───
-export const LITIGE_MOTIFS: { id: string; label: string }[] = [
-  { id: "produit_non_recu", label: "Produit non reçu" },
-  { id: "produit_incorrect", label: "Produit incorrect" },
-  { id: "produit_endommage", label: "Produit endommagé" },
-  { id: "produit_non_conforme", label: "Produit non conforme" },
-  { id: "article_manquant", label: "Article manquant" },
-  { id: "probleme_livraison", label: "Problème de livraison" },
-  { id: "probleme_paiement", label: "Problème de paiement" },
-  { id: "probleme_remboursement", label: "Problème de remboursement" },
-  { id: "autre", label: "Autre" },
-];
+// Chargés depuis le backend (App\Models\LitigeMotif, géré par un admin via /admin/litige-motifs) —
+// remplace l'ancienne liste codée en dur ici, indépendamment du backend (LitigeController::MOTIFS)
+// et du mobile (services/api.ts), qui pouvaient diverger silencieusement.
+export interface LitigeMotifOption {
+  id: string;
+  label: string;
+}
+
+export async function fetchLitigeMotifs(): Promise<LitigeMotifOption[]> {
+  const res = await api.get<{ success: boolean; data: { code: string; libelle: string }[] }>("/litiges/motifs");
+  return (res.data || []).map((m) => ({ id: m.code, label: m.libelle }));
+}
 
 export interface LitigeDecision {
   id: string;

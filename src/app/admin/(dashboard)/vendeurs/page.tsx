@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Store, Star, Check, Ban, Eye } from "lucide-react";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, fetchVendeurTypesDisponibles } from "@/lib/api";
 import { buildQuery } from "@/lib/query";
 import type { Vendeur, ApiEnvelope, PaginatedData, StatutValidation } from "@/lib/types";
 import { LoadingBlock, ErrorBlock } from "@/components/Spinner";
@@ -27,7 +27,13 @@ export default function VendeursPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [statut, setStatut] = useState("");
+  const [categoriePrincipale, setCategoriePrincipale] = useState("");
+  const [types, setTypes] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    fetchVendeurTypesDisponibles().then(setTypes).catch(() => setTypes([]));
+  }, []);
   const [validateTarget, setValidateTarget] = useState<Vendeur | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<Vendeur | null>(null);
   const canValidate = usePermission("validate_vendeurs");
@@ -41,9 +47,9 @@ export default function VendeursPage() {
   }, []);
 
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
-    queryKey: ["admin-vendeurs", page, statut],
+    queryKey: ["admin-vendeurs", page, statut, categoriePrincipale],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, categorie_principale: categoriePrincipale });
       const res = await api.get<ApiEnvelope<PaginatedData<Vendeur>>>(`/admin/vendeurs${qs}`);
       return res.data;
     },
@@ -89,6 +95,11 @@ export default function VendeursPage() {
 
       <FilterBar>
         <FilterSelect value={statut} onChange={(v) => { setPage(1); setStatut(v); }} options={STATUTS} />
+        <FilterSelect
+          value={categoriePrincipale}
+          onChange={(v) => { setPage(1); setCategoriePrincipale(v); }}
+          options={[{ value: "", label: "Tous les types" }, ...types.map((t) => ({ value: t, label: t }))]}
+        />
       </FilterBar>
 
       {loading && <LoadingBlock />}

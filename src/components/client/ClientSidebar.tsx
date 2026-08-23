@@ -5,15 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown, ChevronLeft, ChevronRight, Compass, CreditCard, Globe,
-  Grid3X3, Heart, LogOut, Package, Receipt, ShoppingCart, Sparkles, User, Users, X,
+  Grid3X3, Heart, LogOut, Package, Receipt, ShoppingCart, Sparkles, Store, User, Users, X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useCart } from "@/components/landing/cart-context";
 import { usePublicAuth } from "@/lib/public-auth-context";
 import { useLanguage } from "@/lib/language-context";
-import { fetchCategoriesFromApi } from "@/lib/api";
-import type { Category } from "@/components/landing/data";
+import { fetchVendeurTypes } from "@/lib/api";
 
 interface ClientSidebarProps {
   mobileOpen?: boolean;
@@ -42,7 +41,7 @@ export function ClientSidebar({ mobileOpen = false, onCloseMobile }: ClientSideb
   const router = useRouter();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [boutiqueTypes, setBoutiqueTypes] = useState<string[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState<"FCFA" | "EUR" | "USD" | "GBP">("FCFA");
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     navigation: true,
@@ -51,7 +50,7 @@ export function ClientSidebar({ mobileOpen = false, onCloseMobile }: ClientSideb
   });
 
   useEffect(() => {
-    fetchCategoriesFromApi().then(setCategories);
+    fetchVendeurTypes().then(setBoutiqueTypes).catch(() => setBoutiqueTypes([]));
   }, []);
 
   const isDiaspora = user?.type_utilisateur === "client" && user?.est_diaspora === true;
@@ -247,8 +246,8 @@ export function ClientSidebar({ mobileOpen = false, onCloseMobile }: ClientSideb
           );
         })}
 
-        {/* Accordéon Rayons Frais */}
-        {!collapsed && categories.length > 0 && (
+        {/* Accordéon Types de boutique */}
+        {!collapsed && boutiqueTypes.length > 0 && (
           <div className="rounded-2xl bg-white/[0.02] border border-white/[0.04] overflow-hidden">
             <button
               type="button"
@@ -257,23 +256,23 @@ export function ClientSidebar({ mobileOpen = false, onCloseMobile }: ClientSideb
             >
               <div className="flex items-center gap-2.5">
                 <Sparkles size={15} className="text-amber-400" />
-                <span>Rayons Frais</span>
+                <span>Types de boutique</span>
               </div>
               <ChevronDown size={14} className={`transition-transform duration-300 ${openGroups.rayons ? "rotate-180 text-white" : "text-white/30"}`} />
             </button>
             {openGroups.rayons && (
               <div className="px-2 pb-2 space-y-1 border-t border-white/[0.04] pt-1">
-                {categories.slice(0, 5).map((c) => (
+                {boutiqueTypes.slice(0, 5).map((type) => (
                   <Link
-                    key={c.id}
-                    href={`/categorie/${encodeURIComponent(c.name)}`}
+                    key={type}
+                    href={`/boutiques/${encodeURIComponent(type)}`}
                     onClick={onCloseMobile}
                     className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-[11.5px] font-bold text-white/70 hover:bg-white/[0.08] hover:text-white transition-colors"
                   >
-                    <span className="h-4 w-4 shrink-0 overflow-hidden rounded-md bg-white/10">
-                      <img src={c.image} alt="" className="h-full w-full object-cover" />
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white/10">
+                      <Store size={10} className="text-white/60" />
                     </span>
-                    <span className="truncate">{c.name}</span>
+                    <span className="truncate capitalize">{type}</span>
                   </Link>
                 ))}
               </div>

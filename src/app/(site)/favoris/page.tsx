@@ -35,7 +35,7 @@ export default function FavoritesPage() {
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <Heart className="h-12 w-12 text-slate-300 mb-3" />
           <p className="text-sm font-bold text-slate-700">{t('client.favoris.emptyMessage', "Vous n'avez pas encore de favoris")}</p>
-          <Link href="/produits" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">{t('client.favoris.discoverCatalog', 'Découvrir le catalogue')}</Link>
+          <Link href="/categories" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">{t('client.favoris.discoverCatalog', 'Découvrir le catalogue')}</Link>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">

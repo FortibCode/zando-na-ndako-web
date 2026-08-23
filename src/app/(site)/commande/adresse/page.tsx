@@ -73,21 +73,23 @@ export default function CheckoutAddressPage() {
   };
 
   const handleDelete = async (id: string) => {
+    setError(null);
     try {
       await deleteAddress(id);
       setAddresses((prev) => prev.filter((a) => a.id !== id));
       if (address?.id === id) setAddress(null);
-    } catch {
-      // best-effort
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('client.checkoutAddress.deleteError', "Impossible de supprimer cette adresse."));
     }
   };
 
   const handleSetDefault = async (id: string) => {
+    setError(null);
     try {
       await setDefaultAddress(id);
       setAddresses((prev) => prev.map((a) => ({ ...a, est_defaut: a.id === id })));
-    } catch {
-      // best-effort
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t('client.checkoutAddress.setDefaultError', "Impossible de changer l'adresse par défaut."));
     }
   };
 
@@ -146,6 +148,8 @@ export default function CheckoutAddressPage() {
               </div>
             </button>
           ))}
+
+          {error && !showForm && <p className="text-xs font-semibold text-red-600 px-1">{error}</p>}
 
           {!showForm ? (
             <button

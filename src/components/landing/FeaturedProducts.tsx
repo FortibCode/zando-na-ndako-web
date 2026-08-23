@@ -35,7 +35,7 @@ export function FeaturedProducts() {
             <Flame className="h-5 w-5 text-[#c00000] icon-glow-red" />
             <h2 className="text-lg sm:text-xl font-black text-slate-900">{t('client.featuredProducts.title', 'Nos produits vedettes')}</h2>
           </div>
-          <Link href="/produits" className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline">
+          <Link href="/categories" className="flex items-center gap-1.5 text-xs font-extrabold text-[#0B2545] hover:underline">
             <span>{t('client.featuredProducts.viewAll', 'Voir tout')}</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
