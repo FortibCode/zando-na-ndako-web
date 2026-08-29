@@ -191,7 +191,7 @@ export default function LivraisonDetailPage() {
             <p className="text-sm text-slate-500">Aucun livreur validé disponible.</p>
           ) : (
             <select value={selectedLivreur} onChange={(e) => setSelectedLivreur(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
               <option value="" disabled>Sélectionner un livreur…</option>
               {livreurs.map((l) => <option key={l.id} value={l.id}>{l.user ? fullName(l.user.nom, l.user.prenom) : l.id} — {l.type_vehicule}</option>)}
             </select>

@@ -6,6 +6,7 @@ import { Search, Package, Eye, EyeOff, Pencil, Trash2, ImageOff, Camera } from "
 import { api, ApiError, resolveMediaUrl } from "@/lib/api";
 import { buildQuery } from "@/lib/query";
 import type { ApiEnvelope, ProduitAdmin, ProduitsAdminData, Categorie, TypeFraicheur } from "@/lib/types";
+import { UNITES_MESURE_SUGGESTIONS } from "@/lib/produitConstants";
 import { LoadingBlock, ErrorBlock } from "@/components/Spinner";
 import { Pagination } from "@/components/Pagination";
 import { EtatStockBadge } from "@/components/Badge";
@@ -53,7 +54,7 @@ export default function ProduitsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-produits", page, categorieId, etatStock, search],
     queryFn: async () => {
-      const qs = buildQuery({ page, categorie_id: categorieId, etat_stock: etatStock, search });
+      const qs = buildQuery({ page, categorie_id: categorieId, etat_stock: etatStock, search, per_page: 5 });
       const res = await api.get<ApiEnvelope<ProduitsAdminData>>(`/admin/produits${qs}`);
       return res.data;
     },
@@ -149,7 +150,7 @@ export default function ProduitsPage() {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Nom du produit…"
-              className="w-64 rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
+              className="w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
             />
           </div>
           <button type="submit" className="rounded-xl bg-[#1A2E5A] px-4 py-2.5 text-sm font-black text-white hover:bg-[#0B1A35] transition-colors">
@@ -238,7 +239,7 @@ export default function ProduitsPage() {
                 </div>
                 <input ref={editFileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickEditPhoto} />
                 <button type="button" onClick={() => editFileInputRef.current?.click()}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-black text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
+                  className="flex items-center gap-2 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-black text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
                   <Camera size={15} />
                   {editPhotoPreview ? "Changer l'image" : "Ajouter une image"}
                 </button>
@@ -247,23 +248,23 @@ export default function ProduitsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Nom du produit</label>
               <input value={editForm.nom_produit} onChange={(e) => setEditForm((f) => ({ ...f, nom_produit: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Description</label>
               <textarea value={editForm.description} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} rows={3}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Prix unitaire (FCFA)</label>
                 <input type="number" min={0} value={editForm.prix_unitaire} onChange={(e) => setEditForm((f) => ({ ...f, prix_unitaire: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Quantité en stock</label>
                 <input type="number" min={0} value={editForm.quantite_stock} onChange={(e) => setEditForm((f) => ({ ...f, quantite_stock: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -271,12 +272,16 @@ export default function ProduitsPage() {
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Unité de mesure</label>
                 <input value={editForm.unite_mesure} onChange={(e) => setEditForm((f) => ({ ...f, unite_mesure: e.target.value }))}
                   placeholder="Ex : kg, pièce, litre"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  list="unites-mesure-suggestions"
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                <datalist id="unites-mesure-suggestions">
+                  {UNITES_MESURE_SUGGESTIONS.map((u) => <option key={u} value={u} />)}
+                </datalist>
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Type de fraîcheur</label>
                 <select value={editForm.type_fraicheur} onChange={(e) => setEditForm((f) => ({ ...f, type_fraicheur: e.target.value as TypeFraicheur }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
                   <option value="frais">Frais</option>
                   <option value="fume">Fumé</option>
                   <option value="congele">Congelé</option>
@@ -286,7 +291,7 @@ export default function ProduitsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Catégorie</label>
               <select value={editForm.categorie_id} onChange={(e) => setEditForm((f) => ({ ...f, categorie_id: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 {(categories ?? []).map((c) => <option key={c.id} value={c.id}>{c.nom_categorie}</option>)}
               </select>
             </div>

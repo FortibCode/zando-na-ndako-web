@@ -111,7 +111,7 @@ export default function PromotionsPage() {
         action={
           <div className="flex items-center gap-3">
             <HeaderStat icon={Megaphone} label={`${data?.total ?? "—"} promotions`} tone="gold" />
-            <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-black text-slate-700 cursor-pointer">
+            <label className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-xs font-black text-slate-700 cursor-pointer">
               <input type="checkbox" checked={actifUniquement} onChange={(e) => { setPage(1); setActifUniquement(e.target.checked); }}
                 className="h-4 w-4 rounded border-slate-300 text-[#1A2E5A] focus:ring-[#1A2E5A]" />
               Actives uniquement
@@ -203,7 +203,7 @@ export default function PromotionsPage() {
                 </div>
                 <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={onPickImage} />
                 <button type="button" onClick={() => imageInputRef.current?.click()}
-                  className="flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-black text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
+                  className="flex items-center gap-2 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-black text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
                   <Camera size={15} />
                   {imagePreview ? "Changer l'image" : "Ajouter une image"}
                 </button>
@@ -212,18 +212,18 @@ export default function PromotionsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Titre</label>
               <input value={form.titre} onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Description</label>
               <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Type de réduction</label>
                 <select value={form.type_reduction} onChange={(e) => setForm((f) => ({ ...f, type_reduction: e.target.value as TypeReduction }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
                   <option value="pourcentage">Pourcentage</option>
                   <option value="montant_fixe">Montant fixe (FCFA)</option>
                 </select>
@@ -231,19 +231,19 @@ export default function PromotionsPage() {
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Valeur</label>
                 <input type="number" min={0} value={form.valeur_reduction} onChange={(e) => setForm((f) => ({ ...f, valeur_reduction: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Date de début</label>
                 <input type="datetime-local" value={form.date_debut} onChange={(e) => setForm((f) => ({ ...f, date_debut: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Date de fin</label>
                 <input type="datetime-local" value={form.date_fin} onChange={(e) => setForm((f) => ({ ...f, date_fin: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <label className="flex items-center gap-2 cursor-pointer">

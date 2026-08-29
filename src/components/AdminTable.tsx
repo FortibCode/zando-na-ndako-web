@@ -105,7 +105,7 @@ export function TableSearch({ value, onChange, placeholder = "Rechercher..." }: 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="focus-premium rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none transition-all min-w-[220px]"
+        className="focus-premium rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none transition-all min-w-[220px]"
       />
     </div>
   );
@@ -126,7 +126,7 @@ export function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="focus-premium appearance-none rounded-xl border border-slate-200/90 bg-white py-2.5 pl-4 pr-9 text-sm font-bold text-slate-700 hover:border-slate-300 focus:border-[#1A2E5A] focus:outline-none transition-colors cursor-pointer"
+        className="focus-premium appearance-none rounded-xl border border-slate-300/90 bg-white py-2.5 pl-4 pr-9 text-sm font-bold text-slate-700 hover:border-slate-300 focus:border-[#1A2E5A] focus:outline-none transition-colors cursor-pointer"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

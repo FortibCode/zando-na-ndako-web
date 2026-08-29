@@ -211,7 +211,7 @@ export default function CategoriesPage() {
                 </div>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickPhoto} />
                 <button type="button" onClick={() => fileInputRef.current?.click()}
-                  className="focus-premium flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-black text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-all cursor-pointer">
+                  className="focus-premium flex items-center gap-2 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-black text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-all cursor-pointer">
                   <Camera size={15} />
                   {photoPreview ? "Changer l'image" : "Ajouter une image"}
                 </button>
@@ -220,13 +220,13 @@ export default function CategoriesPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Nom de la catégorie</label>
               <input value={nom} onChange={(e) => setNom(e.target.value)} maxLength={100}
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
                 placeholder="Ex : Légumes & Feuilles" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Catégorie parente</label>
               <select value={parentId} onChange={(e) => setParentId(e.target.value)}
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none">
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none">
                 <option value="">Aucune (catégorie principale)</option>
                 {parentOptions.map((c) => <option key={c.id} value={c.id}>{c.nom_categorie}</option>)}
               </select>

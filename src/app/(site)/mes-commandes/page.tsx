@@ -72,7 +72,7 @@ export default function OrdersPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('client.mesCommandes.searchPlaceholder', 'Rechercher par numéro de commande…')}
-          className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]"
+          className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]"
         />
       </div>
 

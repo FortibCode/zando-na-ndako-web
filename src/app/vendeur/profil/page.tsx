@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, ImagePlus, Loader2, LocateFixed } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/Button";
+import { LoadingBlock } from "@/components/Spinner";
 import { usePublicAuth } from "@/lib/public-auth-context";
-import { ApiError, changePassword, updateVendeurProfil, uploadVendeurDocumentsPublic } from "@/lib/api";
+import { ApiError, changePassword, fetchVendeurDashboard, resolveMediaUrl, updateVendeurProfil, uploadVendeurDocumentsPublic, type VendeurDocumentsResult } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 export default function VendeurProfilPage() {
   const { user, logout } = usePublicAuth();
   const router = useRouter();
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
 
   const DOCS = [
     { key: "photo_boutique" as const, label: t("vendor.profil.docPhotoBoutique", "Photo de la boutique") },
@@ -32,6 +35,11 @@ export default function VendeurProfilPage() {
   const [docs, setDocs] = useState<Record<string, File | null>>({});
   const [uploading, setUploading] = useState(false);
   const [docsSaved, setDocsSaved] = useState(false);
+  // Documents déjà enregistrés côté serveur — sans ça, le formulaire semblait toujours vide (champs
+  // et documents) même après un premier enregistrement réussi, aucun moyen pour le vendeur de
+  // vérifier ce qui est réellement déjà envoyé sans quitter la page.
+  const [existingDocs, setExistingDocs] = useState<VendeurDocumentsResult | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   const [ancienMotDePasse, setAncienMotDePasse] = useState("");
   const [nouveauMotDePasse, setNouveauMotDePasse] = useState("");
@@ -39,6 +47,22 @@ export default function VendeurProfilPage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChanged, setPasswordChanged] = useState(false);
+
+  useEffect(() => {
+    fetchVendeurDashboard()
+      .then((d) => {
+        setNomCommerce(d.nom_commerce || "");
+        setNumeroMobileMoney(d.numero_mobile_money_reception || "");
+        setHorairesOuverture(d.horaires_ouverture || "");
+        setExistingDocs({
+          photo_boutique: d.photo_boutique ?? null,
+          document_identite: d.document_identite ?? null,
+          registre_commerce: d.registre_commerce ?? null,
+        });
+      })
+      .catch(() => {})
+      .finally(() => setLoadingProfile(false));
+  }, []);
 
   const handleLocate = () => {
     if (!navigator.geolocation) return;
@@ -64,8 +88,11 @@ export default function VendeurProfilPage() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      notify(t("vendor.profil.saveSuccess", "Profil mis à jour."));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.profil.saveError", "Impossible d'enregistrer les modifications."));
+      const message = err instanceof ApiError ? err.message : t("vendor.profil.saveError", "Impossible d'enregistrer les modifications.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSaving(false);
     }
@@ -82,10 +109,13 @@ export default function VendeurProfilPage() {
     try {
       await changePassword({ ancienMotDePasse, nouveauMotDePasse });
       setPasswordChanged(true);
+      notify(t("vendor.profil.passwordChangedSuccess", "Mot de passe changé."));
       // Le backend révoque tous les tokens à la réussite — la session locale n'est plus valide.
       setTimeout(() => { logout(); router.push("/auth/login"); }, 1500);
     } catch (err) {
-      setPasswordError(err instanceof ApiError ? err.message : t("vendor.profil.passwordError", "Impossible de changer le mot de passe."));
+      const message = err instanceof ApiError ? err.message : t("vendor.profil.passwordError", "Impossible de changer le mot de passe.");
+      setPasswordError(message);
+      notifyError(err, message);
     } finally {
       setChangingPassword(false);
     }
@@ -96,14 +126,27 @@ export default function VendeurProfilPage() {
     if (Object.keys(selected).length === 0) return;
     setUploading(true);
     try {
-      await uploadVendeurDocumentsPublic(selected);
+      const result = await uploadVendeurDocumentsPublic(selected);
+      setExistingDocs(result);
       setDocs({});
       setDocsSaved(true);
       setTimeout(() => setDocsSaved(false), 2000);
+      notify(t("vendor.profil.docsUploadSuccess", "Documents envoyés."));
+    } catch (err) {
+      notifyError(err, t("vendor.profil.docsUploadError", "Impossible d'envoyer les documents."));
     } finally {
       setUploading(false);
     }
   };
+
+  if (loadingProfile) {
+    return (
+      <div className="max-w-xl">
+        <PageHeader title={t("vendor.profil.title", "Profil de la boutique")} />
+        <LoadingBlock label={t("vendor.profil.loading", "Chargement du profil…")} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl">
@@ -120,14 +163,14 @@ export default function VendeurProfilPage() {
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.storeNameLabel", "Nom commercial")}</label>
           <input value={nomCommerce} onChange={(e) => setNomCommerce(e.target.value)} placeholder={t("vendor.profil.storeNamePlaceholder", "Nom de votre boutique")}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.gpsLabel", "Point de collecte (position GPS)")}</label>
           <p className="text-xs text-slate-400 mb-2">{t("vendor.profil.gpsHint", "Utilisé pour calculer les frais de livraison à la distance réelle.")}</p>
           <button type="button" onClick={handleLocate} disabled={locating}
-            className="flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors cursor-pointer">
+            className="flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors cursor-pointer">
             {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
             {coords ? `${t("vendor.profil.positionPrefix", "Position :")} ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}` : t("vendor.profil.useCurrentPosition", "Utiliser ma position actuelle")}
           </button>
@@ -137,13 +180,13 @@ export default function VendeurProfilPage() {
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.paymentInfoLabel", "Coordonnées de paiement")}</label>
           <p className="text-xs text-slate-400 mb-2">{t("vendor.profil.paymentInfoHint", "Numéro mobile money qui recevra vos retraits.")}</p>
           <input value={numeroMobileMoney} onChange={(e) => setNumeroMobileMoney(e.target.value)} placeholder={t("vendor.profil.mobileMoneyPlaceholder", "ex: 06 123 45 67")}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.profil.hoursLabel", "Horaires d'ouverture")}</label>
           <input value={horairesOuverture} onChange={(e) => setHorairesOuverture(e.target.value)} placeholder={t("vendor.profil.hoursPlaceholder", "ex: Lun-Sam 8h-19h")}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
@@ -154,23 +197,30 @@ export default function VendeurProfilPage() {
 
       <div id="documents" className="p-5 rounded-2xl border border-slate-200 bg-white space-y-3 scroll-mt-24">
         <p className="text-sm font-black text-slate-900">{t("vendor.profil.documentsTitle", "Documents de la boutique")}</p>
-        {DOCS.map((doc) => (
-          <label key={doc.key} className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-[#0B2545]/40 cursor-pointer transition-colors">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
-              {docs[doc.key] ? (
-                <img src={URL.createObjectURL(docs[doc.key]!)} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <ImagePlus className="w-4 h-4 text-[#0B2545]" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-800">{doc.label}</p>
-              <p className="text-[11px] text-slate-400 truncate">{docs[doc.key]?.name || t("vendor.profil.noFileSelected", "Aucun fichier sélectionné")}</p>
-            </div>
-            {docs[doc.key] && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => setDocs((prev) => ({ ...prev, [doc.key]: e.target.files?.[0] || null }))} />
-          </label>
-        ))}
+        {DOCS.map((doc) => {
+          const pickedFile = docs[doc.key];
+          const persistedUrl = resolveMediaUrl(existingDocs?.[doc.key as keyof VendeurDocumentsResult] ?? null);
+          const previewUrl = pickedFile ? URL.createObjectURL(pickedFile) : persistedUrl;
+          return (
+            <label key={doc.key} className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-300 bg-slate-50 hover:border-[#0B2545]/40 cursor-pointer transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <ImagePlus className="w-4 h-4 text-[#0B2545]" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-slate-800">{doc.label}</p>
+                <p className="text-[11px] text-slate-400 truncate">
+                  {pickedFile?.name || (persistedUrl ? t("vendor.profil.fileAlreadySent", "Déjà envoyé") : t("vendor.profil.noFileSelected", "Aucun fichier sélectionné"))}
+                </p>
+              </div>
+              {previewUrl && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => setDocs((prev) => ({ ...prev, [doc.key]: e.target.files?.[0] || null }))} />
+            </label>
+          );
+        })}
         <Button type="button" variant="secondary" onClick={handleUploadDocs} disabled={uploading} className="w-full !py-2.5">
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : docsSaved ? t("vendor.profil.docsSentBtn", "Documents envoyés !") : t("vendor.profil.sendDocsBtn", "Envoyer les documents")}
         </Button>
@@ -180,13 +230,13 @@ export default function VendeurProfilPage() {
         <p className="text-sm font-black text-slate-900">{t("vendor.profil.changePasswordTitle", "Changer le mot de passe")}</p>
         <input required type="password" value={ancienMotDePasse} onChange={(e) => setAncienMotDePasse(e.target.value)}
           placeholder={t("vendor.profil.currentPasswordPlaceholder", "Mot de passe actuel")}
-          className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+          className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         <input required type="password" value={nouveauMotDePasse} onChange={(e) => setNouveauMotDePasse(e.target.value)}
           placeholder={t("vendor.profil.newPasswordPlaceholder", "Nouveau mot de passe (min. 8 caractères)")}
-          className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+          className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         <input required type="password" value={confirmMotDePasse} onChange={(e) => setConfirmMotDePasse(e.target.value)}
           placeholder={t("vendor.profil.confirmPasswordPlaceholder", "Confirmer le nouveau mot de passe")}
-          className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+          className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         {passwordError && <p className="text-xs font-semibold text-red-600">{passwordError}</p>}
         <Button type="submit" variant="secondary" disabled={changingPassword || nouveauMotDePasse.length < 8} className="w-full !py-2.5">
           {changingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : passwordChanged ? t("vendor.profil.passwordChangedBtn", "Mot de passe changé, reconnexion…") : t("vendor.profil.changePasswordBtn", "Changer le mot de passe")}

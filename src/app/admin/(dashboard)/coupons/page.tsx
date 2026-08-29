@@ -57,7 +57,7 @@ export default function CouponsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-coupons", page, statut, search],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut, search });
+      const qs = buildQuery({ page, statut, search, per_page: 5 });
       return (await api.get<ApiEnvelope<PaginatedData<CouponAdmin>>>(`/admin/coupons${qs}`)).data;
     },
   });
@@ -139,7 +139,7 @@ export default function CouponsPage() {
           className="flex items-center gap-2 ml-auto">
           <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Code du coupon…"
-            className="w-48 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none" />
+            className="w-48 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none" />
           <button type="submit" className="rounded-xl bg-[#1A2E5A] px-4 py-2.5 text-sm font-black text-white hover:bg-[#0B1A35] transition-colors">
             Rechercher
           </button>
@@ -206,18 +206,18 @@ export default function CouponsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Code {editTarget && <span className="font-normal text-slate-400">(non modifiable)</span>}</label>
               <input value={form.code} disabled={!!editTarget} onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-black uppercase tracking-wide focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-black uppercase tracking-wide focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Description</label>
               <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Type de réduction</label>
                 <select value={form.type_reduction} onChange={(e) => setForm((f) => ({ ...f, type_reduction: e.target.value as TypeReduction }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
                   <option value="pourcentage">Pourcentage</option>
                   <option value="montant_fixe">Montant fixe (FCFA)</option>
                 </select>
@@ -225,43 +225,43 @@ export default function CouponsPage() {
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Valeur</label>
                 <input type="number" min={0} value={form.valeur_reduction} onChange={(e) => setForm((f) => ({ ...f, valeur_reduction: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Commande minimum (FCFA)</label>
                 <input type="number" min={0} value={form.montant_minimum_commande} onChange={(e) => setForm((f) => ({ ...f, montant_minimum_commande: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Réduction maximum (FCFA)</label>
                 <input type="number" min={0} placeholder="Illimité" value={form.montant_maximum_reduction} onChange={(e) => setForm((f) => ({ ...f, montant_maximum_reduction: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Date de début</label>
                 <input type="datetime-local" value={form.date_debut} onChange={(e) => setForm((f) => ({ ...f, date_debut: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Date de fin</label>
                 <input type="datetime-local" value={form.date_fin} onChange={(e) => setForm((f) => ({ ...f, date_fin: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Limite d&apos;utilisations totale</label>
                 <input type="number" min={1} placeholder="Illimité" value={form.limite_utilisation_totale} onChange={(e) => setForm((f) => ({ ...f, limite_utilisation_totale: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Limite par client</label>
                 <input type="number" min={1} placeholder="Illimité" value={form.limite_utilisation_par_client} onChange={(e) => setForm((f) => ({ ...f, limite_utilisation_par_client: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <label className="flex items-center gap-2 cursor-pointer">

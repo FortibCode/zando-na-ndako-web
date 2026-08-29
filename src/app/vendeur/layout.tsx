@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Spinner } from "@/components/Spinner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { usePublicAuth } from "@/lib/public-auth-context";
 import { useLanguage } from "@/lib/language-context";
 import { useTheme } from "@/lib/theme-context";
@@ -31,21 +32,22 @@ const MORE_MENU = [
 ];
 
 export default function VendeurLayout({ children }: { children: React.ReactNode }) {
-  const { user, isReady, logout } = usePublicAuth();
+  const { user, isReady, logout, isLoggingOut } = usePublicAuth();
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
   const languageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isReady) return;
-    if (!user) router.replace("/auth/login?redirect=/vendeur");
+    if (!user) { if (!isLoggingOut.current) router.replace("/auth/login?redirect=/vendeur"); }
     else if (user.type_utilisateur !== "vendeur") router.replace("/accueil");
-  }, [isReady, user, router]);
+  }, [isReady, user, router, isLoggingOut]);
 
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
@@ -148,7 +150,7 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
             <div ref={moreRef} className="relative">
               <button
                 onClick={() => setMoreOpen((v) => !v)}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <Menu className="h-4 w-4" /> <span className="hidden sm:inline">{t('vendorNav.more', 'Plus')}</span>
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
@@ -170,8 +172,8 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
             </div>
             <span className="hidden sm:block text-xs font-bold text-slate-500">{user.nom_complet}</span>
             <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              onClick={() => setConfirmLogoutOpen(true)}
+              className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">{t('vendorNav.logout', 'Déconnexion')}</span>
             </button>
@@ -197,6 +199,17 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
       </header>
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+
+      {confirmLogoutOpen && (
+        <ConfirmDialog
+          title="Confirmer la déconnexion"
+          message="Voulez-vous vraiment vous déconnecter de votre espace vendeur ?"
+          confirmLabel="Se déconnecter"
+          danger
+          onConfirm={() => { setConfirmLogoutOpen(false); handleLogout(); }}
+          onClose={() => setConfirmLogoutOpen(false)}
+        />
+      )}
     </div>
   );
 }

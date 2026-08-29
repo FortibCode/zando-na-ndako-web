@@ -42,7 +42,7 @@ export default function AvisPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-avis", page, typeCible, noteMax],
     queryFn: async () => {
-      const qs = buildQuery({ page, type_cible: typeCible, note_max: noteMax });
+      const qs = buildQuery({ page, type_cible: typeCible, note_max: noteMax, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<AvisAdmin>>>(`/admin/avis${qs}`);
       return res.data;
     },

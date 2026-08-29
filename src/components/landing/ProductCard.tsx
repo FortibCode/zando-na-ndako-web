@@ -20,9 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   const handleAdd = () => {
     setIsAdding(true);
-    for (let i = 0; i < quantity; i++) {
-      addItem(product);
-    }
+    addItem(product, quantity);
     notify(`« ${product.name} » (x${quantity}) ${t('client.productCard.addedToCartSuffix', 'ajouté à votre panier.')}`);
     setTimeout(() => setIsAdding(false), 500);
   };

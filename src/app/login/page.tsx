@@ -57,7 +57,7 @@ export default function LoginPage() {
               autoComplete="username"
               value={credential}
               onChange={(e) => setCredential(e.target.value)}
-              className="focus-premium w-full h-12 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-[#1A2E5A] transition-colors"
+              className="focus-premium w-full h-12 px-4 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:border-[#1A2E5A] transition-colors"
               placeholder="admin@zando.cg"
             />
           </div>
@@ -74,7 +74,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 value={motDePasse}
                 onChange={(e) => setMotDePasse(e.target.value)}
-                className="focus-premium w-full h-12 pl-4 pr-11 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1A2E5A] transition-colors"
+                className="focus-premium w-full h-12 pl-4 pr-11 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1A2E5A] transition-colors"
                 placeholder="••••••••••••"
               />
               <button

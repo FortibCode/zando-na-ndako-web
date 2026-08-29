@@ -48,7 +48,7 @@ export default function LivreursPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-livreurs", page, statut],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<Livreur>>>(`/admin/livreurs${qs}`);
       return res.data;
     },

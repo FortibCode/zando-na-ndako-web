@@ -210,7 +210,7 @@ export default function VendeurDetailPage() {
                     <select
                       value={editCategorie}
                       onChange={(e) => { setFormTouched(true); setEditCategorie(e.target.value); }}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-[#1A2E5A]"
+                      className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-[#1A2E5A]"
                     >
                       {types.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -226,7 +226,7 @@ export default function VendeurDetailPage() {
                       value={editHoraires}
                       onChange={(e) => { setFormTouched(true); setEditHoraires(e.target.value); }}
                       placeholder="Ex : Lun-Sam 8h-18h"
-                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#1A2E5A]"
+                      className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#1A2E5A]"
                     />
                   ) : (
                     <p className="text-xs font-semibold text-slate-700">{v.horaires_ouverture || "—"}</p>
@@ -240,7 +240,7 @@ export default function VendeurDetailPage() {
                       value={editMessage}
                       onChange={(e) => { setFormTouched(true); setEditMessage(e.target.value); }}
                       rows={3}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#1A2E5A] resize-none"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#1A2E5A] resize-none"
                     />
                   ) : (
                     <p className="text-xs font-semibold text-slate-700">{v.message_boutique || "—"}</p>

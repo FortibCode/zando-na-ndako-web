@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Loader2, Plus, Star, Trash2, User, X } from "lucide-react";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useCheckout } from "@/lib/checkout-context";
@@ -11,17 +11,33 @@ import {
   createBeneficiaire,
   deleteBeneficiaire,
   fetchBeneficiaires,
+  fetchZonesRaw,
   updateBeneficiaire,
   type Beneficiaire,
   type BeneficiaireInput,
+  type ZoneOption,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 const EMPTY_FORM: BeneficiaireInput = { nom: "", telephone: "", adresse: "", quartier: "", ville: "Brazzaville", relation: "" };
 
 export default function DiasporaBeneficiaryPage() {
+  return (
+    <Suspense>
+      <DiasporaBeneficiaryPageInner />
+    </Suspense>
+  );
+}
+
+function DiasporaBeneficiaryPageInner() {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Accessible aussi hors checkout, depuis "Mon compte" (gestion des bénéficiaires enregistrés) —
+  // dans ce cas le panier peut être vide, ce n'est pas une raison de renvoyer le client à l'accueil.
+  const standalone = searchParams.get("standalone") === "1";
   const { beneficiaire, setBeneficiaire } = useCheckout();
   const { items, hydrated } = useCart();
 
@@ -31,6 +47,14 @@ export default function DiasporaBeneficiaryPage() {
   const [form, setForm] = useState<BeneficiaireInput>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [zones, setZones] = useState<ZoneOption[]>([]);
+
+  // Même correctif que /commande/adresse : "quartier" doit correspondre à une vraie valeur de
+  // zones_livraison.quartiers_couverts pour que la livraison au bénéficiaire soit facturée/
+  // acceptée correctement, plutôt qu'un texte libre qui pouvait ne matcher aucune zone réelle.
+  const quartierOptions = zones
+    .flatMap((z) => (z.quartiers_couverts || []).map((quartier) => ({ quartier, ville: z.ville })))
+    .sort((a, b) => a.quartier.localeCompare(b.quartier));
 
   const load = () => {
     setLoading(true);
@@ -44,13 +68,18 @@ export default function DiasporaBeneficiaryPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(load, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load();
+    fetchZonesRaw().then(setZones).catch(() => setZones([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Un panier vide n'a rien à livrer — on renvoie vers l'accueil client (pas la vitrine "/",
-  // réservée aux visiteurs anonymes) plutôt que de laisser choisir un bénéficiaire pour rien.
+  // réservée aux visiteurs anonymes) plutôt que de laisser choisir un bénéficiaire pour rien. Ne
+  // s'applique pas en mode standalone (gestion de bénéficiaires depuis "Mon compte").
   useEffect(() => {
-    if (hydrated && items.length === 0) router.replace("/accueil");
-  }, [hydrated, items, router]);
+    if (!standalone && hydrated && items.length === 0) router.replace("/accueil");
+  }, [standalone, hydrated, items, router]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,8 +91,11 @@ export default function DiasporaBeneficiaryPage() {
       setBeneficiaire(created);
       setForm(EMPTY_FORM);
       setShowForm(false);
+      notify(t('client.diasporaBeneficiary.saveSuccess', 'Bénéficiaire enregistré.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.saveError', "Impossible d'enregistrer ce bénéficiaire."));
+      const message = err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.saveError', "Impossible d'enregistrer ce bénéficiaire.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSaving(false);
     }
@@ -75,8 +107,11 @@ export default function DiasporaBeneficiaryPage() {
       await deleteBeneficiaire(id);
       setList((prev) => prev.filter((b) => b.id !== id));
       if (beneficiaire?.id === id) setBeneficiaire(null);
+      notify(t('client.diasporaBeneficiary.deleteSuccess', 'Bénéficiaire supprimé.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.deleteError', "Impossible de supprimer ce bénéficiaire."));
+      const message = err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.deleteError', "Impossible de supprimer ce bénéficiaire.");
+      setError(message);
+      notifyError(err, message);
     }
   };
 
@@ -85,16 +120,23 @@ export default function DiasporaBeneficiaryPage() {
     try {
       await updateBeneficiaire(id, { est_defaut: true });
       setList((prev) => prev.map((b) => ({ ...b, est_defaut: b.id === id })));
+      notify(t('client.diasporaBeneficiary.setDefaultSuccess', 'Bénéficiaire par défaut mis à jour.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.setDefaultError', "Impossible de changer le bénéficiaire par défaut."));
+      const message = err instanceof ApiError ? err.message : t('client.diasporaBeneficiary.setDefaultError', "Impossible de changer le bénéficiaire par défaut.");
+      setError(message);
+      notifyError(err, message);
     }
   };
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <CheckoutSteps current={1} firstLabel={t('client.checkoutSteps.beneficiaryLabel', 'Bénéficiaire')} />
+      {!standalone && <CheckoutSteps current={1} firstLabel={t('client.checkoutSteps.beneficiaryLabel', 'Bénéficiaire')} />}
       <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.diasporaBeneficiary.title', 'Bénéficiaire')}</h1>
-      <p className="text-sm text-slate-500 text-center mb-8">{t('client.diasporaBeneficiary.subtitle', 'Pour qui souhaitez-vous passer cette commande ?')}</p>
+      <p className="text-sm text-slate-500 text-center mb-8">
+        {standalone
+          ? t('client.diasporaBeneficiary.subtitleStandalone', 'Gérez vos bénéficiaires enregistrés.')
+          : t('client.diasporaBeneficiary.subtitle', 'Pour qui souhaitez-vous passer cette commande ?')}
+      </p>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -156,25 +198,31 @@ export default function DiasporaBeneficiaryPage() {
               </div>
               <input required placeholder={t('client.diasporaBeneficiary.namePlaceholder', 'Nom complet')} value={form.nom}
                 onChange={(e) => setForm({ ...form, nom: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               <div className="grid grid-cols-2 gap-3">
                 <input required placeholder={t('client.diasporaBeneficiary.phonePlaceholder', 'Téléphone')} value={form.telephone}
                   onChange={(e) => setForm({ ...form, telephone: e.target.value })}
-                  className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                  className="h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
                 <input placeholder={t('client.diasporaBeneficiary.relationPlaceholder', 'Relation (ex: Mère)')} value={form.relation || ""}
                   onChange={(e) => setForm({ ...form, relation: e.target.value })}
-                  className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                  className="h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               </div>
               <input required placeholder={t('client.diasporaBeneficiary.addressPlaceholder', 'Adresse')} value={form.adresse}
                 onChange={(e) => setForm({ ...form, adresse: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               <div className="grid grid-cols-2 gap-3">
-                <input required placeholder={t('client.diasporaBeneficiary.neighborhoodPlaceholder', 'Quartier')} value={form.quartier}
-                  onChange={(e) => setForm({ ...form, quartier: e.target.value })}
-                  className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                <select required value={form.quartier}
+                  onChange={(e) => {
+                    const match = quartierOptions.find((o) => o.quartier === e.target.value);
+                    setForm({ ...form, quartier: e.target.value, ville: match?.ville || form.ville });
+                  }}
+                  className="h-10 px-3 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+                  <option value="">{t('client.diasporaBeneficiary.neighborhoodPlaceholder', 'Quartier')}</option>
+                  {quartierOptions.map((o) => <option key={o.quartier} value={o.quartier}>{o.quartier}</option>)}
+                </select>
                 <input placeholder={t('client.diasporaBeneficiary.cityPlaceholder', 'Ville')} value={form.ville || ""}
                   onChange={(e) => setForm({ ...form, ville: e.target.value })}
-                  className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                  className="h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               </div>
               {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
               <button type="submit" disabled={saving}
@@ -186,13 +234,15 @@ export default function DiasporaBeneficiaryPage() {
         </div>
       )}
 
-      <button
-        onClick={() => router.push("/commande/diaspora/creneau")}
-        disabled={!beneficiaire}
-        className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all"
-      >
-        {t('client.diasporaBeneficiary.continueBtn', 'Continuer')}
-      </button>
+      {!standalone && (
+        <button
+          onClick={() => router.push("/commande/diaspora/creneau")}
+          disabled={!beneficiaire}
+          className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all"
+        >
+          {t('client.diasporaBeneficiary.continueBtn', 'Continuer')}
+        </button>
+      )}
     </main>
   );
 }

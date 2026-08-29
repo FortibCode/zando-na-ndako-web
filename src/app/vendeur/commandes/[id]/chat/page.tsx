@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { usePublicAuth } from "@/lib/public-auth-context";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 // Fil de messagerie unique par commande, partagé entre client, vendeur et livreur — voir
 // MessageCommandeController côté backend. Poll toutes les 15s, comme
@@ -24,6 +25,7 @@ const POLL_INTERVAL_MS = 15000;
 export default function VendeurCommandeChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { t } = useLanguage();
+  const { notifyError } = useToast();
   const { user } = usePublicAuth();
 
   const SENDER_LABEL: Record<string, string> = {
@@ -78,7 +80,9 @@ export default function VendeurCommandeChatPage({ params }: { params: Promise<{ 
       setMessages((prev) => [...prev, sent]);
     } catch (err) {
       setText(contenu);
-      setError(err instanceof ApiError ? err.message : t("vendor.chat.sendError", "Impossible d'envoyer ce message."));
+      const message = err instanceof ApiError ? err.message : t("vendor.chat.sendError", "Impossible d'envoyer ce message.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSending(false);
     }
@@ -133,7 +137,7 @@ export default function VendeurCommandeChatPage({ params }: { params: Promise<{ 
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t("vendor.chat.messagePlaceholder", "Écrire un message…")}
-            className="flex-1 h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]"
+            className="flex-1 h-10 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]"
           />
           <button type="submit" disabled={!text.trim() || sending}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B2545] text-white hover:bg-[#061830] disabled:opacity-40 transition-colors cursor-pointer">

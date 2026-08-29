@@ -18,7 +18,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputClass =
-  "w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-[#1A2E5A] focus:ring-1 focus:ring-[#1A2E5A] focus:outline-none transition-colors";
+  "w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-[#1A2E5A] focus:ring-1 focus:ring-[#1A2E5A] focus:outline-none transition-colors";
 
 export default function NouvelUtilisateurPage() {
   const router = useRouter();

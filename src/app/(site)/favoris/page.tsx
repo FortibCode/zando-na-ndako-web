@@ -28,7 +28,7 @@ export default function FavoritesPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
           {[...Array(4)].map((_, i) => <div key={i} className="h-72 rounded-3xl bg-slate-100 animate-pulse" />)}
         </div>
       ) : favoriteProducts.length === 0 ? (
@@ -38,7 +38,7 @@ export default function FavoritesPage() {
           <Link href="/categories" className="mt-4 text-xs font-extrabold text-[#0B2545] hover:underline">{t('client.favoris.discoverCatalog', 'Découvrir le catalogue')}</Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
           {favoriteProducts.map((p) => (
             <ProductCard key={p.id} product={produitToDisplayProduct(p)} />
           ))}

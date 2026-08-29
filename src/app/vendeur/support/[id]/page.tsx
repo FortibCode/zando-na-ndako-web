@@ -13,9 +13,11 @@ import {
   type VendeurMessage,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 export default function VendeurSupportThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLanguage();
+  const { notifyError } = useToast();
   const { id } = use(params);
   const [thread, setThread] = useState<VendeurMessage | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,9 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
       setThread((prev) => (prev ? { ...prev, reponses: [...(prev.reponses || []), created] } : prev));
       setReply("");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.supportThread.replyError", "Impossible d'envoyer la réponse."));
+      const message = err instanceof ApiError ? err.message : t("vendor.supportThread.replyError", "Impossible d'envoyer la réponse.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSending(false);
     }
@@ -99,7 +103,7 @@ export default function VendeurSupportThreadPage({ params }: { params: Promise<{
           value={reply}
           onChange={(e) => setReply(e.target.value)}
           placeholder={t("vendor.supportThread.replyPlaceholder", "Répondre…")}
-          className="flex-1 h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]"
+          className="flex-1 h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]"
         />
         <button type="submit" disabled={!reply.trim() || sending}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B2545] text-white hover:bg-[#061830] disabled:opacity-40 transition-colors cursor-pointer">

@@ -7,13 +7,13 @@ import { usePublicAuth } from "@/lib/public-auth-context";
 import { CheckoutProvider } from "@/lib/checkout-context";
 
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
-  const { user, isReady } = usePublicAuth();
+  const { user, isReady, isLoggingOut } = usePublicAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (isReady && !user) router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
-  }, [isReady, user, router, pathname]);
+    if (isReady && !user && !isLoggingOut.current) router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
+  }, [isReady, user, router, pathname, isLoggingOut]);
 
   if (!isReady || !user) {
     return (

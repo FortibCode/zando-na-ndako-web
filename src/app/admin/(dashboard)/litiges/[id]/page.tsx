@@ -273,7 +273,7 @@ export default function LitigeDetailPage() {
                     rows={2}
                     maxLength={2000}
                     placeholder="Écrire un message…"
-                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none"
                   />
                   <div className="flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
@@ -446,7 +446,7 @@ export default function LitigeDetailPage() {
             rows={4}
             maxLength={1000}
             placeholder="Précisez les informations dont vous avez besoin…"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none"
           />
           <p className="mt-2 text-[12.5px] text-slate-400">
             Le litige passera au statut « En attente du {infoTarget === "client" ? "client" : "vendeur"} » jusqu&apos;à sa réponse.
@@ -480,7 +480,7 @@ export default function LitigeDetailPage() {
               <select
                 value={decisionType}
                 onChange={(e) => setDecisionType(e.target.value as DecisionTypeLitige)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none"
               >
                 {(Object.keys(DECISION_LABEL) as DecisionTypeLitige[]).map((k) => (
                   <option key={k} value={k}>{DECISION_LABEL[k]}</option>
@@ -499,7 +499,7 @@ export default function LitigeDetailPage() {
                   max={montantCommande - dejaRembourse}
                   value={decisionAmount}
                   onChange={(e) => setDecisionAmount(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none"
                 />
               </div>
             )}
@@ -512,7 +512,7 @@ export default function LitigeDetailPage() {
                 rows={4}
                 maxLength={1000}
                 placeholder="Expliquez la décision prise, elle sera visible par le client et le vendeur…"
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
               />
             </div>
           </div>
@@ -543,7 +543,7 @@ export default function LitigeDetailPage() {
             rows={3}
             maxLength={1000}
             placeholder="Ex : cas complexe nécessitant une décision au-delà de mes permissions…"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
           />
         </Modal>
       )}

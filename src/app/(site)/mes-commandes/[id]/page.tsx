@@ -22,11 +22,13 @@ import {
   type LitigeMotifOption,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 import { clientTranslations } from "@/i18n/client-translations";
 import type { Language } from "@/i18n/translations";
 
 function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; cible: "vendeur" | "livreur"; label: string; onDone: (n: ApiNotation) => void }) {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const [note, setNote] = useState(0);
   const [hover, setHover] = useState(0);
   const [commentaire, setCommentaire] = useState("");
@@ -40,8 +42,11 @@ function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; 
     try {
       await soumettreNotation(commandeId, { note, commentaire: commentaire.trim() || undefined, cible });
       onDone({ id: `local-${cible}`, commande_id: commandeId, type_notateur: "client", type_cible: cible, note, commentaire: commentaire.trim() || null });
+      notify(t('client.commandeDetail.ratingSuccess', 'Avis envoyé, merci !'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Impossible d'envoyer votre avis.");
+      const message = err instanceof ApiError ? err.message : "Impossible d'envoyer votre avis.";
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSubmitting(false);
     }
@@ -70,7 +75,7 @@ function RatingForm({ commandeId, cible, label, onDone }: { commandeId: string; 
         onChange={(e) => setCommentaire(e.target.value)}
         rows={2}
         placeholder={t('client.commandeDetail.ratingCommentPlaceholder', 'Un commentaire (facultatif)…')}
-        className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
+        className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
       />
       {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
       <button
@@ -104,6 +109,7 @@ function statusLabel(statut: string, language: Language): string {
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t, language } = useLanguage();
+  const { notify, notifyError } = useToast();
   const { id } = use(params);
   const { user, isReady } = useRequirePublicAuth();
   const { addItem } = useCart();
@@ -189,8 +195,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       await annulerClientCommande(order.id, motif.trim());
       load();
       setShowCancelForm(false);
+      notify(t('client.commandeDetail.cancelSuccess', 'Commande annulée.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.commandeDetail.cancelError', "Impossible d'annuler cette commande."));
+      const message = err instanceof ApiError ? err.message : t('client.commandeDetail.cancelError', "Impossible d'annuler cette commande.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setCancelling(false);
     }
@@ -211,6 +220,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         ligne.quantite,
       );
     }
+    notify(t('client.commandeDetail.reorderSuccess', 'Produits ajoutés au panier.'));
   };
 
   const handleOpenLitige = async (e: React.FormEvent) => {
@@ -222,7 +232,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
       const litige = await ouvrirLitige(order.id, litigeMotif, litigeDescription.trim());
       router.push(`/mes-litiges/${litige.id}`);
     } catch (err) {
-      setLitigeError(err instanceof ApiError ? err.message : t('client.commandeDetail.openLitigeError', "Impossible d'ouvrir ce litige."));
+      const message = err instanceof ApiError ? err.message : t('client.commandeDetail.openLitigeError', "Impossible d'ouvrir ce litige.");
+      setLitigeError(message);
+      notifyError(err, message);
     } finally {
       setOpeningLitige(false);
     }
@@ -335,11 +347,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             value={motif}
             onChange={(e) => setMotif(e.target.value)}
             placeholder={t('client.commandeDetail.cancelReasonPlaceholder', "Motif de l'annulation…")}
-            className="w-full h-20 p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-red-400"
+            className="w-full h-20 p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-red-400"
           />
           {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
           <div className="flex gap-2">
-            <button onClick={() => setShowCancelForm(false)} className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">
+            <button onClick={() => setShowCancelForm(false)} className="flex-1 h-10 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">
               {t('client.common.back', 'Retour')}
             </button>
             <button
@@ -355,7 +367,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
 
       {!canCancel && order.statut_commande !== "annulee" && (
         <Link
-          href="/"
+          href="/accueil"
           onClick={handleReorder}
           className="w-full h-11 rounded-xl border-2 border-[#0B2545] text-[#0B2545] font-bold text-sm hover:bg-blue-50/40 transition-colors flex items-center justify-center gap-2 mb-3"
         >
@@ -381,7 +393,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
         <form onSubmit={handleOpenLitige} className="p-4 rounded-2xl border-2 border-slate-200 bg-white space-y-3">
           <p className="text-sm font-black text-slate-900">{t('client.commandeDetail.reportProblem', 'Signaler un problème')}</p>
           <select value={litigeMotif} onChange={(e) => setLitigeMotif(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+            className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
             {litigeMotifs.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
           </select>
           <textarea
@@ -389,11 +401,11 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             onChange={(e) => setLitigeDescription(e.target.value)}
             rows={3}
             placeholder={t('client.commandeDetail.disputeDescPlaceholder', 'Décrivez le problème rencontré…')}
-            className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
+            className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
           />
           {litigeError && <p className="text-xs font-semibold text-red-600">{litigeError}</p>}
           <div className="flex gap-2">
-            <button type="button" onClick={() => setShowLitigeForm(false)} className="flex-1 h-10 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">
+            <button type="button" onClick={() => setShowLitigeForm(false)} className="flex-1 h-10 rounded-xl border border-slate-300 text-xs font-bold text-slate-600">
               {t('client.common.cancel', 'Annuler')}
             </button>
             <button type="submit" disabled={!litigeDescription.trim() || openingLitige}

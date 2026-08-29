@@ -46,7 +46,7 @@ export default function RetraitsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-retraits", acteur, page, statut],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<RetraitRow>>>(`/admin/retraits/${acteur}${qs}`);
       return res.data;
     },
@@ -171,7 +171,7 @@ export default function RetraitsPage() {
           </p>
           <label className="mb-1.5 block text-xs font-black text-slate-700">Motif du rejet (obligatoire)</label>
           <textarea value={rejectMotif} onChange={(e) => setRejectMotif(e.target.value)} rows={3} maxLength={500}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
             placeholder="Ex : coordonnées de paiement invalides…" />
         </Modal>
       )}

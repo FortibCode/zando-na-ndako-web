@@ -139,7 +139,7 @@ export default function PanierPage() {
           <button
             onClick={handleShareCart}
             disabled={sharing}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-[#0B2545] hover:bg-slate-50 disabled:opacity-60 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-[#0B2545] hover:bg-slate-50 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
             {sharing ? t('client.panier.sharing', 'Partage en cours…') : t('client.panier.shareCart', 'Partager ce panier avec le bénéficiaire')}

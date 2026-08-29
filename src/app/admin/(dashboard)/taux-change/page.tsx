@@ -172,27 +172,27 @@ export default function TauxChangePage() {
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Devise source</label>
                 <input value={deviseSource} onChange={(e) => setDeviseSource(e.target.value.toUpperCase())} maxLength={10}
-                  className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono font-bold uppercase transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                  className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono font-bold uppercase transition-colors focus:border-[#1A2E5A] focus:outline-none"
                   placeholder="USD" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Devise cible</label>
                 <input value={deviseCible} onChange={(e) => setDeviseCible(e.target.value.toUpperCase())} maxLength={10}
-                  className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono font-bold uppercase transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                  className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono font-bold uppercase transition-colors focus:border-[#1A2E5A] focus:outline-none"
                   placeholder="FCFA" />
               </div>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Valeur du taux</label>
               <input value={valeurTaux} onChange={(e) => setValeurTaux(e.target.value.replace(/[^0-9.]/g, ""))} inputMode="decimal"
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
                 placeholder="Ex : 2800" />
               <p className="mt-1.5 text-[11px] text-slate-400">1 {deviseSource || "devise source"} = ce nombre de {deviseCible || "devise cible"}.</p>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Source du taux (optionnel)</label>
               <input value={sourceTaux} onChange={(e) => setSourceTaux(e.target.value)} maxLength={255}
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
                 placeholder="Ex : Banque Centrale" />
             </div>
           </div>

@@ -60,7 +60,7 @@ export default function StockPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-stock", page, etatStock, search],
     queryFn: async () => {
-      const qs = buildQuery({ page, etat_stock: etatStock, search });
+      const qs = buildQuery({ page, etat_stock: etatStock, search, per_page: 5 });
       const res = await api.get<ApiEnvelope<ProduitsAdminData>>(`/admin/produits${qs}`);
       return res.data;
     },
@@ -106,7 +106,7 @@ export default function StockPage() {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Nom du produit…"
-              className="w-64 rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
+              className="w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
             />
           </div>
           <button type="submit" className="rounded-xl bg-[#1A2E5A] px-4 py-2.5 text-sm font-black text-white hover:bg-[#0B1A35] transition-colors">
@@ -165,7 +165,7 @@ export default function StockPage() {
             Nouvelle quantité en stock pour <strong>{adjustTarget.nom_produit}</strong> ({adjustTarget.unite_mesure}).
           </p>
           <input type="number" min={0} value={adjustValue} onChange={(e) => setAdjustValue(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" autoFocus />
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" autoFocus />
         </Modal>
       )}
     </div>

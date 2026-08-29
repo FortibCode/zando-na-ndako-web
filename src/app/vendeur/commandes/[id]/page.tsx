@@ -13,9 +13,11 @@ import {
   refuserVendeurCommande, soumettreNotation, type ApiNotation, type VendeurCommande,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 function NoterClientCard({ commandeId, onDone }: { commandeId: string; onDone: () => void }) {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const [note, setNote] = useState(0);
   const [hover, setHover] = useState(0);
   const [commentaire, setCommentaire] = useState("");
@@ -29,8 +31,11 @@ function NoterClientCard({ commandeId, onDone }: { commandeId: string; onDone: (
     try {
       await soumettreNotation(commandeId, { note, commentaire: commentaire.trim() || undefined });
       onDone();
+      notify(t("vendor.commandeDetail.ratingSendSuccess", "Avis envoyé."));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.commandeDetail.ratingSendError", "Impossible d'envoyer cet avis."));
+      const message = err instanceof ApiError ? err.message : t("vendor.commandeDetail.ratingSendError", "Impossible d'envoyer cet avis.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSubmitting(false);
     }
@@ -47,7 +52,7 @@ function NoterClientCard({ commandeId, onDone }: { commandeId: string; onDone: (
         ))}
       </div>
       <textarea value={commentaire} onChange={(e) => setCommentaire(e.target.value)} rows={2} placeholder={t("vendor.commandeDetail.commentPlaceholder", "Un commentaire (facultatif)…")}
-        className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
+        className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
       {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
       <Button variant="primary" onClick={handleSubmit} loading={submitting} disabled={note < 1} className="w-full !py-2.5">
         {t("vendor.commandeDetail.send", "Envoyer")}
@@ -58,6 +63,7 @@ function NoterClientCard({ commandeId, onDone }: { commandeId: string; onDone: (
 
 export default function VendeurCommandeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const { id } = use(params);
 
   // Étapes réelles du cycle de vie d'une commande côté backend (voir statut_commande enum dans
@@ -72,11 +78,20 @@ export default function VendeurCommandeDetailPage({ params }: { params: Promise<
     { key: "en_route", label: t("vendor.commandeDetail.stageEnRoute", "En route"), desc: t("vendor.commandeDetail.stageEnRouteDesc", "Le livreur a récupéré la commande et l'achemine vers le client.") },
     { key: "livree", label: t("vendor.commandeDetail.stageLivree", "Livrée"), desc: t("vendor.commandeDetail.stageLivreeDesc", "Le client a reçu sa commande.") },
   ];
+  const REFUSE_REASONS = [
+    t("vendor.commandeDetail.refuseReason1", "Produit indisponible"),
+    t("vendor.commandeDetail.refuseReason2", "Boutique fermée"),
+    t("vendor.commandeDetail.refuseReason3", "Rupture de stock"),
+    t("vendor.commandeDetail.refuseReason4", "Autre raison"),
+  ];
   const [order, setOrder] = useState<VendeurCommande | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [refusing, setRefusing] = useState(false);
-  const [motif, setMotif] = useState("");
+  // Même liste de motifs que mobile/src/app/vendor/orders/[id]/refuse.tsx (auparavant : un simple
+  // textarea libre ici, sans les options guidées de mobile pour la même action).
+  const [reason, setReason] = useState(REFUSE_REASONS[2]);
+  const [comment, setComment] = useState("");
   const [notations, setNotations] = useState<ApiNotation[]>([]);
   const [showRating, setShowRating] = useState(false);
 
@@ -108,18 +123,24 @@ export default function VendeurCommandeDetailPage({ params }: { params: Promise<
     try {
       await accepterVendeurCommande(id);
       load();
+      notify(t("vendor.commandeDetail.acceptSuccess", "Commande acceptée."));
+    } catch (err) {
+      notifyError(err, t("vendor.commandeDetail.acceptError", "Impossible d'accepter cette commande."));
     } finally {
       setBusy(false);
     }
   };
 
   const handleRefuse = async () => {
-    if (!motif.trim()) return;
+    if (!reason.trim()) return;
     setBusy(true);
     try {
-      await refuserVendeurCommande(id, motif.trim());
+      await refuserVendeurCommande(id, reason + (comment.trim() ? ` — ${comment.trim()}` : ""));
       setRefusing(false);
       load();
+      notify(t("vendor.commandeDetail.refuseSuccess", "Commande refusée."));
+    } catch (err) {
+      notifyError(err, t("vendor.commandeDetail.refuseError", "Impossible de refuser cette commande."));
     } finally {
       setBusy(false);
     }
@@ -250,7 +271,7 @@ export default function VendeurCommandeDetailPage({ params }: { params: Promise<
           <Button variant="success" onClick={handleAccept} loading={busy} className="flex-1 !py-3">
             <Check className="h-4 w-4" /> {t("vendor.commandeDetail.acceptBtn", "Accepter la commande")}
           </Button>
-          <Button variant="danger" onClick={() => setRefusing(true)} disabled={busy} className="flex-1 !py-3">
+          <Button variant="danger" onClick={() => { setReason(REFUSE_REASONS[2]); setComment(""); setRefusing(true); }} disabled={busy} className="flex-1 !py-3">
             <X className="h-4 w-4" /> {t("vendor.commandeDetail.refuseBtn", "Refuser")}
           </Button>
         </div>
@@ -263,16 +284,28 @@ export default function VendeurCommandeDetailPage({ params }: { params: Promise<
           footer={
             <>
               <Button variant="ghost" onClick={() => setRefusing(false)}>{t("vendor.common.cancel", "Annuler")}</Button>
-              <Button variant="danger" onClick={handleRefuse} loading={busy} disabled={!motif.trim()}>{t("vendor.commandeDetail.confirmRefuseBtn", "Refuser la commande")}</Button>
+              <Button variant="danger" onClick={handleRefuse} loading={busy} disabled={!reason.trim()}>{t("vendor.commandeDetail.confirmRefuseBtn", "Refuser la commande")}</Button>
             </>
           }
         >
+          <p className="text-xs font-bold text-slate-700 mb-2">{t("vendor.commandeDetail.selectReason", "Sélectionnez le motif du refus")}</p>
+          <div className="rounded-xl border border-slate-300 divide-y divide-slate-100 mb-4">
+            {REFUSE_REASONS.map((r) => (
+              <label key={r} className="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-slate-50 transition-colors">
+                <input type="radio" name="refuse-reason" checked={reason === r} onChange={() => setReason(r)} className="h-4 w-4 accent-[#C00000]" />
+                <span className="text-sm font-semibold text-slate-700">{r}</span>
+              </label>
+            ))}
+          </div>
+          <label className="block text-xs font-bold text-slate-700 mb-1.5">
+            {t("vendor.commandeDetail.commentLabel", "Commentaire")} <span className="text-slate-400 font-medium">{t("vendor.commandeDetail.optional", "(optionnel)")}</span>
+          </label>
           <textarea
-            value={motif}
-            onChange={(e) => setMotif(e.target.value)}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             rows={3}
             placeholder={t("vendor.commandeDetail.refusePlaceholder", "Motif du refus…")}
-            className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
+            className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
           />
         </Modal>
       )}

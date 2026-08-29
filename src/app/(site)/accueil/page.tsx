@@ -43,7 +43,7 @@ export default function AccueilPage() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(query.trim() ? `/produits?q=${encodeURIComponent(query.trim())}` : "/produits");
+    router.push(query.trim() ? `/recherche?q=${encodeURIComponent(query.trim())}` : "/recherche");
   };
 
   return (

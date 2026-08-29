@@ -1,7 +1,8 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Phone, Mail, ArrowLeft, Eye, EyeOff, ChevronRight, Lock, Loader2 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -9,9 +10,13 @@ import { GroceryBasketIllustration } from '@/components/GroceryBasketIllustratio
 import { OtpInput } from '@/components/auth/OtpInput';
 import { usePublicAuth } from '@/lib/public-auth-context';
 import { useToast } from '@/lib/toast-context';
-import { ApiError, resendPublicOtp, sendPublicOtp, verifyPublicOtp } from '@/lib/api';
+import { ApiError, loginWithGoogle, resendPublicOtp, sendPublicOtp, verifyPublicOtp } from '@/lib/api';
 
-type AuthViewMode = 'choice' | 'phone' | 'phone_otp' | 'email';
+type AuthViewMode = 'choice' | 'phone' | 'phone_otp' | 'email' | 'google_phone';
+
+// Client ID OAuth Web (console.cloud.google.com > APIs & Services > Identifiants). Tant qu'il n'est
+// pas renseigné, le bouton Google reste honnête plutôt que de simuler une connexion (comme mobile).
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 // Logo Google (4 quadrants) — SVG standard, pas de dépendance externe.
 function GoogleLogo({ size = 20 }: { size?: number }) {
@@ -69,6 +74,14 @@ function PublicLoginPageInner() {
   const [otpError, setOtpError] = useState<string | null>(null);
   const [resendTimer, setResendTimer] = useState(0);
 
+  // Connexion Google : un email inconnu de la plateforme redemande le téléphone (Google ne le
+  // fournit pas) avant de rappeler loginWithGoogle() une seconde fois pour créer le compte.
+  const [googleReady, setGoogleReady] = useState(false);
+  const [googlePendingIdToken, setGooglePendingIdToken] = useState<string | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+  const hiddenGoogleButtonRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (isReady && user) router.replace(explicitRedirect || defaultDestinationFor(user.type_utilisateur));
   }, [isReady, user, router, explicitRedirect]);
@@ -103,10 +116,56 @@ function PublicLoginPageInner() {
     goToPhoneOtp();
   };
 
-  // La connexion Google requiert un client OAuth (Google Cloud Console) pas encore configuré —
-  // plutôt que de simuler une connexion, on l'annonce clairement, comme sur mobile (google-picker.tsx).
+  const finishGoogleLogin = async (idToken: string, extra?: { typeUtilisateur: 'client'; telephone: string }) => {
+    setGoogleLoading(true);
+    setGoogleError(null);
+    try {
+      const result = await loginWithGoogle(idToken, extra);
+      setSession(result.token, result.user);
+      redirectAfterLogin(result.user?.type_utilisateur);
+    } catch (err) {
+      if (err instanceof ApiError && err.data?.error_code === 'GOOGLE_ACCOUNT_NOT_FOUND') {
+        setGooglePendingIdToken(idToken);
+        setViewMode('google_phone');
+      } else {
+        setGoogleError(extractErrorMessage(err, 'Connexion Google impossible. Réessayez.'));
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // Initialise Google Identity Services dès que le script est chargé : le bouton officiel est rendu
+  // dans un <div> caché (requis par l'API), et notre bouton stylé déclenche le vrai flux via prompt().
+  const handleGoogleScriptLoad = () => {
+    const google = (window as any).google;
+    if (!google || !GOOGLE_CLIENT_ID) return;
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response: { credential: string }) => finishGoogleLogin(response.credential),
+    });
+    if (hiddenGoogleButtonRef.current) {
+      google.accounts.id.renderButton(hiddenGoogleButtonRef.current, { type: 'standard' });
+    }
+    setGoogleReady(true);
+  };
+
+  // Tant que GOOGLE_CLIENT_ID n'est pas configuré, le bouton reste honnête plutôt que de simuler une
+  // connexion — même convention que sur mobile (google-picker.tsx).
   const handleGoogleClick = () => {
-    notify('La connexion avec Google sera disponible dans une prochaine mise à jour.', 'info');
+    if (!GOOGLE_CLIENT_ID || !googleReady) {
+      notify('La connexion avec Google sera disponible dans une prochaine mise à jour.', 'info');
+      return;
+    }
+    setGoogleError(null);
+    (window as any).google?.accounts.id.prompt();
+  };
+
+  const handleGooglePhoneSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 8 || !googlePendingIdToken) return;
+    finishGoogleLogin(googlePendingIdToken, { typeUtilisateur: 'client', telephone: `+242${digits}` });
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -175,6 +234,10 @@ function PublicLoginPageInner() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f4f6f9] p-4 sm:p-6 lg:p-8">
+      {GOOGLE_CLIENT_ID && <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={handleGoogleScriptLoad} />}
+      {/* Bouton officiel Google rendu hors écran : requis par l'API pour initialiser le flux, notre
+          bouton stylé ci-dessous déclenche le même flux via google.accounts.id.prompt(). */}
+      <div ref={hiddenGoogleButtonRef} style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }} />
       <div className="w-full max-w-[1080px] min-h-[620px] bg-white rounded-3xl shadow-2xl border border-slate-100/90 overflow-hidden grid grid-cols-1 lg:grid-cols-2">
         <div className="hidden lg:flex flex-col p-8 xl:p-10 bg-gradient-to-b from-blue-50/40 via-white to-amber-50/30 border-r border-slate-100">
           <div className="relative z-10 shrink-0">
@@ -256,11 +319,14 @@ function PublicLoginPageInner() {
                   <div className="flex-1 h-px bg-slate-200" />
                 </div>
 
-                <button type="button" onClick={handleGoogleClick}
-                  className="w-full flex items-center justify-center gap-3 h-13 rounded-2xl border-1.5 border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 transition-all shadow-sm">
-                  <GoogleLogo size={20} />
+                <button type="button" onClick={handleGoogleClick} disabled={googleLoading}
+                  className="w-full flex items-center justify-center gap-3 h-13 rounded-2xl border-1.5 border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 transition-all shadow-sm">
+                  {googleLoading ? <Loader2 className="w-5 h-5 animate-spin text-slate-400" /> : <GoogleLogo size={20} />}
                   <span className="text-sm font-extrabold text-slate-700">Continuer avec Google</span>
                 </button>
+                {googleError && (
+                  <p className="text-xs font-semibold text-[#e01313] bg-red-50 border border-red-100 rounded-lg px-3 py-2 mt-3">{googleError}</p>
+                )}
 
                 <div className="text-center mt-6">
                   <Link href="#" onClick={(e) => { e.preventDefault(); alert("Veuillez réinitialiser votre mot de passe depuis l'application mobile."); }}
@@ -295,7 +361,7 @@ function PublicLoginPageInner() {
                 <form onSubmit={handlePhoneSubmit} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1.5">Numéro de téléphone</label>
-                    <div className="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:border-[#0D347C] focus-within:ring-1 focus-within:ring-[#0D347C] transition-all">
+                    <div className="flex items-center rounded-xl border border-slate-300 overflow-hidden focus-within:border-[#0D347C] focus-within:ring-1 focus-within:ring-[#0D347C] transition-all">
                       <span className="h-12 px-3 flex items-center bg-slate-50 border-r border-slate-200 text-xs font-bold text-slate-700">+242</span>
                       <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9 ]/g, ''))}
                         placeholder="06 123 45 67"
@@ -358,6 +424,45 @@ function PublicLoginPageInner() {
             </div>
           )}
 
+          {viewMode === 'google_phone' && (
+            <div className="flex flex-col h-full justify-between">
+              <div>
+                <button onClick={() => { setGoogleError(null); setViewMode('choice'); }}
+                  className="inline-flex items-center gap-2 text-xs font-extrabold text-slate-700 hover:text-[#0D347C] transition-colors mb-6">
+                  <ArrowLeft className="w-4 h-4" /> <span>Retour</span>
+                </button>
+
+                <div className="mb-6">
+                  <h3 className="text-xl font-black text-slate-900">Finalisez votre inscription</h3>
+                  <p className="text-xs font-semibold text-slate-500 mt-1">
+                    Aucun compte Zando na Ndako n&apos;est associé à cet email Google. Indiquez votre numéro pour créer votre compte client.
+                  </p>
+                </div>
+
+                <form onSubmit={handleGooglePhoneSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Numéro de téléphone</label>
+                    <div className="flex items-center rounded-xl border border-slate-300 overflow-hidden focus-within:border-[#0D347C] focus-within:ring-1 focus-within:ring-[#0D347C] transition-all">
+                      <span className="h-12 px-3 flex items-center bg-slate-50 border-r border-slate-200 text-xs font-bold text-slate-700">+242</span>
+                      <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9 ]/g, ''))}
+                        placeholder="06 123 45 67"
+                        className="flex-1 h-12 px-4 text-sm font-semibold text-slate-800 focus:outline-none" />
+                    </div>
+                  </div>
+
+                  {googleError && (
+                    <p className="text-xs font-semibold text-[#e01313] bg-red-50 border border-red-100 rounded-lg px-3 py-2">{googleError}</p>
+                  )}
+
+                  <button type="submit" disabled={googleLoading || phone.replace(/\D/g, '').length < 7}
+                    className="w-full h-13 rounded-xl bg-[#0D347C] hover:bg-[#0a2a63] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center">
+                    {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'CRÉER MON COMPTE'}
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
           {viewMode === 'email' && (
             <div className="flex flex-col h-full justify-between">
               <div>
@@ -380,7 +485,7 @@ function PublicLoginPageInner() {
                       <Mail className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="text" required value={email} onChange={(e) => setEmail(e.target.value)}
                         placeholder="exemple@email.com"
-                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C] transition-all" />
+                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C] transition-all" />
                     </div>
                   </div>
 
@@ -390,7 +495,7 @@ function PublicLoginPageInner() {
                       <Lock className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type={showPassword ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)}
                         placeholder="Entrez votre mot de passe"
-                        className="w-full h-12 pl-10 pr-12 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C] transition-all" />
+                        className="w-full h-12 pl-10 pr-12 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C] transition-all" />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 text-slate-400 hover:text-slate-600 transition-colors p-1">
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>

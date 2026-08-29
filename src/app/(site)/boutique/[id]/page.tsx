@@ -134,7 +134,7 @@ export default function BoutiqueDetailPage({ params }: { params: Promise<{ id: s
               <select
                 value={availability}
                 onChange={(e) => setAvailability(e.target.value as Availability)}
-                className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#0B2545]"
+                className="h-9 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#0B2545]"
               >
                 <option value="tous">{t("client.categoryDetail.availabilityAll", "Toute disponibilité")}</option>
                 <option value="disponible">{t("client.categoryDetail.inStock", "En stock")}</option>
@@ -143,7 +143,7 @@ export default function BoutiqueDetailPage({ params }: { params: Promise<{ id: s
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as Sort)}
-                className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#0B2545]"
+                className="h-9 rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#0B2545]"
               >
                 <option value="pertinence">{t("client.categoryDetail.sortRelevance", "Pertinence")}</option>
                 <option value="prix_asc">{t("client.categoryDetail.sortPriceAsc", "Prix croissant")}</option>
@@ -153,7 +153,7 @@ export default function BoutiqueDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           {loadingProduits ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
               {[...Array(8)].map((_, i) => <div key={i} className="h-72 rounded-3xl bg-slate-100 animate-pulse" />)}
             </div>
           ) : filtered.length === 0 ? (
@@ -166,7 +166,7 @@ export default function BoutiqueDetailPage({ params }: { params: Promise<{ id: s
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
               {filtered.map((p) => (
                 <ProductCard key={p.id} product={produitToDisplayProduct(p)} />
               ))}

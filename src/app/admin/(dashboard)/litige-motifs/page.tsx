@@ -159,13 +159,13 @@ export default function LitigeMotifsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Libellé affiché</label>
               <input value={libelle} onChange={(e) => setLibelle(e.target.value)} maxLength={150}
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
                 placeholder="Ex : Colis perdu" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Code technique</label>
               <input value={code} onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9_-]/g, "_"))} maxLength={100}
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-mono font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
                 placeholder="Ex : colis_perdu" />
               <p className="mt-1.5 text-[11px] text-slate-400">
                 Lettres, chiffres, tirets et underscores uniquement. {editing ? "Renommer met à jour tous les litiges déjà ouverts sous ce motif." : ""}

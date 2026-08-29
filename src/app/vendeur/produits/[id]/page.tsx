@@ -14,12 +14,15 @@ import {
   resolveMediaUrl,
   type Produit,
 } from "@/lib/api";
+import { UNITES_MESURE_SUGGESTIONS } from "@/lib/produitConstants";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80';
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const FRAICHEUR_OPTIONS = [
     { id: "frais" as const, label: t("vendor.produitDetail.freshFrais", "Frais") },
     { id: "fume" as const, label: t("vendor.produitDetail.freshFume", "Fumé") },
@@ -88,8 +91,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       setProduit(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+      notify(t("vendor.produitDetail.saveSuccess", "Modifications enregistrées."));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.produitDetail.saveError", "Impossible d'enregistrer les modifications."));
+      const message = err instanceof ApiError ? err.message : t("vendor.produitDetail.saveError", "Impossible d'enregistrer les modifications.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSaving(false);
     }
@@ -103,6 +109,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       const nouveauStock = await gererVendeurStock(id, qty, "ajouter");
       setProduit((prev) => (prev ? { ...prev, quantite_stock: nouveauStock, statut_disponibilite: "disponible" } : prev));
       setStockDelta("");
+      notify(t("vendor.produitDetail.stockAddSuccess", "Stock mis à jour."));
+    } catch (err) {
+      notifyError(err, t("vendor.produitDetail.stockAddError", "Impossible d'ajouter ce stock."));
     } finally {
       setStockBusy(false);
     }
@@ -120,6 +129,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       const nouveauStock = await gererVendeurStock(id, nouveauQty, "definir");
       setProduit((prev) => (prev ? { ...prev, quantite_stock: nouveauStock, statut_disponibilite: nouveauStock > 0 ? "disponible" : "rupture" } : prev));
       setStockRemoveDelta("");
+      notify(t("vendor.produitDetail.stockRemoveSuccess", "Stock mis à jour."));
+    } catch (err) {
+      notifyError(err, t("vendor.produitDetail.stockRemoveError", "Impossible de retirer ce stock."));
     } finally {
       setStockRemoveBusy(false);
     }
@@ -144,14 +156,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <p className="text-sm font-black text-slate-900 mb-3">{t("vendor.produitDetail.currentStockPrefix", "Stock actuel :")} {produit.quantite_stock}</p>
         <div className="flex gap-2">
           <input type="number" min="1" value={stockDelta} onChange={(e) => setStockDelta(e.target.value)} placeholder={t("vendor.produitDetail.stockAddPlaceholder", "Quantité à ajouter")}
-            className="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="flex-1 h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           <Button type="button" variant="secondary" onClick={handleStockAdd} disabled={!stockDelta || stockBusy} className="!py-2">
             {stockBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackagePlus className="h-4 w-4" />} {t("vendor.produitDetail.addBtn", "Ajouter")}
           </Button>
         </div>
         <div className="flex gap-2 mt-2">
           <input type="number" min="1" max={produit.quantite_stock} value={stockRemoveDelta} onChange={(e) => setStockRemoveDelta(e.target.value)} placeholder={t("vendor.produitDetail.stockRemovePlaceholder", "Quantité à retirer")}
-            className="flex-1 h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="flex-1 h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           <Button type="button" variant="danger" onClick={handleStockRemove} disabled={!stockRemoveDelta || Number(stockRemoveDelta) > produit.quantite_stock || stockRemoveBusy} className="!py-2">
             {stockRemoveBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackageMinus className="h-4 w-4" />} {t("vendor.produitDetail.removeBtn", "Retirer")}
           </Button>
@@ -165,29 +177,33 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitDetail.nameLabel", "Nom du produit")}</label>
           <input required value={nom} onChange={(e) => setNom(e.target.value)}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitDetail.descriptionLabel", "Description")}</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-            className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
+            className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitDetail.priceLabel", "Prix unitaire (FCFA)")}</label>
             <input required type="number" min="0" value={prix} onChange={(e) => setPrix(e.target.value)}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitDetail.unitLabel", "Unité de mesure")}</label>
             <input required value={unite} onChange={(e) => setUnite(e.target.value)}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              list="unites-mesure-suggestions"
+              className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
+            <datalist id="unites-mesure-suggestions">
+              {UNITES_MESURE_SUGGESTIONS.map((u) => <option key={u} value={u} />)}
+            </datalist>
           </div>
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitDetail.freshnessLabel", "Fraîcheur")}</label>
           <select value={fraicheur} onChange={(e) => setFraicheur(e.target.value as typeof fraicheur)}
-            className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+            className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
             {FRAICHEUR_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
           </select>
         </div>

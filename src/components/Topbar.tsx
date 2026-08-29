@@ -28,7 +28,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, resolveMediaUrl } from "@/lib/api";
 import type { ApiEnvelope, DashboardAlerts } from "@/lib/types";
 
 const BREADCRUMB_LABELS: Record<string, string> = {
@@ -113,6 +113,7 @@ export function Topbar() {
   const accentColor = (user?.nom_complet?.charCodeAt(0) ?? 0) % 2 === 0
     ? "bg-[#C00000]"
     : "bg-[#1A2E5A]";
+  const userPhotoUrl = resolveMediaUrl(user?.photo_profil ?? null);
 
   const totalAlerts = alerts?.total ?? 0;
 
@@ -175,7 +176,7 @@ export function Topbar() {
           {/* Dark / Light Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200/90 bg-white text-slate-500 hover:border-[#1A2E5A]/30 hover:bg-slate-50 hover:text-[#1A2E5A] transition-all duration-200 focus-premium cursor-pointer shadow-premium-sm"
+            className="flex items-center justify-center h-9 w-9 rounded-xl border border-slate-300/90 bg-white text-slate-500 hover:border-[#1A2E5A]/30 hover:bg-slate-50 hover:text-[#1A2E5A] transition-all duration-200 focus-premium cursor-pointer shadow-premium-sm"
             title={theme === "dark" ? "Passer au mode clair" : "Passer au mode sombre"}
           >
             {theme === "dark" ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-slate-600" />}
@@ -185,7 +186,7 @@ export function Topbar() {
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className="relative flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200/90 bg-white text-slate-500 hover:border-[#1A2E5A]/30 hover:bg-slate-50 hover:text-[#1A2E5A] transition-all duration-200 focus-premium cursor-pointer shadow-premium-sm"
+              className="relative flex items-center justify-center h-9 w-9 rounded-xl border border-slate-300/90 bg-white text-slate-500 hover:border-[#1A2E5A]/30 hover:bg-slate-50 hover:text-[#1A2E5A] transition-all duration-200 focus-premium cursor-pointer shadow-premium-sm"
               aria-label="Notifications"
             >
               <Bell size={16.5} />
@@ -299,8 +300,8 @@ export function Topbar() {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center gap-2.5 pl-3 border-l border-slate-200/80 cursor-pointer group focus-premium rounded-xl p-1 transition-all"
             >
-              <div className={`flex h-8.5 w-8.5 items-center justify-center rounded-full ${accentColor} text-[12.5px] font-black text-white shadow-md shrink-0 ring-2 ring-white ring-offset-2 ring-offset-slate-100 group-hover:scale-105 transition-transform`}>
-                {userInitials}
+              <div className={`flex h-8.5 w-8.5 items-center justify-center overflow-hidden rounded-full ${accentColor} text-[12.5px] font-black text-white shadow-md shrink-0 ring-2 ring-white ring-offset-2 ring-offset-slate-100 group-hover:scale-105 transition-transform`}>
+                {userPhotoUrl ? <img src={userPhotoUrl} alt="" className="h-full w-full object-cover" /> : userInitials}
               </div>
               <div className="hidden sm:block leading-tight text-left">
                 <p className="text-xs font-black text-slate-900 truncate max-w-[130px]">
@@ -317,8 +318,8 @@ export function Topbar() {
               <div className="animate-scale-in absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-3xl bg-white shadow-[0_20px_50px_-10px_rgba(11,37,69,0.3)] ring-1 ring-slate-900/10">
                 <div className="p-4 border-b border-slate-100 bg-slate-50/80">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${accentColor} text-xs font-black text-white shadow-md shrink-0`}>
-                      {userInitials}
+                    <div className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ${accentColor} text-xs font-black text-white shadow-md shrink-0`}>
+                      {userPhotoUrl ? <img src={userPhotoUrl} alt="" className="h-full w-full object-cover" /> : userInitials}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-black text-slate-900 truncate">{user?.nom_complet ?? "Administrateur"}</p>

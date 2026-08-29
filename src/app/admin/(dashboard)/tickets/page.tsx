@@ -65,7 +65,7 @@ export default function TicketsPage() {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["admin-tickets", page, statut, categorie, priorite, nonAssignes],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut, categorie, priorite, non_assignes: nonAssignes ? 1 : undefined });
+      const qs = buildQuery({ page, statut, categorie, priorite, non_assignes: nonAssignes ? 1 : undefined, per_page: 5 });
       return (await api.get<ApiEnvelope<PaginatedData<TicketSupport>>>(`/admin/tickets${qs}`)).data;
     },
     refetchInterval: 30_000,
@@ -91,7 +91,7 @@ export default function TicketsPage() {
         <FilterSelect value={statut} onChange={(v) => { setPage(1); setStatut(v); }} options={STATUTS} />
         <FilterSelect value={categorie} onChange={(v) => { setPage(1); setCategorie(v); }} options={CATEGORIES} />
         <FilterSelect value={priorite} onChange={(v) => { setPage(1); setPriorite(v); }} options={PRIORITES} />
-        <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 cursor-pointer">
+        <label className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 cursor-pointer">
           <input type="checkbox" checked={nonAssignes} onChange={(e) => { setPage(1); setNonAssignes(e.target.checked); }}
             className="h-4 w-4 rounded border-slate-300 text-[#1A2E5A] focus:ring-[#1A2E5A]" />
           Non assignés

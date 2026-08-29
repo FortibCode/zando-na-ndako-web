@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Loader2, MapPin, Plus, Star, Trash2, X } from "lucide-react";
 import { CheckoutSteps } from "@/components/checkout/CheckoutSteps";
 import { useCheckout } from "@/lib/checkout-context";
@@ -11,17 +11,33 @@ import {
   createAddress,
   deleteAddress,
   fetchAddresses,
+  fetchZonesRaw,
   setDefaultAddress,
   type DeliveryAddress,
   type DeliveryAddressInput,
+  type ZoneOption,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 const EMPTY_FORM: DeliveryAddressInput = { label: "", adresse: "", quartier: "", ville: "Brazzaville" };
 
 export default function CheckoutAddressPage() {
+  return (
+    <Suspense>
+      <CheckoutAddressPageInner />
+    </Suspense>
+  );
+}
+
+function CheckoutAddressPageInner() {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Accessible aussi hors checkout, depuis "Mon compte" (gestion des adresses enregistrées) — dans
+  // ce cas le panier peut être vide, ce n'est pas une raison de renvoyer le client à l'accueil.
+  const standalone = searchParams.get("standalone") === "1";
   const { address, setAddress } = useCheckout();
   const { items, hydrated } = useCart();
 
@@ -31,6 +47,15 @@ export default function CheckoutAddressPage() {
   const [form, setForm] = useState<DeliveryAddressInput>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [zones, setZones] = useState<ZoneOption[]>([]);
+
+  // "Quartier" doit correspondre à une vraie valeur de zones_livraison.quartiers_couverts pour que
+  // resolveZoneForQuartier() trouve la bonne zone — un texte libre pouvait ne matcher aucune zone
+  // réelle et retombait silencieusement sur zones[0] (mauvais tarif de livraison affiché plus loin
+  // dans le tunnel). Dérivé des vraies zones actives plutôt qu'une liste codée en dur.
+  const quartierOptions = zones
+    .flatMap((z) => (z.quartiers_couverts || []).map((quartier) => ({ quartier, ville: z.ville })))
+    .sort((a, b) => a.quartier.localeCompare(b.quartier));
 
   const load = () => {
     setLoading(true);
@@ -46,14 +71,16 @@ export default function CheckoutAddressPage() {
 
   useEffect(() => {
     load();
+    fetchZonesRaw().then(setZones).catch(() => setZones([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Un panier vide n'a rien à livrer — on renvoie vers l'accueil client (pas la vitrine "/",
-  // réservée aux visiteurs anonymes) plutôt que de laisser choisir une adresse pour rien.
+  // réservée aux visiteurs anonymes) plutôt que de laisser choisir une adresse pour rien. Ne
+  // s'applique pas en mode standalone (gestion d'adresses depuis "Mon compte").
   useEffect(() => {
-    if (hydrated && items.length === 0) router.replace("/accueil");
-  }, [hydrated, items, router]);
+    if (!standalone && hydrated && items.length === 0) router.replace("/accueil");
+  }, [standalone, hydrated, items, router]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +92,11 @@ export default function CheckoutAddressPage() {
       setAddress(created);
       setForm(EMPTY_FORM);
       setShowForm(false);
+      notify(t('client.checkoutAddress.saveSuccess', 'Adresse enregistrée.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.checkoutAddress.saveError', "Impossible d'enregistrer cette adresse."));
+      const message = err instanceof ApiError ? err.message : t('client.checkoutAddress.saveError', "Impossible d'enregistrer cette adresse.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSaving(false);
     }
@@ -78,8 +108,11 @@ export default function CheckoutAddressPage() {
       await deleteAddress(id);
       setAddresses((prev) => prev.filter((a) => a.id !== id));
       if (address?.id === id) setAddress(null);
+      notify(t('client.checkoutAddress.deleteSuccess', 'Adresse supprimée.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.checkoutAddress.deleteError', "Impossible de supprimer cette adresse."));
+      const message = err instanceof ApiError ? err.message : t('client.checkoutAddress.deleteError', "Impossible de supprimer cette adresse.");
+      setError(message);
+      notifyError(err, message);
     }
   };
 
@@ -88,16 +121,23 @@ export default function CheckoutAddressPage() {
     try {
       await setDefaultAddress(id);
       setAddresses((prev) => prev.map((a) => ({ ...a, est_defaut: a.id === id })));
+      notify(t('client.checkoutAddress.setDefaultSuccess', 'Adresse par défaut mise à jour.'));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.checkoutAddress.setDefaultError', "Impossible de changer l'adresse par défaut."));
+      const message = err instanceof ApiError ? err.message : t('client.checkoutAddress.setDefaultError', "Impossible de changer l'adresse par défaut.");
+      setError(message);
+      notifyError(err, message);
     }
   };
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 sm:px-6 lg:px-8 my-8 sm:my-14 flex-1">
-      <CheckoutSteps current={1} />
+      {!standalone && <CheckoutSteps current={1} />}
       <h1 className="text-xl sm:text-2xl font-black text-slate-900 text-center mb-1">{t('client.checkoutAddress.title', 'Adresse de livraison')}</h1>
-      <p className="text-sm text-slate-500 text-center mb-8">{t('client.checkoutAddress.subtitle', 'Choisissez où vous souhaitez être livré.')}</p>
+      <p className="text-sm text-slate-500 text-center mb-8">
+        {standalone
+          ? t('client.checkoutAddress.subtitleStandalone', 'Gérez vos adresses de livraison enregistrées.')
+          : t('client.checkoutAddress.subtitle', 'Choisissez où vous souhaitez être livré.')}
+      </p>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -168,17 +208,23 @@ export default function CheckoutAddressPage() {
               </div>
               <input required placeholder={t('client.checkoutAddress.labelPlaceholder', 'Libellé (ex: Domicile, Bureau)')} value={form.label}
                 onChange={(e) => setForm({ ...form, label: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               <input required placeholder={t('client.checkoutAddress.addressPlaceholder', 'Adresse (rue, numéro…)')} value={form.adresse}
                 onChange={(e) => setForm({ ...form, adresse: e.target.value })}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               <div className="grid grid-cols-2 gap-3">
-                <input placeholder={t('client.checkoutAddress.neighborhoodPlaceholder', 'Quartier')} value={form.quartier || ""}
-                  onChange={(e) => setForm({ ...form, quartier: e.target.value })}
-                  className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                <select value={form.quartier || ""}
+                  onChange={(e) => {
+                    const match = quartierOptions.find((o) => o.quartier === e.target.value);
+                    setForm({ ...form, quartier: e.target.value, ville: match?.ville || form.ville });
+                  }}
+                  className="h-10 px-3 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+                  <option value="">{t('client.checkoutAddress.neighborhoodPlaceholder', 'Quartier')}</option>
+                  {quartierOptions.map((o) => <option key={o.quartier} value={o.quartier}>{o.quartier}</option>)}
+                </select>
                 <input required placeholder={t('client.checkoutAddress.cityPlaceholder', 'Ville')} value={form.ville}
                   onChange={(e) => setForm({ ...form, ville: e.target.value })}
-                  className="h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                  className="h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
               </div>
               {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
               <button type="submit" disabled={saving}
@@ -190,13 +236,15 @@ export default function CheckoutAddressPage() {
         </div>
       )}
 
-      <button
-        onClick={() => router.push("/commande/creneau")}
-        disabled={!address}
-        className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all"
-      >
-        {t('client.checkoutAddress.continueBtn', 'Continuer')}
-      </button>
+      {!standalone && (
+        <button
+          onClick={() => router.push("/commande/creneau")}
+          disabled={!address}
+          className="w-full h-13 mt-8 rounded-xl bg-[#e01313] hover:bg-[#c00000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-lg shadow-[#e01313]/25 transition-all"
+        >
+          {t('client.checkoutAddress.continueBtn', 'Continuer')}
+        </button>
+      )}
     </main>
   );
 }

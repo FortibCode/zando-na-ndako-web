@@ -163,7 +163,7 @@ export default function TicketDetailPage() {
                     rows={3}
                     maxLength={2000}
                     placeholder="Écrire une réponse…"
-                    className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none"
                   />
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 cursor-pointer">
@@ -194,7 +194,7 @@ export default function TicketDetailPage() {
                     value={ticket.statut}
                     disabled={!canManage}
                     onChange={(e) => statutMutation.mutate(e.target.value as StatutTicket)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                   >
                     {(Object.keys(STATUT_LABEL) as StatutTicket[]).map((s) => <option key={s} value={s}>{STATUT_LABEL[s]}</option>)}
                   </select>
@@ -205,7 +205,7 @@ export default function TicketDetailPage() {
                     value={ticket.priorite}
                     disabled={!canManage}
                     onChange={(e) => prioriteMutation.mutate(e.target.value as PrioriteTicket)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                   >
                     {(Object.keys(PRIORITE_LABEL) as PrioriteTicket[]).map((p) => <option key={p} value={p}>{PRIORITE_LABEL[p]}</option>)}
                   </select>
@@ -216,7 +216,7 @@ export default function TicketDetailPage() {
                     value={ticket.admin_assigne_id ?? ""}
                     disabled={!canManage}
                     onChange={(e) => e.target.value && assignMutation.mutate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                   >
                     <option value="" disabled>Non assigné</option>
                     {(admins ?? []).map((a) => (

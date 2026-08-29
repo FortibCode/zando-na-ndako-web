@@ -24,11 +24,23 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const load = () => {
-    fetchLitigeMessages(litigeId).then(setMessages).catch(() => setMessages([])).finally(() => setLoading(false));
+  const load = (opts?: { silent?: boolean }) => {
+    fetchLitigeMessages(litigeId)
+      .then(setMessages)
+      .catch(() => { if (!opts?.silent) setMessages([]); })
+      .finally(() => { if (!opts?.silent) setLoading(false); });
   };
 
-  useEffect(load, [litigeId]);
+  useEffect(() => {
+    load();
+    if (estResolu) return;
+    // Fil de messagerie sans websocket disponible côté backend — même convention de polling que
+    // les autres conversations de l'app (support, chat de commande) : 15s, en silence (pas de
+    // spinner de chargement) pour ne pas gêner un client déjà en train de lire.
+    const interval = setInterval(() => load({ silent: true }), 15000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [litigeId, estResolu]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -106,7 +118,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
         </p>
       ) : (
         <form onSubmit={handleSend} className="flex items-center gap-2 mt-4 pt-4 border-t border-slate-100">
-          <label className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 cursor-pointer transition-colors">
+          <label className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 text-slate-500 hover:bg-slate-50 cursor-pointer transition-colors">
             {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
             <input type="file" accept="image/*,video/*,.pdf" className="hidden" disabled={uploading}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ""; }} />
@@ -115,7 +127,7 @@ export function LitigeConversation({ litigeId, estResolu, viewerType }: { litige
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={t('client.litigeConversation.messagePlaceholder', 'Écrire un message…')}
-            className="flex-1 h-10 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]"
+            className="flex-1 h-10 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]"
           />
           <button type="submit" disabled={!text.trim() || sending}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0B2545] text-white hover:bg-[#061830] disabled:opacity-40 transition-colors cursor-pointer">

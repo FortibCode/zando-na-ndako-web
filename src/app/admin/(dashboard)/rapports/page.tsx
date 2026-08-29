@@ -142,12 +142,12 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Du</label>
               <input type="date" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Au</label>
               <input type="date" value={dateFin} onChange={(e) => setDateFin(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
           </div>
 
@@ -155,7 +155,7 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Statut</label>
               <select value={statut} onChange={(e) => setStatut(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 <option value="">Tous</option>
                 <option value="confirmee">Confirmée</option>
                 <option value="achat_marche">Achat au marché</option>
@@ -171,7 +171,7 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Catégorie</label>
               <select value={categorieId} onChange={(e) => setCategorieId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 <option value="">Toutes</option>
                 {(categories ?? []).map((c) => <option key={c.id} value={c.id}>{c.nom_categorie}</option>)}
               </select>
@@ -182,7 +182,7 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Type d&apos;utilisateur</label>
               <select value={typeUtilisateur} onChange={(e) => setTypeUtilisateur(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 <option value="">Tous</option>
                 <option value="client">Client</option>
                 <option value="vendeur">Vendeur</option>
@@ -195,7 +195,7 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Statut</label>
               <select value={statut} onChange={(e) => setStatut(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 <option value="">Tous</option>
                 <option value="assigne">Assignée</option>
                 <option value="en_cours">En cours</option>
@@ -210,7 +210,7 @@ export default function RapportsPage() {
               <div>
                 <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Moyen de paiement</label>
                 <select value={methode} onChange={(e) => setMethode(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                   <option value="">Tous</option>
                   <option value="mtn_momo">MTN Mobile Money</option>
                   <option value="airtel_money">Airtel Money</option>
@@ -223,7 +223,7 @@ export default function RapportsPage() {
               <div>
                 <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Statut</label>
                 <select value={statut} onChange={(e) => setStatut(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                   <option value="">Tous</option>
                   <option value="en_attente">En attente</option>
                   <option value="valide">Validé</option>
@@ -238,7 +238,7 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Statut</label>
               <select value={statut} onChange={(e) => setStatut(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 <option value="">Tous</option>
                 <option value="en_attente">En attente</option>
                 <option value="validee">Validée</option>
@@ -250,7 +250,7 @@ export default function RapportsPage() {
             <div>
               <label className="mb-1.5 block text-[12.5px] font-black uppercase tracking-wide text-slate-400">Acteur</label>
               <select value={acteur} onChange={(e) => setActeur(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 <option value="vendeurs">Vendeurs</option>
                 <option value="livreurs">Livreurs</option>
               </select>

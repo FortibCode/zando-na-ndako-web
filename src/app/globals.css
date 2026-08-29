@@ -368,12 +368,21 @@ body {
    ANIMATION CLASSES
 ─────────────────────────────────────────────*/
 
-.animate-fade-in      { animation: fade-in-up 0.6s ease-out both; }
+/* Pas de fill-mode "both"/"forwards" ici : la dernière image clé de fade-in-up/scale-in laisse un
+   transform non "none" (translateY(0), scale(1)) qui, retenu en permanence par "forwards", crée un
+   nouveau bloc de positionnement pour tout descendant en position:fixed — n'importe quelle modale
+   (voir Modal.tsx) ouverte à l'intérieur d'un conteneur "animate-fade-in"/"animate-scale-in" se
+   retrouvait alors positionnée par rapport à ce conteneur au lieu du viewport, d'où des formulaires
+   coupés/mal centrés. Sans fill-mode, l'élément revient à son style normal (opacity:1, transform:none)
+   dès la fin de l'animation — visuellement identique ici, puisque ce sont déjà les valeurs par défaut.
+   Testé : aucun composant de l'app ne combine ces classes avec une classe delay-*, donc rien ne dépend
+   du comportement "backwards" retiré ici. */
+.animate-fade-in      { animation: fade-in-up 0.6s ease-out; }
 .animate-float        { animation: float 5s ease-in-out infinite; }
 .animate-float-slow   { animation: float-slow 7s ease-in-out infinite; }
 .animate-float-fast   { animation: float-fast 3s ease-in-out infinite; }
 .animate-spin-slow    { animation: spin-slow 12s linear infinite; }
-.animate-scale-in     { animation: scale-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+.animate-scale-in     { animation: scale-in 0.35s cubic-bezier(0.34,1.56,0.64,1); }
 .animate-bounce-light { animation: bounce-light 2.2s ease-in-out infinite; }
 .animate-pulse-glow   { animation: pulse-glow 2.5s ease-in-out infinite; }
 
@@ -627,15 +636,68 @@ tr.row-accent:hover > td:first-child::before {
     cursor: pointer;
   }
 
-  /* La plupart des champs de formulaire de l'admin n'ont qu'un focus:border-* Tailwind sans
-     transition ni retour au survol — le changement d'état est instantané et le champ semble
-     inerte tant qu'on ne clique pas dedans. */
-  input, textarea, select {
+  /* Style global premium pour tous les champs de formulaire (inputs, textareas, selects).
+     Fond blanc pur avec une ombre très subtile (box-shadow) et bordure slate-300 pour détacher
+     nettement chaque champ sur les modaux et cartes blanches. Focus ring navy lumineux. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    background-color: #ffffff;
+    color: #0f172a;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #cbd5e1;
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   }
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(:disabled):hover,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"])::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(:disabled):hover,
   textarea:not(:disabled):hover,
   select:not(:disabled):hover {
-    border-color: rgba(15, 23, 42, 0.28);
+    border-color: #94a3b8;
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(:disabled):focus,
+  textarea:not(:disabled):focus,
+  select:not(:disabled):focus {
+    border-color: #1a2e5a;
+    box-shadow: 0 0 0 3px rgba(26, 46, 90, 0.15), 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    outline: none;
+  }
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+  }
+
+  /* Dark mode : fond slate-900/800, bordure slate-700, texte blanc */
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  .dark textarea,
+  .dark select {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  }
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"])::placeholder,
+  .dark textarea::placeholder {
+    color: #64748b;
+  }
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(:disabled):hover,
+  .dark textarea:not(:disabled):hover,
+  .dark select:not(:disabled):hover {
+    border-color: #475569;
+  }
+  .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not(:disabled):focus,
+  .dark textarea:not(:disabled):focus,
+  .dark select:not(:disabled):focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
   }
 }

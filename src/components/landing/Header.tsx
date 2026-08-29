@@ -3,13 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, Compass, Globe, Grid3X3, LogOut, Menu, Moon, Receipt, ShoppingCart, Sparkles, Store, Sun, User, X } from 'lucide-react';
+import { ChevronDown, Compass, Globe, Grid3X3, LogOut, Menu, Moon, Receipt, Settings, ShoppingCart, Sparkles, Store, Sun, User, X } from 'lucide-react';
 import { Logo } from '@/components/Logo';
-import { fetchVendeurTypes } from '@/lib/api';
+import { fetchVendeurTypes, resolveMediaUrl } from '@/lib/api';
 import { useCart } from './cart-context';
 import { usePublicAuth } from '@/lib/public-auth-context';
 import { useLanguage } from '@/lib/language-context';
 import { useTheme } from '@/lib/theme-context';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 // #how-it-works et #partners n'existent que dans HowItWorks.tsx/Partners.tsx, rendus
 // uniquement sur la page d'accueil (/) — un <a href="#how-it-works"> depuis une autre route
@@ -36,6 +37,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
   const [boutiqueTypes, setBoutiqueTypes] = useState<string[]>([]);
   const categoriesDropdownRef = useRef<HTMLDivElement>(null);
@@ -78,12 +80,13 @@ export function Header() {
   }, []);
 
   const handleLogout = () => {
-    setAccountOpen(false);
+    setConfirmLogoutOpen(false);
     logout();
     router.push('/');
   };
 
   const firstName = user?.nom_complet?.split(' ')[0] || 'Mon compte';
+  const userPhotoUrl = resolveMediaUrl(user?.photo_profil);
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/95 backdrop-blur-md shadow-xs">
@@ -245,8 +248,12 @@ export function Header() {
                 onClick={() => setAccountOpen((v) => !v)}
                 className="flex items-center gap-2 rounded-full bg-[#0B2545] pl-3 pr-4 py-2 text-xs sm:text-sm font-extrabold text-white shadow-sm transition-all hover:bg-[#061830] cursor-pointer"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-                  <User className="h-3.5 w-3.5" />
+                <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-white/15">
+                  {userPhotoUrl ? (
+                    <img src={userPhotoUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <User className="h-3.5 w-3.5" />
+                  )}
                 </span>
                 {firstName}
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${accountOpen ? 'rotate-180' : ''}`} />
@@ -254,8 +261,15 @@ export function Header() {
 
               {accountOpen && (
                 <div className="absolute top-full right-0 mt-3 w-56 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-2xl z-50 animate-scale-in">
+                  <Link
+                    href="/mon-compte"
+                    onClick={() => setAccountOpen(false)}
+                    className="flex w-full items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 transition-colors text-xs font-bold text-slate-700"
+                  >
+                    <Settings className="h-4 w-4 text-slate-400" /> {t('common.editProfile', 'Modifier mon profil')}
+                  </Link>
                   <button
-                    onClick={handleLogout}
+                    onClick={() => { setAccountOpen(false); setConfirmLogoutOpen(true); }}
                     className="flex w-full items-center gap-2.5 p-2.5 rounded-xl hover:bg-red-50 transition-colors text-xs font-bold text-red-600 cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" /> {t('common.logout', 'Se déconnecter')}
@@ -316,7 +330,7 @@ export function Header() {
               </nav>
               <div className="border-t border-slate-100 pt-3">
                 <button
-                  onClick={() => { setMenuOpen(false); handleLogout(); }}
+                  onClick={() => { setMenuOpen(false); setConfirmLogoutOpen(true); }}
                   className="flex items-center justify-center gap-2 w-full rounded-full bg-red-50 px-6 py-2.5 text-center text-xs font-extrabold text-red-600 transition-colors hover:bg-red-100 cursor-pointer"
                 >
                   <LogOut className="h-4 w-4" /> {t('common.logout', 'Se déconnecter')}
@@ -385,6 +399,17 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {confirmLogoutOpen && (
+        <ConfirmDialog
+          title="Confirmer la déconnexion"
+          message="Voulez-vous vraiment vous déconnecter de votre compte Zando na Ndako ?"
+          confirmLabel="Se déconnecter"
+          danger
+          onConfirm={handleLogout}
+          onClose={() => setConfirmLogoutOpen(false)}
+        />
+      )}
     </header>
   );
 }

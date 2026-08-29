@@ -48,38 +48,3 @@ export type Product = {
   vendeurName?: string;
 };
 
-export const FEATURED_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Feuilles de Manioc (Pondu)',
-    price: '2 500 FCFA',
-    priceValue: 2500,
-    unit: 'Sachet',
-    image: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=500&q=80',
-  },
-  {
-    id: '2',
-    name: 'Poisson Thomson Frais',
-    price: '8 500 FCFA',
-    priceValue: 8500,
-    unit: 'Kg',
-    image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=500&q=80',
-  },
-  {
-    id: '3',
-    name: 'Banane Plantain (Makemba)',
-    price: '5 000 FCFA',
-    priceValue: 5000,
-    unit: 'Régime',
-    image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=500&q=80',
-  },
-  {
-    id: '4',
-    name: 'Piment Rouge (Pili-Pili)',
-    price: '1 000 FCFA',
-    priceValue: 1000,
-    unit: 'Boîte',
-    image: 'https://images.unsplash.com/photo-1583119022894-919a68a3d0e3?auto=format&fit=crop&w=500&q=80',
-  },
-];
-

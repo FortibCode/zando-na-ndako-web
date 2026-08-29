@@ -56,7 +56,7 @@ export default function NotificationsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-notifications", page, statut],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, per_page: 5 });
       return (await api.get<ApiEnvelope<PaginatedData<CampagneNotification>>>(`/admin/notifications${qs}`)).data;
     },
   });
@@ -171,17 +171,17 @@ export default function NotificationsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Titre</label>
               <input value={form.titre} onChange={(e) => setForm((f) => ({ ...f, titre: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Message</label>
               <textarea value={form.message} onChange={(e) => setForm((f) => ({ ...f, message: e.target.value }))} rows={3} maxLength={1000}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Cible</label>
               <select value={form.cible_type} onChange={(e) => setForm((f) => ({ ...f, cible_type: e.target.value as CibleNotification }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 {(Object.keys(CIBLE_LABEL) as CibleNotification[]).map((k) => <option key={k} value={k}>{CIBLE_LABEL[k]}</option>)}
               </select>
             </div>
@@ -200,12 +200,12 @@ export default function NotificationsPage() {
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Lien (optionnel)</label>
               <input value={form.lien_action} onChange={(e) => setForm((f) => ({ ...f, lien_action: e.target.value }))} placeholder="ex: /commandes/123"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Programmer l&apos;envoi (optionnel)</label>
               <input type="datetime-local" value={form.date_envoi} onChange={(e) => setForm((f) => ({ ...f, date_envoi: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               <p className="mt-1.5 text-[12.5px] text-slate-400">Laisser vide pour un envoi immédiat.</p>
             </div>
           </div>

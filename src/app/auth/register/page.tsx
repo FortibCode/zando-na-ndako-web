@@ -336,7 +336,7 @@ export default function RegisterPage() {
                       <User className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="text" required value={nom} onChange={(e) => setNom(e.target.value)}
                         placeholder="ex: OKOMBI"
-                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
                     </div>
                   </div>
                   <div>
@@ -345,7 +345,7 @@ export default function RegisterPage() {
                       <User className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="text" required value={prenom} onChange={(e) => setPrenom(e.target.value)}
                         placeholder="ex: Fortune Jean"
-                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
                     </div>
                   </div>
                 </div>
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                     <div className="relative flex items-center">
                       <Calendar className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="date" required value={dateNaissance} onChange={(e) => setDateNaissance(e.target.value)}
-                        className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
                     </div>
                   </div>
                   <div>
@@ -381,7 +381,7 @@ export default function RegisterPage() {
                       <Store className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="text" required value={nomCommerce} onChange={(e) => setNomCommerce(e.target.value)}
                         placeholder="ex: Échoppe du Marché Total"
-                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
                     </div>
                   </div>
                 )}
@@ -391,19 +391,19 @@ export default function RegisterPage() {
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Catégorie principale</label>
                       <select value={categoriePrincipale} onChange={(e) => setCategoriePrincipale(e.target.value)}
-                        className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
+                        className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
                         {categories.map((c) => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Zone de livraison</label>
                       {zonesLoading ? (
-                        <div className="h-11 flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                        <div className="h-11 flex items-center justify-center rounded-xl border border-slate-300 bg-slate-50">
                           <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
                         </div>
                       ) : (
                         <select value={zoneId} onChange={(e) => setZoneId(e.target.value)}
-                          className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
+                          className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
                           {zones.length === 0 && <option value="">Aucune zone disponible</option>}
                           {zones.map((z) => <option key={z.id} value={z.id}>{z.nom_zone} — {z.ville}</option>)}
                         </select>
@@ -421,12 +421,12 @@ export default function RegisterPage() {
                       <Mail className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="email" required={role !== 'client_local'} value={email} onChange={(e) => setEmail(e.target.value)}
                         placeholder="exemple@email.com"
-                        className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-300 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Téléphone</label>
-                    <div className="flex items-center rounded-xl border border-slate-200 overflow-hidden focus-within:border-[#0D347C] focus-within:ring-1 focus-within:ring-[#0D347C]">
+                    <div className="flex items-center rounded-xl border border-slate-300 overflow-hidden focus-within:border-[#0D347C] focus-within:ring-1 focus-within:ring-[#0D347C]">
                       {role !== 'client_diaspora' && (
                         <span className="h-11 px-3 flex items-center bg-slate-50 border-r border-slate-200 text-xs font-bold text-slate-700">+242</span>
                       )}
@@ -446,14 +446,14 @@ export default function RegisterPage() {
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Pays de résidence</label>
                       <select value={paysResidence} onChange={(e) => setPaysResidence(e.target.value)}
-                        className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
+                        className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
                         {PAYS_OPTIONS.map((p) => <option key={p} value={p}>{p}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">Devise préférée</label>
                       <select value={devisePreferee} onChange={(e) => setDevisePreferee(e.target.value as typeof devisePreferee)}
-                        className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
+                        className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#0D347C]">
                         {DEVISE_OPTIONS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
                       </select>
                     </div>
@@ -465,7 +465,7 @@ export default function RegisterPage() {
                       <MapPin className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type="text" required value={ville} onChange={(e) => setVille(e.target.value)}
                         placeholder="ex: Brazzaville"
-                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
                     </div>
                   </div>
                 )}
@@ -476,7 +476,7 @@ export default function RegisterPage() {
                     <MapPin className="absolute left-3.5 w-4 h-4 text-slate-400" />
                     <input type="text" required value={adresse} onChange={(e) => setAdresse(e.target.value)}
                       placeholder="ex: Avenue de la Paix, Poto-Poto"
-                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
+                      className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C] focus:ring-1 focus:ring-[#0D347C]" />
                   </div>
                 </div>
 
@@ -487,7 +487,7 @@ export default function RegisterPage() {
                       <Lock className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type={showPassword ? 'text' : 'password'} required value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)}
                         placeholder="Min. 8 caractères"
-                        className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 text-slate-400 hover:text-slate-600 p-1">
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -499,7 +499,7 @@ export default function RegisterPage() {
                       <Lock className="absolute left-3.5 w-4 h-4 text-slate-400" />
                       <input type={showPassword ? 'text' : 'password'} required value={confirmation} onChange={(e) => setConfirmation(e.target.value)}
                         placeholder="Répétez le mot de passe"
-                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
+                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-300 text-sm font-medium text-slate-800 focus:outline-none focus:border-[#0D347C]" />
                     </div>
                   </div>
                 </div>

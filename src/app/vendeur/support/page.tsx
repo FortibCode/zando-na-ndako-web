@@ -10,9 +10,11 @@ import { Modal } from "@/components/Modal";
 import { LoadingBlock, EmptyState } from "@/components/Spinner";
 import { ApiError, envoyerVendeurMessage, fetchVendeurMessages, type VendeurMessage } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 export default function VendeurSupportPage() {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const [messages, setMessages] = useState<VendeurMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -37,8 +39,11 @@ export default function VendeurSupportPage() {
       setObjet("");
       setContenu("");
       setShowNew(false);
+      notify(t("vendor.support.sendSuccess", "Message envoyé."));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.support.sendError", "Impossible d'envoyer ce message."));
+      const message = err instanceof ApiError ? err.message : t("vendor.support.sendError", "Impossible d'envoyer ce message.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSending(false);
     }
@@ -90,12 +95,12 @@ export default function VendeurSupportPage() {
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.support.objectLabel", "Objet")}</label>
               <input value={objet} onChange={(e) => setObjet(e.target.value)}
-                className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+                className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.support.messageLabel", "Message")}</label>
               <textarea value={contenu} onChange={(e) => setContenu(e.target.value)} rows={4}
-                className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
+                className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
             </div>
             {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
           </div>

@@ -149,7 +149,7 @@ export default function VendeurCommandesPage() {
             onChange={(e) => setMotif(e.target.value)}
             rows={3}
             placeholder={t("vendor.commandes.refusePlaceholder", "Motif du refus…")}
-            className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
+            className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]"
           />
         </Modal>
       )}

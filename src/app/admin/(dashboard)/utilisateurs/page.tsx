@@ -60,7 +60,7 @@ export default function UtilisateursPage() {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["admin-utilisateurs", page, type, statut, search],
     queryFn: async () => {
-      const qs = buildQuery({ page, type, statut, search });
+      const qs = buildQuery({ page, type, statut, search, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<AppUser>>>(`/admin/utilisateurs${qs}`);
       return res.data;
     },
@@ -130,7 +130,7 @@ export default function UtilisateursPage() {
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Nom, email ou téléphone…"
-              className="w-64 rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
+              className="w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
             />
           </div>
           <button type="submit" className="rounded-xl bg-[#1A2E5A] px-4 py-2.5 text-sm font-black text-white hover:bg-[#0B1A35] transition-colors">
@@ -209,7 +209,7 @@ export default function UtilisateursPage() {
           </p>
           <label className="mb-1.5 block text-xs font-black text-slate-700">Motif de suspension (obligatoire)</label>
           <textarea value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} maxLength={500}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
             placeholder="Ex : comportement frauduleux, violation des CGU…" />
         </Modal>
       )}

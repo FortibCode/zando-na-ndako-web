@@ -25,7 +25,7 @@ export function PeriodFilter({
 
   return (
     <div className="flex flex-wrap items-center gap-2.5">
-      <div className="relative flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white pl-3 pr-7 py-1.5 shadow-premium-sm hover:border-slate-300 transition-colors">
+      <div className="relative flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white pl-3 pr-7 py-1.5 shadow-premium-sm hover:border-slate-300 transition-colors">
         <CalendarDays size={14} className="text-slate-400 shrink-0" />
         <select
           value={value.period}
@@ -42,7 +42,7 @@ export function PeriodFilter({
       </div>
 
       {value.period === "custom" && (
-        <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white pl-3 pr-2.5 py-1.5 shadow-premium-sm">
+        <div className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white pl-3 pr-2.5 py-1.5 shadow-premium-sm">
           <span className="text-xs font-bold text-slate-500">Du</span>
           <input
             type="date"

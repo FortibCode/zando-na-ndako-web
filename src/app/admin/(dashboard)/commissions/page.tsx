@@ -32,7 +32,7 @@ export default function CommissionsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-commissions", page, statut],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<CommissionAdmin>> & { taux_commission_vendeur: string }>(`/admin/commissions${qs}`);
       return { ...res.data, taux_commission_vendeur: res.taux_commission_vendeur };
     },

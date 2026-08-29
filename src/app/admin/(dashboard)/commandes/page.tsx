@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, Bike, PenLine, Eye } from "lucide-react";
+import { ClipboardList, Bike, PenLine, Eye, Trash2 } from "lucide-react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { api, ApiError } from "@/lib/api";
 import { buildQuery } from "@/lib/query";
 import type { Commande, ApiEnvelope, PaginatedData, StatutCommande, Livreur } from "@/lib/types";
@@ -32,6 +33,7 @@ export default function CommandesPage() {
   const queryClient = useQueryClient();
   const canAssign = usePermission("assign_commandes");
   const canEditStatus = usePermission("edit_commande_status");
+  const canDelete = usePermission("delete_commandes");
   const [page, setPage] = useState(1);
   const [statut, setStatut] = useState("");
 
@@ -41,10 +43,12 @@ export default function CommandesPage() {
   const [statusTarget, setStatusTarget] = useState<Commande | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<StatutCommande>("confirmee");
 
+  const [deleteTarget, setDeleteTarget] = useState<Commande | null>(null);
+
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["admin-commandes", page, statut],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<Commande>>>(`/admin/commandes${qs}`);
       return res.data;
     },
@@ -65,6 +69,16 @@ export default function CommandesPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-commandes"] });
     },
     onError: (err) => notifyError(err, "Impossible d'attribuer cette commande."),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/commandes/${id}`),
+    onSuccess: () => {
+      notify("Commande supprimée définitivement.");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-commandes"] });
+    },
+    onError: (err) => notifyError(err, "Impossible de supprimer cette commande."),
   });
 
   function openAssign(commande: Commande) { setAssignTarget(commande); setSelectedLivreur(commande.livreur_id ?? ""); }
@@ -151,6 +165,9 @@ export default function CommandesPage() {
                   <IconAction icon={Eye} label="Voir la commande" href={`/admin/commandes/${c.id}`} variant="info" />
                   {canAssign && <IconAction icon={Bike} label="Attribuer un livreur" onClick={() => openAssign(c)} variant="ghost" />}
                   {canEditStatus && <IconAction icon={PenLine} label="Modifier le statut" onClick={() => openStatus(c)} variant="ghost" />}
+                  {canDelete && ["annulee", "confirmee"].includes(c.statut_commande) && (
+                    <IconAction icon={Trash2} label="Supprimer définitivement" onClick={() => setDeleteTarget(c)} variant="danger" />
+                  )}
                 </div>
               </td>
             </tr>
@@ -174,7 +191,7 @@ export default function CommandesPage() {
             <p className="text-sm text-slate-500">Aucun livreur validé disponible.</p>
           ) : (
             <select value={selectedLivreur} onChange={(e) => setSelectedLivreur(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
               <option value="" disabled>Sélectionner un livreur…</option>
               {livreurs.map((l) => (
                 <option key={l.id} value={l.id}>
@@ -184,6 +201,18 @@ export default function CommandesPage() {
             </select>
           )}
         </Modal>
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Supprimer définitivement cette commande"
+          message={`Confirmez-vous la suppression de la commande ${deleteTarget.numero_commande} ? Cette action est irréversible — la commande, ses lignes et son paiement seront effacés. Réservé aux commandes annulées ou de test.`}
+          confirmLabel="Supprimer"
+          danger
+          loading={deleteMutation.isPending}
+          onConfirm={() => deleteMutation.mutate(deleteTarget.id)}
+          onClose={() => setDeleteTarget(null)}
+        />
       )}
 
       {/* Status Modal */}
@@ -197,7 +226,7 @@ export default function CommandesPage() {
           </>}
         >
           <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as StatutCommande)}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
             {STATUTS.filter((s) => s.value).map((s) => (
               <option key={s.value} value={s.value}>{statutLabel(s.value)}</option>
             ))}

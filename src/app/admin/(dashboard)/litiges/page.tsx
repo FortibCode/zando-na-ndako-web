@@ -42,7 +42,7 @@ export default function LitigesPage() {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["admin-litiges", page, statut],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut });
+      const qs = buildQuery({ page, statut, per_page: 5 });
       return (await api.get<ApiEnvelope<PaginatedData<Litige>>>(`/admin/litiges${qs}`)).data;
     },
     refetchInterval: 30_000,
@@ -184,7 +184,7 @@ export default function LitigesPage() {
               <select
                 value={newStatut}
                 onChange={(e) => setNewStatut(e.target.value as StatutLitige)}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium focus:border-[#1A2E5A] focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium focus:border-[#1A2E5A] focus:outline-none"
               >
                 <option value="en_cours">En cours de traitement</option>
                 <option value="resolu">Résolu (Accord trouvé / Remboursement)</option>
@@ -201,7 +201,7 @@ export default function LitigesPage() {
                 onChange={(e) => setDecision(e.target.value)}
                 rows={4}
                 maxLength={1000}
-                className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
                 placeholder="Indiquez la décision prise (remboursement, avertissement vendeur, clôture...) et la justification..."
               />
             </div>

@@ -49,7 +49,7 @@ export default function VendeursPage() {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["admin-vendeurs", page, statut, categoriePrincipale],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut, categorie_principale: categoriePrincipale });
+      const qs = buildQuery({ page, statut, categorie_principale: categoriePrincipale, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<Vendeur>>>(`/admin/vendeurs${qs}`);
       return res.data;
     },

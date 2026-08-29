@@ -17,6 +17,7 @@ import {
   type VendeurRevenus,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 function formatFcfa(value: number | string) {
   return `${Math.round(Number(value)).toLocaleString('fr-FR')} FCFA`;
@@ -26,6 +27,7 @@ const RETRAIT_STATUT_TONE: Record<string, "gold" | "green" | "red"> = { en_atten
 
 export default function VendeurRevenusPage() {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const METHODE_OPTIONS = [
     { id: "mtn_momo" as const, label: t("vendor.revenus.methodMtn", "MTN Mobile Money") },
     { id: "airtel_money" as const, label: t("vendor.revenus.methodAirtel", "Airtel Money") },
@@ -71,8 +73,11 @@ export default function VendeurRevenusPage() {
       setNumero("");
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
+      notify(t("vendor.revenus.submitSuccess", "Demande de retrait envoyée."));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.revenus.submitError", "Impossible de soumettre la demande."));
+      const message = err instanceof ApiError ? err.message : t("vendor.revenus.submitError", "Impossible de soumettre la demande.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSubmitting(false);
     }
@@ -125,19 +130,19 @@ export default function VendeurRevenusPage() {
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.revenus.amountLabel", "Montant (FCFA)")}</label>
             <input required type="number" min="1" value={montant} onChange={(e) => setMontant(e.target.value)}
-              className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.revenus.methodLabel", "Méthode")}</label>
             <select value={methode} onChange={(e) => setMethode(e.target.value as typeof methode)}
-              className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+              className="w-full h-10 px-3 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
               {METHODE_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.revenus.receptionNumberLabel", "Numéro de réception")}</label>
             <input required value={numero} onChange={(e) => setNumero(e.target.value)} placeholder={t("vendor.revenus.receptionNumberPlaceholder", "Numéro mobile money ou RIB")}
-              className="w-full h-10 px-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              className="w-full h-10 px-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
           <Button type="submit" variant="primary" disabled={submitting} className="w-full !py-2.5">

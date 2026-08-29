@@ -41,7 +41,7 @@ export default function TransactionsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-transactions", page, methode, statut, dateDebut, dateFin],
     queryFn: async () => {
-      const qs = buildQuery({ page, methode, statut, date_debut: dateDebut, date_fin: dateFin });
+      const qs = buildQuery({ page, methode, statut, date_debut: dateDebut, date_fin: dateFin, per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<Paiement>>>(`/admin/transactions${qs}`);
       return res.data;
     },
@@ -63,10 +63,10 @@ export default function TransactionsPage() {
         <FilterSelect value={statut} onChange={(v) => { setPage(1); setStatut(v); }} options={STATUTS} />
         <div className="flex items-center gap-2">
           <input type="date" value={dateDebut} onChange={(e) => { setPage(1); setDateDebut(e.target.value); }}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
           <span className="text-slate-300 font-bold">–</span>
           <input type="date" value={dateFin} onChange={(e) => { setPage(1); setDateFin(e.target.value); }}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
+            className="rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
         </div>
       </FilterBar>
 

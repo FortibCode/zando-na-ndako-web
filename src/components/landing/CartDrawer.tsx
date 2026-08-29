@@ -190,7 +190,7 @@ export function CartDrawer() {
                   <button
                     onClick={handleShareCart}
                     disabled={sharing}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-[#0B2545] hover:bg-slate-50 disabled:opacity-60 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-[#0B2545] hover:bg-slate-50 disabled:opacity-60 transition-colors cursor-pointer"
                   >
                     {sharing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Share2 className="h-3.5 w-3.5" />}
                     {sharing ? t('client.cartDrawer.sharing', 'Partage en cours…') : t('client.cartDrawer.shareCart', 'Partager ce panier avec le bénéficiaire')}
@@ -224,7 +224,7 @@ export function CartDrawer() {
               <div className="flex gap-2">
                 <button
                   onClick={clearCart}
-                  className="rounded-xl border border-slate-200 px-3 py-3 text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                  className="rounded-xl border border-slate-300 px-3 py-3 text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors"
                 >
                   {t('client.cartDrawer.clear', 'Vider')}
                 </button>

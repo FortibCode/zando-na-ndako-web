@@ -268,11 +268,11 @@ export default function CommandeDetailPage() {
                 <h2 className="mb-3 text-sm font-black text-slate-800">Contacter le client</h2>
                 <p className="text-sm font-bold text-slate-700 mb-2">{fullName(commande.client.user.nom, commande.client.user.prenom)}</p>
                 <div className="space-y-2">
-                  <a href={`tel:${commande.client.user.telephone}`} className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
+                  <a href={`tel:${commande.client.user.telephone}`} className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
                     <Phone size={13} /> {commande.client.user.telephone}
                   </a>
                   {commande.client.user.email && (
-                    <a href={`mailto:${commande.client.user.email}`} className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
+                    <a href={`mailto:${commande.client.user.email}`} className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-600 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-colors">
                       <Mail size={13} /> {commande.client.user.email}
                     </a>
                   )}
@@ -293,7 +293,7 @@ export default function CommandeDetailPage() {
           </>}
         >
           <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as StatutCommande)}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
             {STATUTS.map((s) => <option key={s} value={s}>{statutLabel(s)}</option>)}
           </select>
         </Modal>
@@ -312,7 +312,7 @@ export default function CommandeDetailPage() {
             <p className="text-sm text-slate-500">Aucun livreur validé disponible.</p>
           ) : (
             <select value={selectedLivreur} onChange={(e) => setSelectedLivreur(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
               <option value="" disabled>Sélectionner un livreur…</option>
               {livreurs.map((l) => <option key={l.id} value={l.id}>{l.user ? fullName(l.user.nom, l.user.prenom) : l.id} — {l.type_vehicule}</option>)}
             </select>
@@ -333,7 +333,7 @@ export default function CommandeDetailPage() {
             <p className="text-sm text-slate-500">Aucun vendeur validé disponible.</p>
           ) : (
             <select value={selectedVendeur} onChange={(e) => setSelectedVendeur(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-[#1A2E5A] focus:outline-none">
               <option value="" disabled>Sélectionner un vendeur…</option>
               {vendeurs.map((v) => <option key={v.id} value={v.id}>{v.nom_commerce}</option>)}
             </select>
@@ -355,7 +355,7 @@ export default function CommandeDetailPage() {
           </p>
           <label className="mb-1.5 block text-xs font-black text-slate-700">Motif du remboursement (obligatoire)</label>
           <textarea value={refundMotif} onChange={(e) => setRefundMotif(e.target.value)} rows={3} maxLength={500}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
             placeholder="Ex : produit endommagé, commande non livrée…" />
         </Modal>
       )}

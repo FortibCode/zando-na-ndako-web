@@ -134,7 +134,7 @@ export default function ParametresPage() {
                     {canEdit && (
                       <button
                         onClick={() => openEdit(p)}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 opacity-0 group-hover:opacity-100 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-all"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-400 opacity-0 group-hover:opacity-100 hover:border-[#1A2E5A] hover:text-[#1A2E5A] transition-all"
                       >
                         <Pencil size={13} />
                       </button>
@@ -188,7 +188,7 @@ export default function ParametresPage() {
             value={valeur}
             onChange={(e) => setValeur(e.target.value)}
             rows={3}
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium focus:border-[#1A2E5A] focus:ring-1 focus:ring-[#1A2E5A] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium focus:border-[#1A2E5A] focus:ring-1 focus:ring-[#1A2E5A] focus:outline-none"
           />
         </Modal>
       )}

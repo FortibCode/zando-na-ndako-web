@@ -8,10 +8,13 @@ import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/Button";
 import { ApiError, ajouterVendeurProduit, fetchCategoriesFromApi, fetchVendeurDashboard } from "@/lib/api";
 import type { Category } from "@/components/landing/data";
+import { UNITES_MESURE_SUGGESTIONS } from "@/lib/produitConstants";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 export default function NewProductPage() {
   const { t } = useLanguage();
+  const { notify, notifyError } = useToast();
   const FRAICHEUR_OPTIONS = [
     { id: "frais" as const, label: t("vendor.produitNouveau.freshFrais", "Frais") },
     { id: "fume" as const, label: t("vendor.produitNouveau.freshFume", "Fumé") },
@@ -60,8 +63,11 @@ export default function NewProductPage() {
         photo: photo || undefined,
       });
       router.push(`/vendeur/produits/${created.id}`);
+      notify(t("vendor.produitNouveau.success", "Produit ajouté."));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("vendor.produitNouveau.error", "Impossible d'ajouter ce produit."));
+      const message = err instanceof ApiError ? err.message : t("vendor.produitNouveau.error", "Impossible d'ajouter ce produit.");
+      setError(message);
+      notifyError(err, message);
     } finally {
       setSaving(false);
     }
@@ -100,19 +106,19 @@ export default function NewProductPage() {
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.nameLabel", "Nom du produit")}</label>
           <input required value={nom} onChange={(e) => setNom(e.target.value)} placeholder={t("vendor.produitNouveau.namePlaceholder", "ex: Banane Plantain (Makemba)")}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+            className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.descriptionLabel", "Description")}</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-            className="w-full p-3 rounded-xl border border-slate-200 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
+            className="w-full p-3 rounded-xl border border-slate-300 text-sm resize-none focus:outline-none focus:border-[#0B2545]" />
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.categoryLabel", "Catégorie")}</label>
           <select required value={categorieId} onChange={(e) => setCategorieId(e.target.value)}
-            className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+            className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
             <option value="">{t("vendor.produitNouveau.categoryPlaceholder", "Sélectionner…")}</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -122,12 +128,16 @@ export default function NewProductPage() {
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.priceLabel", "Prix unitaire (FCFA)")}</label>
             <input required type="number" min="0" value={prix} onChange={(e) => setPrix(e.target.value)}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.unitLabel", "Unité de mesure")}</label>
             <input required value={unite} onChange={(e) => setUnite(e.target.value)} placeholder={t("vendor.produitNouveau.unitPlaceholder", "Kg, Sachet, Régime…")}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              list="unites-mesure-suggestions"
+              className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
+            <datalist id="unites-mesure-suggestions">
+              {UNITES_MESURE_SUGGESTIONS.map((u) => <option key={u} value={u} />)}
+            </datalist>
           </div>
         </div>
 
@@ -135,12 +145,12 @@ export default function NewProductPage() {
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.stockLabel", "Stock initial")}</label>
             <input required type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)}
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0B2545]" />
+              className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#0B2545]" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 mb-1">{t("vendor.produitNouveau.freshnessLabel", "Fraîcheur")}</label>
             <select value={fraicheur} onChange={(e) => setFraicheur(e.target.value as typeof fraicheur)}
-              className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
+              className="w-full h-11 px-3.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:border-[#0B2545]">
               {FRAICHEUR_OPTIONS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
             </select>
           </div>

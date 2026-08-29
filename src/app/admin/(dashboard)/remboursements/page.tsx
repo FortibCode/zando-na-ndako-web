@@ -18,7 +18,7 @@ export default function RemboursementsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-remboursements", page],
     queryFn: async () => {
-      const qs = buildQuery({ page, statut: "rembourse" });
+      const qs = buildQuery({ page, statut: "rembourse", per_page: 5 });
       const res = await api.get<ApiEnvelope<PaginatedData<Paiement>>>(`/admin/transactions${qs}`);
       return res.data;
     },

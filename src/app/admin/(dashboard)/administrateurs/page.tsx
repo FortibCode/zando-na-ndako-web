@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Pencil, Ban, Check, Plus } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
-import type { ApiEnvelope, AdministrateurLite, PermissionsCatalogue, RoleAdmin } from "@/lib/types";
+import { buildQuery } from "@/lib/query";
+import type { ApiEnvelope, AdministrateurLite, PaginatedData, PermissionsCatalogue, RoleAdmin } from "@/lib/types";
 import { LoadingBlock, ErrorBlock } from "@/components/Spinner";
+import { Pagination } from "@/components/Pagination";
 import { Badge, StatutCompteBadge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { Modal } from "@/components/Modal";
@@ -38,10 +40,14 @@ export default function AdministrateursPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<AdministrateurLite | null>(null);
   const [form, setForm] = useState<Form>(EMPTY_FORM);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["admin-administrateurs"],
-    queryFn: async () => (await api.get<ApiEnvelope<AdministrateurLite[]>>("/admin/administrateurs")).data,
+    queryKey: ["admin-administrateurs", page],
+    queryFn: async () => {
+      const qs = buildQuery({ page, per_page: 5 });
+      return (await api.get<ApiEnvelope<PaginatedData<AdministrateurLite>>>(`/admin/administrateurs${qs}`)).data;
+    },
     enabled: isSuperAdmin,
   });
 
@@ -100,7 +106,7 @@ export default function AdministrateursPage() {
     }));
   }
 
-  const items = data ?? [];
+  const items = data?.data ?? [];
 
   if (!isSuperAdmin) {
     return (
@@ -119,7 +125,7 @@ export default function AdministrateursPage() {
         icon={ShieldCheck}
         action={
           <div className="flex items-center gap-3">
-            <HeaderStat icon={ShieldCheck} label={`${items.length} administrateurs`} tone="navy" />
+            <HeaderStat icon={ShieldCheck} label={`${data?.total ?? items.length} administrateurs`} tone="navy" />
             <Button variant="secondary" onClick={openCreate}>
               <Plus size={14} /> Nouvel administrateur
             </Button>
@@ -170,6 +176,17 @@ export default function AdministrateursPage() {
         </AdminTable>
       )}
 
+      {data && (
+        <Pagination
+          currentPage={data.current_page}
+          lastPage={data.last_page}
+          total={data.total}
+          from={data.from}
+          to={data.to}
+          onChange={setPage}
+        />
+      )}
+
       {formOpen && (
         <Modal
           title={editTarget ? "Modifier l'administrateur" : "Nouvel administrateur"}
@@ -187,37 +204,37 @@ export default function AdministrateursPage() {
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Prénom</label>
                 <input value={form.prenom} onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Nom</label>
                 <input value={form.nom} onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Email</label>
                 <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Téléphone</label>
                 <input value={form.telephone} onChange={(e) => setForm((f) => ({ ...f, telephone: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             {!editTarget && (
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Mot de passe temporaire</label>
                 <input type="password" value={form.mot_de_passe} onChange={(e) => setForm((f) => ({ ...f, mot_de_passe: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             )}
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Rôle</label>
               <select value={form.role_admin} onChange={(e) => applyRolePreset(e.target.value as RoleAdmin)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none">
                 {(Object.keys(ROLE_LABEL) as RoleAdmin[]).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </select>
               <p className="mt-1 text-[12.5px] text-slate-400">Changer le rôle propose une liste de permissions par défaut, modifiable ci-dessous.</p>
@@ -232,7 +249,7 @@ export default function AdministrateursPage() {
                 <label className="mb-1.5 block text-xs font-black text-slate-700">
                   Permissions ({form.permissions.length} sélectionnée{form.permissions.length > 1 ? "s" : ""})
                 </label>
-                <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 p-3 grid grid-cols-2 gap-x-3 gap-y-1.5">
+                <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-300 p-3 grid grid-cols-2 gap-x-3 gap-y-1.5">
                   {(catalogue?.permissions ?? []).map((perm) => (
                     <label key={perm} className="flex items-center gap-2 cursor-pointer py-0.5">
                       <input type="checkbox" checked={form.permissions.includes(perm)} onChange={() => togglePermission(perm)}

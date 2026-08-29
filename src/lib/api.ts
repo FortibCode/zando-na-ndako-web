@@ -1,6 +1,22 @@
-import { CATEGORIES, FEATURED_PRODUCTS, type Category, type Product } from '@/components/landing/data';
+import { CATEGORIES, type Category } from '@/components/landing/data';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
+// En dev, si la page est chargée depuis un autre appareil du réseau (LAN — ex: un téléphone,
+// comme le fait déjà mobile/src/services/api.ts avec Expo) alors que NEXT_PUBLIC_API_URL pointe
+// encore vers "localhost", ce mot désigne l'appareil qui charge la page, pas cette machine de dev
+// — chaque appel réseau échoue silencieusement ("Failed to fetch"). On retombe alors sur le même
+// hôte que celui utilisé pour charger la page elle-même.
+function resolveApiUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api';
+  if (typeof window !== 'undefined' && /^https?:\/\/(localhost|127\.0\.0\.1)([:/]|$)/.test(configured)) {
+    const pageHost = window.location.hostname;
+    if (pageHost !== 'localhost' && pageHost !== '127.0.0.1') {
+      return configured.replace(/(localhost|127\.0\.0\.1)/, pageHost);
+    }
+  }
+  return configured;
+}
+
+export const API_URL = resolveApiUrl();
 
 const TOKEN_KEY = "zando_token";
 const USER_KEY = "zando_user";
@@ -219,35 +235,6 @@ export async function fetchCategoriesFromApi(): Promise<Category[]> {
   return CATEGORIES;
 }
 
-export async function fetchPopularProductsFromApi(): Promise<Product[]> {
-  try {
-    const res = await fetch(`${API_URL}/produits/populaires`, { cache: "no-store" });
-    if (!res.ok) throw new Error('Échec du chargement des produits API');
-    const json = await res.json();
-    const data = json.data || json;
-
-    if (Array.isArray(data) && data.length > 0) {
-      return data.slice(0, 4).map((item: any, idx: number) => {
-        const fallback = FEATURED_PRODUCTS[idx % FEATURED_PRODUCTS.length];
-        const priceValue = item.prix_unitaire != null ? Number(item.prix_unitaire) : fallback.priceValue;
-        return {
-          id: String(item.id || idx),
-          name: item.nom_produit || item.name || 'Produit frais',
-          price: item.prix_unitaire ? `${priceValue.toLocaleString('fr-FR')} FCFA` : fallback.price,
-          priceValue,
-          unit: item.unite_mesure || item.unit || 'pièce',
-          // Le champ réel renvoyé par l'API est photo_produit (chemin de stockage relatif), pas
-          // image_url/image — sans resolveMediaUrl, la vraie photo du produit n'était jamais utilisée.
-          image: resolveMediaUrl(item.photo_produit) || fallback.image,
-        };
-      });
-    }
-  } catch {
-    console.info('API non disponible pour les produits populaires, utilisation du fallback enrichi.');
-  }
-  return FEATURED_PRODUCTS;
-}
-
 // Injecte le token du COMPTE PUBLIC connecté (pas celui de l'admin) sur un appel authentifié.
 // auth:false désactive l'injection automatique du token admin ; l'en-tête Authorization explicite
 // ci-dessous le remplace par le bon token, évitant toute collision entre les deux systèmes de session.
@@ -396,6 +383,25 @@ export async function publicLogin(credential: string, motDePasse: string): Promi
   return { token: res.data.token, user: res.data.user };
 }
 
+// Connexion/inscription via Google — un email inconnu de la plateforme renvoie une ApiError dont
+// `.data.error_code === 'GOOGLE_ACCOUNT_NOT_FOUND'` (voir AuthController::loginWithGoogle côté API) :
+// l'appelant doit alors redemander le téléphone puis rappeler cette fonction avec extra renseigné.
+export async function loginWithGoogle(
+  idToken: string,
+  extra?: { typeUtilisateur?: "client"; telephone?: string },
+): Promise<{ token: string; user: any }> {
+  const res = await api.post<{ success: boolean; data: { token: string; token_type: string; user: any } }>(
+    "/auth/google",
+    {
+      id_token: idToken,
+      ...(extra?.typeUtilisateur ? { type_utilisateur: extra.typeUtilisateur } : {}),
+      ...(extra?.telephone ? { telephone: extra.telephone } : {}),
+    },
+    { auth: false },
+  );
+  return { token: res.data.token, user: res.data.user };
+}
+
 export interface ZoneOption {
   id: string;
   nom_zone: string;
@@ -463,21 +469,31 @@ export async function fetchAvisPublics(): Promise<AvisPublic[]> {
 // Nécessite le token du COMPTE PUBLIC connecté (pas celui de l'admin) — auth:false désactive
 // l'injection automatique du token admin, et l'en-tête Authorization explicite ci-dessous la
 // remplace par le bon token, appelé uniquement une fois le vendeur inscrit et connecté.
+export interface VendeurDocumentsResult {
+  photo_boutique: string | null;
+  document_identite: string | null;
+  registre_commerce: string | null;
+}
+
+// Renvoie les chemins réellement persistés (le backend répond déjà avec le vendeur à jour) — sans
+// ça, l'appelant n'a aucun moyen de savoir quel fichier a été enregistré pour en afficher un aperçu
+// durable après coup, autre que ré-interroger le tableau de bord.
 export async function uploadVendeurDocumentsPublic(docs: {
   photo_boutique?: File;
   document_identite?: File;
   registre_commerce?: File;
-}): Promise<void> {
+}): Promise<VendeurDocumentsResult> {
   const form = new FormData();
   if (docs.photo_boutique) form.append("photo_boutique", docs.photo_boutique);
   if (docs.document_identite) form.append("document_identite", docs.document_identite);
   if (docs.registre_commerce) form.append("registre_commerce", docs.registre_commerce);
 
   const token = getPublicToken();
-  await api.post<{ success: boolean; message?: string }>("/vendeur/documents", form, {
+  const res = await api.post<{ success: boolean; message?: string; data: VendeurDocumentsResult }>("/vendeur/documents", form, {
     auth: false,
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
+  return res.data;
 }
 
 export async function fetchDeliveryZonesFromApi(): Promise<DeliveryZone[]> {
@@ -534,6 +550,34 @@ export async function fetchProduits(params?: { categorie?: string; search?: stri
   const res = await api.get<{ success: boolean; data: { data: Produit[] } | Produit[] }>(`/produits${suffix}`, { auth: false });
   const data = res.data as any;
   return Array.isArray(data) ? data : data.data || [];
+}
+
+export interface ProduitsPage {
+  items: Produit[];
+  currentPage: number;
+  lastPage: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+}
+
+// Même endpoint que fetchProduits (/produits — voir CatalogueController::produits), mais expose la
+// pagination réelle (page courante/dernière page/total) au lieu de ne garder que les items d'une
+// seule page : utilisé pour la pagination numérotée "Tous nos produits" de l'accueil.
+export async function fetchProduitsPage(page: number, perPage = 20): Promise<ProduitsPage> {
+  const res = await api.get<{ success: boolean; data: { data: Produit[]; current_page: number; last_page: number; total: number; from: number | null; to: number | null } }>(
+    `/produits?page=${page}&per_page=${perPage}`,
+    { auth: false }
+  );
+  const payload = res.data;
+  return {
+    items: payload?.data || [],
+    currentPage: payload?.current_page ?? 1,
+    lastPage: payload?.last_page ?? 1,
+    total: payload?.total ?? 0,
+    from: payload?.from ?? null,
+    to: payload?.to ?? null,
+  };
 }
 
 export async function fetchProduitsPromotions(): Promise<Produit[]> {
@@ -790,15 +834,6 @@ export async function confirmerPaiementLivraison(commandeId: string): Promise<Ap
   return res.data;
 }
 
-export async function initierCarteLocale(commandeId: string): Promise<ApiPaiement> {
-  const res = await api.post<{ success: boolean; data: ApiPaiement }>("/payment/carte-locale/init", { commande_id: commandeId }, publicAuthOptions());
-  return res.data;
-}
-
-export async function confirmerCarteLocale(paiementId: string, reference: string): Promise<void> {
-  await api.post("/payment/carte-locale/confirm", { paiement_id: paiementId, reference }, publicAuthOptions());
-}
-
 export async function initierMtnMoMo(commandeId: string, telephone?: string): Promise<ApiPaiement> {
   const res = await api.post<{ success: boolean; data: ApiPaiement }>("/payment/mtn-momo/init", {
     commande_id: commandeId,
@@ -807,16 +842,17 @@ export async function initierMtnMoMo(commandeId: string, telephone?: string): Pr
   return res.data;
 }
 
-export interface MtnMomoConfirmResult {
+export interface MobileMoneyConfirmResult {
   status: "valide" | "en_attente" | "echoue";
   message: string;
   reason?: string;
 }
 
-// Interrogeable en polling — tant que le paiement n'a pas de statut définitif côté MTN, l'API
-// renvoie status:'en_attente' (HTTP 200, ce n'est pas une erreur) plutôt que de valider par défaut.
-export async function confirmerMtnMoMo(paiementId: string): Promise<MtnMomoConfirmResult> {
-  const res = await api.post<{ success: boolean; status: MtnMomoConfirmResult["status"]; message?: string; reason?: string }>(
+// Interrogeable en polling — tant que le paiement n'a pas de statut définitif côté opérateur,
+// l'API renvoie status:'en_attente' (HTTP 200, ce n'est pas une erreur) plutôt que de valider par
+// défaut. Contrat partagé par MTN et Airtel Money.
+export async function confirmerMtnMoMo(paiementId: string): Promise<MobileMoneyConfirmResult> {
+  const res = await api.post<{ success: boolean; status: MobileMoneyConfirmResult["status"]; message?: string; reason?: string }>(
     "/payment/mtn-momo/confirm",
     { paiement_id: paiementId },
     publicAuthOptions()
@@ -824,13 +860,24 @@ export async function confirmerMtnMoMo(paiementId: string): Promise<MtnMomoConfi
   return { status: res.status, message: res.message || "", reason: res.reason };
 }
 
-export async function initierAirtelMoney(commandeId: string): Promise<ApiPaiement> {
-  const res = await api.post<{ success: boolean; data: ApiPaiement }>("/payment/airtel-money/init", { commande_id: commandeId }, publicAuthOptions());
+export async function initierAirtelMoney(commandeId: string, telephone?: string): Promise<ApiPaiement> {
+  const res = await api.post<{ success: boolean; data: ApiPaiement }>("/payment/airtel-money/init", {
+    commande_id: commandeId,
+    telephone,
+  }, publicAuthOptions());
   return res.data;
 }
 
-export async function confirmerAirtelMoney(paiementId: string, reference: string): Promise<void> {
-  await api.post("/payment/airtel-money/confirm", { paiement_id: paiementId, reference }, publicAuthOptions());
+// Même contrat que confirmerMtnMoMo : ne fait plus confiance à une référence fournie par le
+// client (le champ n'existe plus côté serveur) — seul un vrai statut Airtel Money SUCCESSFUL (ou
+// le mode simulation si non configuré côté serveur) valide le paiement.
+export async function confirmerAirtelMoney(paiementId: string): Promise<MobileMoneyConfirmResult> {
+  const res = await api.post<{ success: boolean; status: MobileMoneyConfirmResult["status"]; message?: string; reason?: string }>(
+    "/payment/airtel-money/confirm",
+    { paiement_id: paiementId },
+    publicAuthOptions()
+  );
+  return { status: res.status, message: res.message || "", reason: res.reason };
 }
 
 // ─── Profil utilisateur connecté ───
@@ -902,6 +949,11 @@ export interface VendeurDashboard {
   solde_disponible: number | string;
   note_moyenne: number | string | null;
   statut_validation: string;
+  numero_mobile_money_reception?: string | null;
+  horaires_ouverture?: string | null;
+  photo_boutique?: string | null;
+  document_identite?: string | null;
+  registre_commerce?: string | null;
   commandes_aujourd_hui: number;
   commandes_en_cours: number;
   commandes_livrees: number;

@@ -63,7 +63,7 @@ export default function LogsPage() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin-logs", page, module, action, dateDebut, dateFin],
     queryFn: async () => {
-      const qs = buildQuery({ page, module, action, date_debut: dateDebut, date_fin: dateFin });
+      const qs = buildQuery({ page, module, action, date_debut: dateDebut, date_fin: dateFin, per_page: 5 });
       return (await api.get<ApiEnvelope<PaginatedData<LogActivite>>>(`/super-admin/logs${qs}`)).data;
     },
   });
@@ -95,19 +95,19 @@ export default function LogsPage() {
         <div>
           <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-slate-400">Module</label>
           <select value={module} onChange={(e) => { setPage(1); setModule(e.target.value); }}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none">
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none">
             {MODULES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-slate-400">Du</label>
           <input type="date" value={dateDebut} onChange={(e) => { setPage(1); setDateDebut(e.target.value); }}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
+            className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-black uppercase tracking-widest text-slate-400">Au</label>
           <input type="date" value={dateFin} onChange={(e) => { setPage(1); setDateFin(e.target.value); }}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
+            className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 focus:border-[#1A2E5A] focus:outline-none" />
         </div>
         <form onSubmit={onFilterSubmit} className="flex items-end gap-2 flex-1">
           <div className="flex-1 max-w-xs">
@@ -118,7 +118,7 @@ export default function LogsPage() {
                 value={actionInput}
                 onChange={(e) => setActionInput(e.target.value)}
                 placeholder="Ex : suspendre, valider…"
-                className="w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
+                className="w-full rounded-xl border border-slate-300 bg-white pl-10 pr-3 py-2.5 text-sm font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
               />
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function LogsPage() {
           </button>
           {hasFilters && (
             <button type="button" onClick={resetFilters}
-              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-black text-slate-600 hover:bg-slate-50 transition-colors">
+              className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-black text-slate-600 hover:bg-slate-50 transition-colors">
               Réinitialiser
             </button>
           )}

@@ -194,7 +194,7 @@ export default function TypesBoutiquePage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="focus-premium flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-black text-slate-600 transition-all hover:border-[#1A2E5A] hover:text-[#1A2E5A] cursor-pointer"
+                  className="focus-premium flex items-center gap-2 rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-black text-slate-600 transition-all hover:border-[#1A2E5A] hover:text-[#1A2E5A] cursor-pointer"
                 >
                   <Camera size={15} />
                   {photoPreview ? "Changer le logo" : "Ajouter un logo"}
@@ -207,7 +207,7 @@ export default function TypesBoutiquePage() {
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 maxLength={150}
-                className="focus-premium w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
+                className="focus-premium w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-medium transition-colors focus:border-[#1A2E5A] focus:outline-none"
                 placeholder="Ex : Fleuriste"
               />
               {editing && (

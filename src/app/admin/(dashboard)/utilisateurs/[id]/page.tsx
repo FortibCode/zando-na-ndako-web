@@ -321,7 +321,7 @@ export default function UtilisateurDetailPage() {
           </p>
           <label className="mb-1.5 block text-xs font-black text-slate-700">Motif de suspension (obligatoire)</label>
           <textarea value={motif} onChange={(e) => setMotif(e.target.value)} rows={3} maxLength={500}
-            className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 focus:border-[#C00000] focus:ring-1 focus:ring-[#C00000] focus:outline-none"
             placeholder="Ex : comportement frauduleux, violation des CGU…" />
         </Modal>
       )}
@@ -340,23 +340,23 @@ export default function UtilisateurDetailPage() {
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Prénom</label>
                 <input value={editForm.prenom} onChange={(e) => setEditForm((f) => ({ ...f, prenom: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-black text-slate-700">Nom</label>
                 <input value={editForm.nom} onChange={(e) => setEditForm((f) => ({ ...f, nom: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
               </div>
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Email</label>
               <input type="email" value={editForm.email} onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-black text-slate-700">Téléphone</label>
               <input value={editForm.telephone} onChange={(e) => setEditForm((f) => ({ ...f, telephone: e.target.value }))}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold focus:border-[#1A2E5A] focus:outline-none" />
             </div>
           </div>
         </Modal>

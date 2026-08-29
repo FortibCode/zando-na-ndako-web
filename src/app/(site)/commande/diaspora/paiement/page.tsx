@@ -21,6 +21,7 @@ import {
   type ZoneOption,
 } from "@/lib/api";
 import { useLanguage } from "@/lib/language-context";
+import { useToast } from "@/lib/toast-context";
 
 type MethodKey = "stripe" | "paypal" | "carte";
 
@@ -36,6 +37,7 @@ export default function DiasporaPaymentPage() {
 
 function DiasporaPaymentInner() {
   const { t } = useLanguage();
+  const { notifyError } = useToast();
   const METHODS: { key: MethodKey; label: string; hint: string }[] = [
     { key: "stripe", label: t('client.diasporaPayment.methodCard', 'Carte bancaire internationale'), hint: t('client.diasporaPayment.methodCardHint', 'Visa, Mastercard via Stripe') },
     { key: "paypal", label: t('client.diasporaPayment.methodPaypal', 'PayPal'), hint: t('client.diasporaPayment.methodPaypalHint', 'Payer avec votre compte PayPal') },
@@ -94,8 +96,10 @@ function DiasporaPaymentInner() {
         clearCart();
         router.replace(`/commande/confirmee?numero=${encodeURIComponent(numeroCommande)}&montant=${montantTotal}&id=${returnCommandeId}`);
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.invalidReferenceError', 'Confirmation de paiement invalide.'));
+        const message = err instanceof ApiError ? err.message : t('client.diasporaPayment.invalidReferenceError', 'Confirmation de paiement invalide.');
+        setError(message);
         setPhase("error");
+        notifyError(err, message);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -163,8 +167,10 @@ function DiasporaPaymentInner() {
         window.location.href = url;
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('client.diasporaPayment.finalizeOrderError', 'Impossible de finaliser la commande.'));
+      const message = err instanceof ApiError ? err.message : t('client.diasporaPayment.finalizeOrderError', 'Impossible de finaliser la commande.');
+      setError(message);
       setPhase("error");
+      notifyError(err, message);
     }
   };
 

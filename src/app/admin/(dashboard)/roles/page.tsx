@@ -134,7 +134,7 @@ export default function RolesPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Nom, email ou téléphone de l'utilisateur…"
-                  className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-xs font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3 py-2.5 text-xs font-bold text-slate-700 placeholder-slate-400 focus:border-[#1A2E5A] focus:outline-none"
                 />
               </div>
               <button type="submit"
@@ -190,7 +190,7 @@ export default function RolesPage() {
                       list="suggested-roles"
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs font-bold focus:border-[#1A2E5A] focus:outline-none"
+                      className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs font-bold focus:border-[#1A2E5A] focus:outline-none"
                       placeholder="Ex : support, finance…"
                     />
                     <datalist id="suggested-roles">

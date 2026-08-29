@@ -31,7 +31,7 @@ export default function PromotionsPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="h-72 rounded-3xl bg-slate-100 animate-pulse" />
           ))}
@@ -45,7 +45,7 @@ export default function PromotionsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5">
           {produits.map((p) => {
             const promo = p.promotions?.[0];
             return (

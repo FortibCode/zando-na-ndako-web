@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ApiError,
   clearPublicSession,
@@ -27,6 +27,12 @@ interface PublicAuthContextValue {
   login: (credential: string, motDePasse: string) => Promise<PublicUser>;
   logout: () => void;
   setSession: (token: string, user: PublicUser) => void;
+  // Le passage de `user` à null pendant une déconnexion volontaire déclenche aussi les gardes
+  // useRequirePublicAuth() / vendeur/layout.tsx qui, en réagissant au même changement d'état,
+  // redirigeaient systématiquement vers /auth/login?redirect=... juste après — écrasant la
+  // redirection voulue par l'appelant (ex: vers "/"). Ce ref permet à ces gardes de savoir qu'une
+  // déconnexion volontaire est en cours et de laisser l'appelant décider seul de la destination.
+  isLoggingOut: React.RefObject<boolean>;
 }
 
 const PublicAuthContext = createContext<PublicAuthContextValue | null>(null);
@@ -34,6 +40,7 @@ const PublicAuthContext = createContext<PublicAuthContextValue | null>(null);
 export function PublicAuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<PublicUser | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const isLoggingOut = useRef(false);
 
   useEffect(() => {
     setUser(getStoredPublicUser<PublicUser>());
@@ -44,6 +51,7 @@ export function PublicAuthProvider({ children }: { children: React.ReactNode }) 
     try {
       const { token, user: loggedUser } = await publicLogin(credential, motDePasse);
       setPublicSession(token, loggedUser);
+      isLoggingOut.current = false;
       setUser(loggedUser);
       return loggedUser as PublicUser;
     } catch (err) {
@@ -52,17 +60,19 @@ export function PublicAuthProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const logout = useCallback(() => {
+    isLoggingOut.current = true;
     clearPublicSession();
     setUser(null);
   }, []);
 
   const setSession = useCallback((token: string, sessionUser: PublicUser) => {
     setPublicSession(token, sessionUser);
+    isLoggingOut.current = false;
     setUser(sessionUser);
   }, []);
 
   const value = useMemo(
-    () => ({ user, isReady, login, logout, setSession }),
+    () => ({ user, isReady, login, logout, setSession, isLoggingOut }),
     [user, isReady, login, logout, setSession],
   );
 
