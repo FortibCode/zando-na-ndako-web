@@ -132,29 +132,16 @@ export default function TypesBoutiquePage() {
 
       {!loading && !error && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {items.map((t) => {
-            const logoUrl = resolveMediaUrl(t.logo);
-            const Icon = deriveTypeBoutiqueIcon(t.type);
-            return (
-              <div key={t.id} className="surface-card group relative flex flex-col items-center gap-3 rounded-2xl p-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl bg-[#C00000]/8 ring-1 ring-slate-100">
-                  {logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={logoUrl} alt={t.type} className="h-full w-full object-cover" />
-                  ) : (
-                    <Icon className="h-8 w-8 text-slate-400" />
-                  )}
-                </div>
-                <p className="text-xs font-black leading-snug text-slate-800">{t.type}</p>
-                {(canEdit || canDelete) && (
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {canEdit && <IconAction icon={Pencil} label="Modifier" onClick={() => openEdit(t)} variant="ghost" />}
-                    {canDelete && <IconAction icon={Trash2} label="Supprimer" onClick={() => setDeleteTarget(t)} variant="danger" />}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {items.map((t) => (
+            <TypeCard
+              key={t.id}
+              t={t}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              onEdit={() => openEdit(t)}
+              onDelete={() => setDeleteTarget(t)}
+            />
+          ))}
 
           {canCreate && (
             <button
@@ -166,6 +153,7 @@ export default function TypesBoutiquePage() {
           )}
         </div>
       )}
+
 
       {formOpen && (
         <Modal
@@ -234,3 +222,47 @@ export default function TypesBoutiquePage() {
     </div>
   );
 }
+
+function TypeCard({
+  t,
+  canEdit,
+  canDelete,
+  onEdit,
+  onDelete,
+}: {
+  t: TypeBoutique;
+  canEdit: boolean;
+  canDelete: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const logoUrl = resolveMediaUrl(t.logo);
+  const Icon = deriveTypeBoutiqueIcon(t.type);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <div className="surface-card group relative flex flex-col items-center gap-3 rounded-2xl p-4 text-center">
+      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-xl bg-[#C00000]/8 ring-1 ring-slate-100">
+        {logoUrl && !imgFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={t.type}
+            className="h-full w-full object-cover"
+            onError={() => setImgFailed(true)}
+          />
+        ) : (
+          <Icon className="h-8 w-8 text-[#C00000]" />
+        )}
+      </div>
+      <p className="text-xs font-black leading-snug text-slate-800">{t.type}</p>
+      {(canEdit || canDelete) && (
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {canEdit && <IconAction icon={Pencil} label="Modifier" onClick={onEdit} variant="ghost" />}
+          {canDelete && <IconAction icon={Trash2} label="Supprimer" onClick={onDelete} variant="danger" />}
+        </div>
+      )}
+    </div>
+  );
+}
+
