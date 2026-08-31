@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
+
+
 import { resolveMediaUrl } from '@/lib/api';
 import { deriveTypeBoutiqueIcon } from '@/lib/typeBoutiqueIcon';
 
@@ -10,6 +13,8 @@ import { deriveTypeBoutiqueIcon } from '@/lib/typeBoutiqueIcon';
 export function CategoryCard({ type, logo, index = 0 }: { type: string; logo?: string | null; index?: number }) {
   const logoUrl = resolveMediaUrl(logo);
   const Icon = deriveTypeBoutiqueIcon(type);
+  const [imgFailed, setImgFailed] = useState(false);
+
   return (
     <Link
       href={`/boutiques/${encodeURIComponent(type)}`}
@@ -20,14 +25,20 @@ export function CategoryCard({ type, logo, index = 0 }: { type: string; logo?: s
 
       <div className="relative mb-3.5 w-full">
         <div className="relative flex h-28 sm:h-32 w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-50 shadow-inner group-hover:shadow-md transition-shadow">
-          {logoUrl ? (
+          {logoUrl && !imgFailed ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={type} className="h-full w-full object-cover" />
+            <img
+              src={logoUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={() => setImgFailed(true)}
+            />
           ) : (
             <Icon className="h-10 w-10 text-[#0B2545]/70" />
           )}
         </div>
       </div>
+
 
       <span className="relative z-10 text-xs sm:text-sm font-black text-slate-800 leading-snug capitalize group-hover:text-[#0B2545] transition-colors duration-200 mt-1">
         {type}

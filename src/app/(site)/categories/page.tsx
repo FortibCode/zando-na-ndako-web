@@ -39,33 +39,45 @@ export default function CategoriesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {types.map(({ type, logo }, i) => {
-            const logoUrl = resolveMediaUrl(logo);
-            const Icon = deriveTypeBoutiqueIcon(type);
-            return (
-              <Link
-                key={type}
-                href={`/boutiques/${encodeURIComponent(type)}`}
-                className="relative flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 hover:shadow-sm transition-all"
-              >
-                <span className="absolute top-2 right-2.5 text-[10px] font-black text-slate-300">{String(i + 1).padStart(2, "0")}</span>
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
-                  {logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={logoUrl} alt={type} className="h-full w-full object-cover" />
-                  ) : (
-                    <Icon className="h-6 w-6 text-[#0B2545]" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-black text-slate-900 truncate capitalize">{type}</p>
-                  <p className="text-xs text-slate-400">{t('categories.seeBoutiques', 'Voir les boutiques')}</p>
-                </div>
-              </Link>
-            );
-          })}
+          {types.map(({ type, logo }, i) => (
+            <CategoryItem
+              key={type}
+              type={type}
+              logo={logo}
+              index={i}
+              seeBoutiquesText={t('categories.seeBoutiques', 'Voir les boutiques')}
+            />
+          ))}
         </div>
       )}
     </main>
   );
 }
+
+function CategoryItem({ type, logo, index, seeBoutiquesText }: { type: string; logo: string | null; index: number; seeBoutiquesText: string }) {
+  const logoUrl = resolveMediaUrl(logo);
+  const Icon = deriveTypeBoutiqueIcon(type);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  return (
+    <Link
+      href={`/boutiques/${encodeURIComponent(type)}`}
+      className="relative flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-white hover:border-[#0B2545]/30 hover:shadow-sm transition-all"
+    >
+      <span className="absolute top-2 right-2.5 text-[10px] font-black text-slate-300">{String(index + 1).padStart(2, "0")}</span>
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+        {logoUrl && !imgFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="" className="h-full w-full object-cover" onError={() => setImgFailed(true)} />
+        ) : (
+          <Icon className="h-6 w-6 text-[#0B2545]" />
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-sm font-black text-slate-900 truncate capitalize">{type}</p>
+        <p className="text-xs text-slate-400">{seeBoutiquesText}</p>
+      </div>
+    </Link>
+  );
+}
+
