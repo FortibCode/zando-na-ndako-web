@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Images, Plus, Pencil, Trash2, Camera } from "lucide-react";
