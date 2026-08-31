@@ -33,13 +33,15 @@ export class ApiError extends Error {
   }
 }
 
-// Convertit un chemin de stockage relatif (ex: "photos/produits/xxx.jpg", renvoyé tel quel par
-// les modèles Eloquent) en URL absolue vers le disque public Laravel (storage:link).
+// Convertit un chemin de stockage relatif (ex: "photos/produits/xxx.jpg") en URL absolue
+// vers Supabase Storage (stockage persistant, S3-compatible). Les fichiers survivent aux
+// redéploiements sur Render contrairement au disque local du conteneur Docker.
+const SUPABASE_STORAGE_URL = "https://ixqgpgcxadtomgriiczh.supabase.co/storage/v1/object/public/media";
+
 export function resolveMediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   if (/^https?:\/\//.test(path)) return path;
-  const base = API_URL.replace(/\/api\/?$/, "");
-  return `${base}/storage/${path.replace(/^\/+/, "")}`;
+  return `${SUPABASE_STORAGE_URL}/${path.replace(/^\/+/, "")}`;
 }
 
 export function getToken(): string | null {
