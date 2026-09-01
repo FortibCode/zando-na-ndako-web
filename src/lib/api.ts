@@ -1055,7 +1055,7 @@ export async function supprimerVendeurProduit(id: string): Promise<void> {
 
 export async function gererVendeurStock(id: string, quantite: number, operation: "ajouter" | "definir"): Promise<number> {
   const res = await api.post<{ success: boolean; nouveau_stock: number }>(`/vendeur/produits/${id}/stock`, { quantite, operation }, publicAuthOptions());
-  return res.data.nouveau_stock;
+  return res.nouveau_stock;
 }
 
 export async function signalerVendeurRupture(id: string): Promise<void> {
