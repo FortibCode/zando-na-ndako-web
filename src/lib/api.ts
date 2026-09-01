@@ -1038,7 +1038,7 @@ export async function ajouterVendeurProduit(input: VendeurProduitInput): Promise
     if (value !== undefined && value !== null) form.append(key, value as any);
   });
   const res = await api.post<{ success: boolean; data: Produit }>("/vendeur/produits", form, publicAuthOptions());
-  return res.data.data;
+  return res.data;
 }
 
 // modifierProduit ne permet de changer ni la photo ni la catégorie côté backend (validation
@@ -1046,7 +1046,7 @@ export async function ajouterVendeurProduit(input: VendeurProduitInput): Promise
 // ne sont donc volontairement pas éditables depuis le formulaire de modification.
 export async function modifierVendeurProduit(id: string, input: Partial<Pick<VendeurProduitInput, "nom_produit" | "description" | "prix_unitaire" | "unite_mesure" | "type_fraicheur">>): Promise<Produit> {
   const res = await api.put<{ success: boolean; data: Produit }>(`/vendeur/produits/${id}`, input, publicAuthOptions());
-  return res.data.data;
+  return res.data;
 }
 
 export async function supprimerVendeurProduit(id: string): Promise<void> {
