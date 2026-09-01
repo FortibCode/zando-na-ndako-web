@@ -1038,7 +1038,7 @@ export async function ajouterVendeurProduit(input: VendeurProduitInput): Promise
     if (value !== undefined && value !== null) form.append(key, value as any);
   });
   const res = await api.post<{ success: boolean; data: Produit }>("/vendeur/produits", form, publicAuthOptions());
-  return res.data;
+  return res.data.data;
 }
 
 // modifierProduit ne permet de changer ni la photo ni la catégorie côté backend (validation
